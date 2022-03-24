@@ -7,17 +7,9 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging
 {
-    public interface IImageCodec
+    public abstract class ImageCodec
     {
-        RawImage Read(Stream input);
-
-        bool Test(byte[] bytes);
-
-    }
-
-    public abstract class ImageCodec : IImageCodec
-    {
-        public RawImage Read(byte[] bytes)
+        public ScanData Read(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             {
@@ -26,7 +18,7 @@ namespace Giselle.Imaging
 
         }
 
-        public abstract RawImage Read(Stream input);
+        public abstract ScanData Read(Stream input);
 
         public abstract bool Test(byte[] bytes);
 

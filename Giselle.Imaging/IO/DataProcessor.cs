@@ -185,6 +185,15 @@ namespace Giselle.Imaging.IO
             }
 
         }
+        
+        public virtual void SkipByRead(long length)
+        {
+            for (var i = 0L; i < length; i++)
+            {
+                this.ReadByte();
+            }
+
+        }
 
         public virtual byte[] ReadBytes(int length)
         {

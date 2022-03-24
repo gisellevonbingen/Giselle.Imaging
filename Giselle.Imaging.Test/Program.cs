@@ -38,7 +38,8 @@ namespace Giselle.Imaging.Test
                         var codec = new BMPCodec();
                         var image = codec.Read(fs);
 
-                        using (var bitmap = image.ToBitmap())
+                        using (var bitmap = new Image32Argb(image.CreateProcessor()).ToBitmap())
+                        //using (var bitmap = image.ToBitmap())
                         {
                             bitmap.Save(output, ImageFormat.Png);
                         }
