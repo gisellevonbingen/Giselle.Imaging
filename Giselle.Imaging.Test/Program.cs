@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.BMP;
@@ -12,34 +13,34 @@ namespace Giselle.Imaging.Test
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
-            var dir = @"C:\Users\Seil\Desktop\";
-            var input = $"{dir}Test.bmp";
-            var output = $"{dir}Result.png";
+            var rootDir = @"C:\Users\Seil\Desktop\Test\";
+            var inputDir = $@"{rootDir}Input\";
+            var outputDir = $@"{rootDir}Output\";
 
-            using (var fs = new FileStream(input, FileMode.Open))
+            Directory.CreateDirectory(rootDir);
+            Directory.CreateDirectory(inputDir);
+            Directory.CreateDirectory(outputDir);
+
+            var inputs = Directory.GetFiles(inputDir, "*", SearchOption.AllDirectories);
+
+            foreach (var input in inputs)
             {
-                var codec = new BMPCodec();
-                var image = codec.Read(fs);
-                Console.WriteLine(image.Width + " " + image.Height);
+                var relatedPath = input.Substring(inputDir.Length);
+                var output = Path.ChangeExtension(outputDir + relatedPath, ".png");
+                new FileInfo(output).Directory.Create();
 
-                using (var bitmap = new Bitmap(image.Width, image.Height))
+                using (var fs = new FileStream(input, FileMode.Open))
                 {
-                    var data = bitmap.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppRgb);
+                    var codec = new BMPCodec();
+                    var image = codec.Read(fs);
 
-                    unsafe
+                    using (var bitmap = image.ToBitmap())
                     {
-                        fixed (byte* scan0 = image.Scan)
-                        {
-                            data.Scan0 = (IntPtr)scan0;
-                        }
-
+                        bitmap.Save(output, ImageFormat.Png);
                     }
 
-                    bitmap.UnlockBits(data);
-                    bitmap.Save(output, ImageFormat.Png);
-                    Console.WriteLine("Complete");
                 }
 
             }

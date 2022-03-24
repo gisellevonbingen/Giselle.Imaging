@@ -79,16 +79,17 @@ namespace Giselle.Imaging.BMP
             var readingStride = readingMod == 0 ? readingWidth : (readingWidth - readingMod + divisor);
             var readingPadding = readingStride - readingWidth;
 
-            var dpp = 4;
+            var pixelFormat = PixelFormat.Format32bppPArgb;
+            var dpp = 32 / 8;
             var formatWidth = width * dpp;
             var formatMod = formatWidth % divisor;
             var formatStride = formatMod == 0 ? formatWidth : (formatWidth - formatMod + divisor);
-            var stride = formatStride;
             var scan = new byte[height * formatStride];
 
             if (useColorTable == true)
             {
                 var maskBase = 0;
+                var shiftBase = 8 / w2;
 
                 for (var i = 0; i < bitsPerPixel; i++)
                 {
@@ -97,7 +98,7 @@ namespace Giselle.Imaging.BMP
 
                 for (var y = height - 1; y > -1; y--)
                 {
-                    var offsetBase = y * stride;
+                    var offsetBase = y * formatStride;
 
                     for (var i = 0; i < readingStride; i++)
                     {
@@ -114,7 +115,7 @@ namespace Giselle.Imaging.BMP
 
                             var offset = offsetBase + (i * w2 * dpp) + (bi * dpp);
 
-                            var shift = (8 / w2) * (w2 - 1 - bi);
+                            var shift = shiftBase * (w2 - 1 - bi);
                             var mask = maskBase << shift;
                             var tableIndex = (b & mask) >> shift;
                             var p = colorTable[tableIndex];
@@ -133,7 +134,7 @@ namespace Giselle.Imaging.BMP
             {
                 for (var y = height - 1; y > -1; y--)
                 {
-                    var offsetBase = y * stride;
+                    var offsetBase = y * formatStride;
 
                     for (var x = 0; x < width; x++)
                     {
@@ -165,7 +166,7 @@ namespace Giselle.Imaging.BMP
 
             }
 
-            return new RawImage(width, height, stride, scan);
+            return new RawImage(width, height, formatStride, scan, pixelFormat);
         }
 
         public void ReadColorTable(DataProcessor processor, List<Color> colorTable, int numOfColors)

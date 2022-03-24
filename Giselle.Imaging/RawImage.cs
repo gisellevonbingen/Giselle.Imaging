@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,13 +14,15 @@ namespace Giselle.Imaging
         public int Height { get; }
         public int Stride { get; }
         public byte[] Scan { get; }
+        public PixelFormat Format { get; }
 
-        public RawImage(int width, int height, int stride, byte[] scan)
+        public RawImage(int width, int height, int stride, byte[] scan, PixelFormat format)
         {
             this.Width = width;
             this.Height = height;
             this.Stride = stride;
             this.Scan = scan;
+            this.Format = format;
         }
 
         public int Offset(int x, int y) => y * this.Stride + x;
@@ -39,10 +42,10 @@ namespace Giselle.Imaging
             set
             {
                 var offset = this.Offset(x, y);
-                this.Scan[offset + 0] =value.B;
-                this.Scan[offset + 1] =value.G;
-                this.Scan[offset + 2] =value.R;
-                this.Scan[offset + 3] =value.A;
+                this.Scan[offset + 0] = value.B;
+                this.Scan[offset + 1] = value.G;
+                this.Scan[offset + 2] = value.R;
+                this.Scan[offset + 3] = value.A;
             }
 
         }
