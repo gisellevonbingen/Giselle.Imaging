@@ -18,10 +18,11 @@ namespace Giselle.Imaging
 
         }
 
-        public abstract ScanData Read(Stream input);
-
         public abstract bool Test(byte[] bytes);
 
+        public abstract ScanData Read(Stream input);
+
+        public abstract void Write(Stream output, ScanData data);
     }
 
 }

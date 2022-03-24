@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.BMP;
+using Giselle.Imaging.Bmp;
 
 namespace Giselle.Imaging.Test
 {
@@ -35,11 +36,14 @@ namespace Giselle.Imaging.Test
                 {
                     try
                     {
-                        var codec = new BMPCodec();
-                        var image = codec.Read(fs);
+                        var codec = new BmpCodec();
+                        var scanData = codec.Read(fs);
 
-                        using (var bitmap = new Image32Argb(image.CreateProcessor()).ToBitmap())
-                        //using (var bitmap = image.ToBitmap())
+                        var image = new Image32Argb(scanData.CreateProcessor());
+                        Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
+
+                        using (var bitmap = image.ToBitmap())
+                        //using (var bitmap = scanData.ToBitmap())
                         {
                             bitmap.Save(output, ImageFormat.Png);
                         }
