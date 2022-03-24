@@ -33,12 +33,21 @@ namespace Giselle.Imaging.Test
 
                 using (var fs = new FileStream(input, FileMode.Open))
                 {
-                    var codec = new BMPCodec();
-                    var image = codec.Read(fs);
-
-                    using (var bitmap = image.ToBitmap())
+                    try
                     {
-                        bitmap.Save(output, ImageFormat.Png);
+                        var codec = new BMPCodec();
+                        var image = codec.Read(fs);
+
+                        using (var bitmap = image.ToBitmap())
+                        {
+                            bitmap.Save(output, ImageFormat.Png);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(input);
+                        Console.WriteLine(ex);
                     }
 
                 }

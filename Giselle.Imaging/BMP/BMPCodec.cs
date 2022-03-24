@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
@@ -79,17 +77,15 @@ namespace Giselle.Imaging.BMP
             var readingStride = readingMod == 0 ? readingWidth : (readingWidth - readingMod + divisor);
             var readingPadding = readingStride - readingWidth;
 
-            var pixelFormat = PixelFormat.Format32bppPArgb;
-            var dpp = 32 / 8;
+            var dpp = 4;
             var formatWidth = width * dpp;
             var formatMod = formatWidth % divisor;
             var formatStride = formatMod == 0 ? formatWidth : (formatWidth - formatMod + divisor);
-            var scan = new byte[height * formatStride];
+            var formatScan = new byte[height * formatStride];
 
             if (useColorTable == true)
             {
                 var maskBase = 0;
-                var shiftBase = 8 / w2;
 
                 for (var i = 0; i < bitsPerPixel; i++)
                 {
@@ -115,14 +111,14 @@ namespace Giselle.Imaging.BMP
 
                             var offset = offsetBase + (i * w2 * dpp) + (bi * dpp);
 
-                            var shift = shiftBase * (w2 - 1 - bi);
+                            var shift = bitsPerPixel * (w2 - 1 - bi);
                             var mask = maskBase << shift;
                             var tableIndex = (b & mask) >> shift;
                             var p = colorTable[tableIndex];
-                            scan[offset + 0] = p.B;
-                            scan[offset + 1] = p.G;
-                            scan[offset + 2] = p.R;
-                            scan[offset + 3] = 255;
+                            formatScan[offset + 0] = p.B;
+                            formatScan[offset + 1] = p.G;
+                            formatScan[offset + 2] = p.R;
+                            formatScan[offset + 3] = 255;
                         }
 
                     }
@@ -142,17 +138,17 @@ namespace Giselle.Imaging.BMP
 
                         if (bitsPerPixel == 32)
                         {
-                            scan[offset + 0] = processor.ReadByte();
-                            scan[offset + 1] = processor.ReadByte();
-                            scan[offset + 2] = processor.ReadByte();
-                            scan[offset + 3] = processor.ReadByte();
+                            formatScan[offset + 0] = processor.ReadByte();
+                            formatScan[offset + 1] = processor.ReadByte();
+                            formatScan[offset + 2] = processor.ReadByte();
+                            formatScan[offset + 3] = processor.ReadByte();
                         }
                         else if (bitsPerPixel == 24)
                         {
-                            scan[offset + 0] = processor.ReadByte();
-                            scan[offset + 1] = processor.ReadByte();
-                            scan[offset + 2] = processor.ReadByte();
-                            scan[offset + 3] = 255;
+                            formatScan[offset + 0] = processor.ReadByte();
+                            formatScan[offset + 1] = processor.ReadByte();
+                            formatScan[offset + 2] = processor.ReadByte();
+                            formatScan[offset + 3] = 255;
                         }
 
                     }
@@ -166,7 +162,7 @@ namespace Giselle.Imaging.BMP
 
             }
 
-            return new RawImage(width, height, formatStride, scan, pixelFormat);
+            return new RawImage(width, height, formatStride, formatScan);
         }
 
         public void ReadColorTable(DataProcessor processor, List<Color> colorTable, int numOfColors)

@@ -13,18 +13,17 @@ namespace Giselle.Imaging
         public int Width { get; }
         public int Height { get; }
         public int Stride { get; }
+        public PixelFormat Format => PixelFormat.Format32bppPArgb;
         public byte[] Scan { get; }
-        public PixelFormat Format { get; }
 
-        public RawImage(int width, int height, int stride, byte[] scan, PixelFormat format)
+        public RawImage(int width, int height, int stride, byte[] scan)
         {
             this.Width = width;
             this.Height = height;
             this.Stride = stride;
             this.Scan = scan;
-            this.Format = format;
         }
-
+        
         public int Offset(int x, int y) => y * this.Stride + x;
 
         public Color this[int x, int y]
