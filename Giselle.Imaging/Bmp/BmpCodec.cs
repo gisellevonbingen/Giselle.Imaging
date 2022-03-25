@@ -27,6 +27,7 @@ namespace Giselle.Imaging.Bmp
 
         public BmpCodec()
         {
+
         }
 
         public static DataProcessor CreateBMPProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
@@ -38,12 +39,14 @@ namespace Giselle.Imaging.Bmp
             var width = data.Width;
             var height = data.Height;
             var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
+            var compressionMethod = bitsPerPixel == BmpBitsPerPixel.Bpp32Argb ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
             var colorTable = data.ColorTable;
             var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
             var stride = data.Stride;
             var scan = data.Scan;
 
-            var infoSize = 40;
+            var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
+            var infoSize = 40 + bitFiledsSize;
             var colorTableSize = colorsUsed * 4;
             var scanSize = scan.Length;
             var scanOffset = 14 + infoSize + colorTableSize;
@@ -57,18 +60,29 @@ namespace Giselle.Imaging.Bmp
             processor.WriteShort(0);
             processor.WriteInt(scanOffset);
 
-            //// Bitmap Info Header
+            // Bitmap Info Header
             processor.WriteInt(infoSize);
             processor.WriteInt(width);
             processor.WriteInt(height);
             processor.WriteShort(1);
             processor.WriteShort((short)bitsPerPixel);
-            processor.WriteInt(0);
+            processor.WriteInt((int)compressionMethod);
             processor.WriteInt(0);
             processor.WriteInt((int)(data.WidthResoulution / DPICoefficient));
             processor.WriteInt((int)(data.HeightResoulution / DPICoefficient));
             processor.WriteInt(colorsUsed);
             processor.WriteInt(colorsUsed);
+
+            // BitFields
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                processor.WriteUInt(0x00FF0000);
+                processor.WriteUInt(0x0000FF00);
+                processor.WriteUInt(0x000000FF);
+                processor.WriteUInt(0xFF000000);
+                processor.WriteUInt(0x206E6957);
+                processor.WriteBytes(new byte[48]);
+            }
 
             if (colorsUsed > 0)
             {
@@ -125,6 +139,18 @@ namespace Giselle.Imaging.Bmp
             var heightPixelsPerMeter = processor.ReadInt(); // Pixels per meter
             var colorsUsed = processor.ReadInt(); // 0 or 2^bitsPerPixel
             var importantColors = processor.ReadInt(); // Generally ingored
+
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                var rChannel = processor.ReadInt();
+                var gChannel = processor.ReadInt();
+                var bChannel = processor.ReadInt();
+                var aChannel = processor.ReadInt();
+            }
+            else if (compressionMethod == BmpCompressionMethod.AlphaBitsFields)
+            {
+
+            }
 
             // Color Table
             var colorTable = new Color[colorsUsed];
