@@ -53,11 +53,14 @@ namespace Giselle.Imaging
         public Image32Argb(ScanData scanData) : this()
         {
             var processor = ScanProcessor.GetScanProcessor(scanData.Format);
+
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = processor.FormatBitsPerPixel;
-            this.Scan = processor.Read(scanData);
+            this.Stride = processor.GetFormatStride(this.Width);
+            this.Scan = new byte[scanData.Height * this.Stride];
             this.Resolution = scanData.Resolution;
+
+            processor.Read(scanData, this);
         }
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
@@ -110,6 +113,42 @@ namespace Giselle.Imaging
 
             }
 
+        }
+
+        public ScanData Encode(PixelFormat format)
+        {
+            return this.Encode(format, null);
+        }
+
+        public ScanData Encode(PixelFormat format, Color[] colorTable)
+        {
+            var colorTableLength = format.GetColorTableLength();
+
+            if (colorTableLength > 0)
+            {
+                if (colorTable == null)
+                {
+                    colorTable = this.Colors.Distinct().ToArray();
+                }
+
+                if (colorTable.Length > colorTableLength)
+                {
+                    throw new ArgumentException($"image's used colors kind({colorTable.Length}) exceeds ColorTableLength({colorTableLength})");
+                }
+
+            }
+
+            var processor = ScanProcessor.GetScanProcessor(format);
+            var stride = ScanProcessor.GetStride(this.Width, format.GetBitsPerPixel());
+            var scan = new byte[this.Height * stride];
+            var scanData = new ScanData(this.Width, this.Height, stride, format, scan, colorTable)
+            {
+                WidthResoulution = this.WidthResoulution,
+                HeightResoulution = this.HeightResoulution,
+            };
+            processor.Write(scanData, this);
+
+            return scanData;
         }
 
         public class ImageEnumerable<T> : IEnumerable<T>

@@ -52,17 +52,11 @@ namespace Giselle.Imaging
 
         }
 
-        public byte[] Read(ScanData reading)
-        {
-            var formatStride = GetStride(reading.Width, this.FormatBitsPerPixel);
-            var formatScan = new byte[reading.Height * formatStride];
-            this.Read(reading, formatScan, formatStride);
-            return formatScan;
-        }
+        public abstract void Read(ScanData input, Image32Argb image);
 
-        public abstract void Read(ScanData reading, byte[] formatScan, int formatStride);
+        public abstract void Write(ScanData output, Image32Argb image);
 
-        public int GetFormatBitsPerPixel(int width) => GetStride(width, this.FormatBitsPerPixel);
+        public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
 
         public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 

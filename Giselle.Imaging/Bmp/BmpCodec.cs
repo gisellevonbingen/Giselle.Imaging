@@ -12,7 +12,7 @@ using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Bmp
 {
-    public class BmpCodec : ImageCodec
+    public class BmpCodec : ImageCodec<BmpEncodeOptions>
     {
         public const int SignatureLength = 2;
         public static IList<byte> SignatureBM { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x4D });
@@ -25,6 +25,10 @@ namespace Giselle.Imaging.Bmp
 
         public const double DPICoefficient = 25.4D / 1000.0D;
 
+        public BmpCodec()
+        {
+        }
+
         public static DataProcessor CreateBMPProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
@@ -35,7 +39,7 @@ namespace Giselle.Imaging.Bmp
             var height = data.Height;
             var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
             var colorTable = data.ColorTable;
-            var colorsUsed = bitsPerPixel.IsUseColorTable() ? colorTable.Length : 0;
+            var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
             var stride = data.Stride;
             var scan = data.Scan;
 
@@ -175,28 +179,79 @@ namespace Giselle.Imaging.Bmp
             };
         }
 
-        public override ScanData Encode(Image32Argb image) => this.Encode(image, new BmpEncodingOptions());
-
-        public ScanData Encode(Image32Argb image, BmpEncodingOptions options)
+        public override ScanData Encode(Image32Argb image, BmpEncodeOptions options)
         {
-            if (options.BitsPerPixel != BmpBitsPerPixel.Undefined)
+            var bitsPerPixel = options.BitsPerPixel;
+            Color[] usedColors = null;
+
+            if (bitsPerPixel != BmpBitsPerPixel.Undefined)
             {
-                var colorTableLength = options.BitsPerPixel.GetColorTableLength();
+                var colorTableLength = bitsPerPixel.ToPixelFormat().GetColorTableLength();
 
                 if (colorTableLength > 0)
                 {
-                    var colorCount = image.Colors.Distinct().Count();
+                    usedColors = image.Colors.Distinct().ToArray();
 
-                    if (colorCount > colorTableLength)
+                    if (usedColors.Length > colorTableLength)
                     {
-                        throw new ArgumentException($"image's used colors kind({colorCount}) exceeds ColorTableLength({colorTableLength})", nameof(image));
+                        throw new ArgumentException($"image's used colors kind({usedColors.Length}) exceeds ColorTableLength({colorTableLength})", nameof(image));
+                    }
+
+                }
+
+            }
+            else
+            {
+                usedColors = image.Colors.Distinct().ToArray();
+                var useAlpha = usedColors.Any(c => c.A < 255);
+
+                if (useAlpha == true)
+                {
+                    bitsPerPixel = BmpBitsPerPixel.Bpp32Argb;
+                }
+                else
+                {
+                    bitsPerPixel = this.GetPrefferedBitsPerPixel(usedColors.Length);
+                }
+
+            }
+
+            var format = bitsPerPixel.ToPixelFormat();
+
+            if (format.IsUseColorTable() == true)
+            {
+                if (usedColors == null)
+                {
+                    usedColors = image.Colors.Distinct().ToArray();
+                }
+
+            }
+
+            return image.Encode(format, usedColors);
+        }
+
+        public BmpBitsPerPixel GetPrefferedBitsPerPixel(int colorCount)
+        {
+            var lastCount = 0;
+            var lastBPP = BmpBitsPerPixel.Bpp24Rgb;
+
+            foreach (var e in Enum.GetValues(typeof(BmpBitsPerPixel)) as BmpBitsPerPixel[])
+            {
+                var colorTableLength = e.ToPixelFormat().GetColorTableLength();
+
+                if (colorTableLength > 0 && colorTableLength >= colorCount)
+                {
+                    if (lastBPP == BmpBitsPerPixel.Bpp24Rgb || colorTableLength < lastCount)
+                    {
+                        lastBPP = e;
+                        lastCount = colorTableLength;
                     }
 
                 }
 
             }
 
-            return new ScanData(image);
+            return lastBPP;
         }
 
     }

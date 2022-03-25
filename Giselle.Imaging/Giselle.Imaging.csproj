@@ -46,10 +46,11 @@
     <Compile Include="Bmp\BmpBitsPerPixelExtensions.cs" />
     <Compile Include="Bmp\BmpCodec.cs" />
     <Compile Include="Bmp\BmpCompressionMethod.cs" />
-    <Compile Include="Bmp\BmpEncodingOptions.cs" />
+    <Compile Include="Bmp\BmpEncodeOptions.cs" />
     <Compile Include="Checksum\CRCException.cs" />
     <Compile Include="Checksum\CRCUtils.cs" />
     <Compile Include="ColorWithPosition.cs" />
+    <Compile Include="EncodeOptions.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="ScanProcessor16Rgb555.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />

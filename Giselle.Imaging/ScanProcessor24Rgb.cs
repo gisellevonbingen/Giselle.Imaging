@@ -15,12 +15,19 @@ namespace Giselle.Imaging
 
         }
 
-        protected override void ReadPixel(byte[] formatScan, int formatOffset, byte[] readingScan, int readingOffset)
+        protected override void ReadPixel(byte[] inputScan, int inputOffset, byte[] formatScan, int formatOffset)
         {
-            formatScan[formatOffset + 0] = readingScan[readingOffset + 0];
-            formatScan[formatOffset + 1] = readingScan[readingOffset + 1];
-            formatScan[formatOffset + 2] = readingScan[readingOffset + 2];
+            formatScan[formatOffset + 0] = inputScan[inputOffset + 0];
+            formatScan[formatOffset + 1] = inputScan[inputOffset + 1];
+            formatScan[formatOffset + 2] = inputScan[inputOffset + 2];
             formatScan[formatOffset + 3] = 255;
+        }
+
+        protected override void WritePixel(byte[] outputScan, int outputOffset, byte[] formatScan, int formatOffset)
+        {
+            outputScan[outputOffset + 0] = formatScan[formatOffset + 0];
+            outputScan[outputOffset + 1] = formatScan[formatOffset + 1];
+            outputScan[outputOffset + 2] = formatScan[formatOffset + 2];
         }
 
     }

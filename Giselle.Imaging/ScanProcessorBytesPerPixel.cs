@@ -13,32 +13,51 @@ namespace Giselle.Imaging
 
         }
 
-        public override void Read(ScanData reading, byte[] formatScan, int formatStride)
+        public override void Read(ScanData input, Image32Argb image)
         {
-            var rbpp = reading.Format.GetBitsPerPixel() / 8;
+            var ibpp = input.Format.GetBitsPerPixel() / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
-            var width = reading.Width;
-            var height = reading.Height;
-            var readingScan = reading.Scan;
-            var readingStride = reading.Stride;
 
-            for (var y = 0; y < height; y++)
+            for (var y = 0; y < input.Height; y++)
             {
-                var formatOffsetBase = y * formatStride;
-                var readingOffsetBase = y * readingStride;
+                var formatOffsetBase = y * image.Stride;
+                var readingOffsetBase = y * input.Stride;
 
-                for (var x = 0; x < width; x++)
+                for (var x = 0; x < input.Width; x++)
                 {
                     var formatOffset = formatOffsetBase + (x * fbpp);
-                    var readingOffset = readingOffsetBase + (x * rbpp);
-                    this.ReadPixel(formatScan, formatOffset, readingScan, readingOffset);
+                    var inputOffset = readingOffsetBase + (x * ibpp);
+                    this.ReadPixel(input.Scan, inputOffset, image.Scan, formatOffset);
                 }
 
             }
 
         }
 
-        protected abstract void ReadPixel(byte[] formatScan, int formatOffset, byte[] readingScan, int readingOffset);
+        public override void Write(ScanData output, Image32Argb image)
+        {
+            var obpp = output.Format.GetBitsPerPixel() / 8;
+            var fbpp = this.FormatBitsPerPixel / 8;
+
+            for (var y = 0; y < output.Height; y++)
+            {
+                var formatOffsetBase = y * image.Stride;
+                var outputOffsetBase = y * output.Stride;
+
+                for (var x = 0; x < output.Width; x++)
+                {
+                    var formatOffset = formatOffsetBase + (x * fbpp);
+                    var outputOffset = outputOffsetBase + (x * obpp);
+                    this.WritePixel(output.Scan, outputOffset, image.Scan, formatOffset);
+                }
+
+            }
+
+        }
+
+        protected abstract void ReadPixel(byte[] inputScan, int inputOffset, byte[] formatScan, int formatOffset);
+
+        protected abstract void WritePixel(byte[] outputScan, int outputOffset, byte[] formatScan, int formatOffset);
 
     }
 

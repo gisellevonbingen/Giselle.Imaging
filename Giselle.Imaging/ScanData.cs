@@ -24,14 +24,10 @@ namespace Giselle.Imaging
             set { this.WidthResoulution = value; this.HeightResoulution = value; }
         }
 
-        public ScanData(Image32Argb image)
+        public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan)
+            : this(width, height, stride, format, scan, null)
         {
-            this.Width = image.Width;
-            this.Height = image.Height;
-            this.Stride = image.Stride;
-            this.Scan = image.Scan;
-            this.ColorTable = new Color[0];
-            this.Resolution = image.Resolution;
+
         }
 
         public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan, Color[] colorTable)
@@ -41,7 +37,7 @@ namespace Giselle.Imaging
             this.Stride = stride;
             this.Format = format;
             this.Scan = scan;
-            this.ColorTable = colorTable;
+            this.ColorTable = colorTable ?? new Color[0];
             this.Resolution = 96.0D;
         }
 

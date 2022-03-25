@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Bmp
 {
-    public class BmpEncodingOptions
+    public class BmpEncodeOptions : EncodeOptions
     {
         public BmpBitsPerPixel BitsPerPixel { get; set; } = BmpBitsPerPixel.Undefined;
     }
