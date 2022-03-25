@@ -8,53 +8,54 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessorBytesPerPixel : ScanProcessor
     {
-        public bool UseAlpha { get; set; }
-        public Int32MaskBits AMaskBits { get; set; }
-        public Int32MaskBits RMaskBits { get; set; }
-        public Int32MaskBits GMaskBits { get; set; }
-        public Int32MaskBits BMaskBits { get; set; }
+        public Int32ChannelMask AMask { get; set; }
+        public Int32ChannelMask RMask { get; set; }
+        public Int32ChannelMask GMask { get; set; }
+        public Int32ChannelMask BMask { get; set; }
 
         public ScanProcessorBytesPerPixel()
         {
 
         }
 
-        public override void Read(ScanData input, Image32Argb image)
+        public override void Read(ScanData input, byte[] formatScan)
         {
             var ibpp = input.Format.GetBitsPerPixel() / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
+            var formatStirde = this.GetFormatStride(input.Width);
 
             for (var y = 0; y < input.Height; y++)
             {
-                var formatOffsetBase = y * image.Stride;
+                var formatOffsetBase = y * formatStirde;
                 var readingOffsetBase = y * input.Stride;
 
                 for (var x = 0; x < input.Width; x++)
                 {
                     var formatOffset = formatOffsetBase + (x * fbpp);
                     var inputOffset = readingOffsetBase + (x * ibpp);
-                    this.ReadPixel(input.Scan, inputOffset, image.Scan, formatOffset);
+                    this.ReadPixel(input.Scan, inputOffset, formatScan, formatOffset);
                 }
 
             }
 
         }
 
-        public override void Write(ScanData output, Image32Argb image)
+        public override void Write(ScanData output, byte[] formatScan)
         {
             var obpp = output.Format.GetBitsPerPixel() / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
+            var formatStirde = this.GetFormatStride(output.Width);
 
             for (var y = 0; y < output.Height; y++)
             {
-                var formatOffsetBase = y * image.Stride;
+                var formatOffsetBase = y * formatStirde;
                 var outputOffsetBase = y * output.Stride;
 
                 for (var x = 0; x < output.Width; x++)
                 {
                     var formatOffset = formatOffsetBase + (x * fbpp);
                     var outputOffset = outputOffsetBase + (x * obpp);
-                    this.WritePixel(output.Scan, outputOffset, image.Scan, formatOffset);
+                    this.WritePixel(output.Scan, outputOffset, formatScan, formatOffset);
                 }
 
             }

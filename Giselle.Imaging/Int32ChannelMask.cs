@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging
 {
-    public struct Int32MaskBits : IEquatable<Int32MaskBits>
+    public struct Int32ChannelMask : IEquatable<Int32ChannelMask>
     {
-        public static implicit operator Int32MaskBits(int raw) => FromRaw(raw);
+        public static implicit operator Int32ChannelMask(int raw) => FromRaw(raw);
 
-        public static implicit operator Int32MaskBits(uint raw) => FromRaw(raw);
+        public static implicit operator Int32ChannelMask(uint raw) => FromRaw(raw);
 
-        public static Int32MaskBits FromRaw(int raw) => FromRaw((uint)raw);
+        public static Int32ChannelMask FromRaw(int raw) => FromRaw((uint)raw);
 
-        public static Int32MaskBits FromRaw(uint raw)
+        public static Int32ChannelMask FromRaw(uint raw)
         {
             var offset = 0;
             var length = 0;
@@ -54,30 +54,30 @@ namespace Giselle.Imaging
                 length = bits - offset;
             }
 
-            return new Int32MaskBits(offset, length);
+            return new Int32ChannelMask(offset, length);
         }
 
         public int Offset { get; }
         public int Length { get; }
         public int Mask { get; }
 
-        public Int32MaskBits(int offset, int length) : this()
+        public Int32ChannelMask(int offset, int length) : this()
         {
             this.Offset = offset;
             this.Length = length;
             this.Mask = (int)((uint)Math.Pow(2, length) - 1);
         }
 
-        public byte SplitByte(int mergedValue)
+        public byte SplitByte(int mergedValue, byte fallback = 0)
         {
-            if (this.Mask == 0) return 0;
+            if (this.Mask == 0) return fallback;
             var chunk = (mergedValue >> this.Offset) & this.Mask;
             return (byte)((chunk * byte.MaxValue) / this.Mask);
         }
 
         public int MergeByte(int mergedValue, byte value)
         {
-            if (this.Mask == 0) return 0;
+            if (this.Mask == 0) return mergedValue;
             var raw = (value * this.Mask) / byte.MaxValue;
             return mergedValue | raw << this.Offset;
         }
@@ -94,10 +94,10 @@ namespace Giselle.Imaging
 
         public override bool Equals(object obj)
         {
-            return obj is Int32MaskBits other && this.Equals(other);
+            return obj is Int32ChannelMask other && this.Equals(other);
         }
 
-        public bool Equals(Int32MaskBits other)
+        public bool Equals(Int32ChannelMask other)
         {
             return this.Offset == other.Offset && this.Length == other.Length;
         }

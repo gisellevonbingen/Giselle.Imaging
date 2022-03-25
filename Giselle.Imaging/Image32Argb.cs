@@ -50,20 +50,26 @@ namespace Giselle.Imaging
             this.Scan = scan ?? new byte[height * stride];
         }
 
-        public Image32Argb(ScanData scanData) : this(scanData, ScanProcessor.GetScanProcessor(scanData.Format))
+        public Image32Argb(ScanData scanData) : this()
         {
+            ScanProcessor processor;
 
-        }
+            if (scanData.UseBitFields == true)
+            {
+                processor = ScanProcessor.CreateScanProcessor(scanData.BitFieldsBits, scanData.AMask, scanData.RMask, scanData.GMask, scanData.BMask);
+            }
+            else
+            {
+                processor = ScanProcessor.GetScanProcessor(scanData.Format);
+            }
 
-        public Image32Argb(ScanData scanData, ScanProcessor scanProcessor) : this()
-        {
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = scanProcessor.GetFormatStride(this.Width);
-            this.Scan = new byte[scanData.Height * this.Stride];
+            this.Stride = processor.GetFormatStride(this.Width);
+            this.Scan = new byte[this.Height * this.Stride];
             this.Resolution = scanData.Resolution;
 
-            scanProcessor.Read(scanData, this);
+            processor.Read(scanData, this.Scan);
         }
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
@@ -149,7 +155,7 @@ namespace Giselle.Imaging
                 WidthResoulution = this.WidthResoulution,
                 HeightResoulution = this.HeightResoulution,
             };
-            processor.Write(scanData, this);
+            processor.Write(scanData, this.Scan);
 
             return scanData;
         }

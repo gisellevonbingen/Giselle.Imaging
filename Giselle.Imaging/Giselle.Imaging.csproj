@@ -51,7 +51,7 @@
     <Compile Include="Checksum\CRCUtils.cs" />
     <Compile Include="ColorWithPosition.cs" />
     <Compile Include="EncodeOptions.cs" />
-    <Compile Include="Int32MaskBits.cs" />
+    <Compile Include="Int32ChannelMask.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="ScanProcessor16.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />

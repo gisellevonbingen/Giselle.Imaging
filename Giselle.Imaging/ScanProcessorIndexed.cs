@@ -17,12 +17,13 @@ namespace Giselle.Imaging
 
         }
 
-        public override void Read(ScanData input, Image32Argb image)
+        public override void Read(ScanData input, byte[] formatScan)
         {
             var mask = 0;
             var bpp = input.Format.GetBitsPerPixel();
             var ppb = 8 / bpp;
             var dpp = this.FormatBitsPerPixel / 8;
+            var formatStride = this.GetFormatStride(input.Width);
 
             for (var i = 0; i < bpp; i++)
             {
@@ -33,7 +34,7 @@ namespace Giselle.Imaging
 
             for (var y = 0; y < input.Height; y++)
             {
-                var offsetBase = y * image.Stride;
+                var offsetBase = y * formatStride;
 
                 for (var i = 0; i < input.Stride; i++)
                 {
@@ -53,10 +54,10 @@ namespace Giselle.Imaging
                         var shift = bpp * (ppb - 1 - bi);
                         var tableIndex = (b >> shift) & mask;
                         var color = input.ColorTable[tableIndex];
-                        image.Scan[offset + 0] = color.B;
-                        image.Scan[offset + 1] = color.G;
-                        image.Scan[offset + 2] = color.R;
-                        image.Scan[offset + 3] = color.A;
+                        formatScan[offset + 0] = color.B;
+                        formatScan[offset + 1] = color.G;
+                        formatScan[offset + 2] = color.R;
+                        formatScan[offset + 3] = color.A;
                     }
 
                 }
@@ -65,11 +66,12 @@ namespace Giselle.Imaging
 
         }
 
-        public override void Write(ScanData output, Image32Argb image)
+        public override void Write(ScanData output, byte[] formatScan)
         {
             var maskBase = 0;
             var bpp = output.Format.GetBitsPerPixel();
             var ppb = 8 / bpp;
+            var formatStride = this.GetFormatStride(output.Width);
 
             for (var i = 0; i < bpp; i++)
             {
@@ -80,7 +82,7 @@ namespace Giselle.Imaging
             {
                 for (var x = 0; x < output.Width; x++)
                 {
-                    var color = image[x, y];
+                    var color = this.GetFormatColor(formatScan, formatStride, x, y);
                     var tableIndex = Array.IndexOf(output.ColorTable, color);
 
                     if (tableIndex == -1)
@@ -94,7 +96,7 @@ namespace Giselle.Imaging
 
                     var value = output.Scan[index];
                     value |= (byte)((tableIndex & maskBase) << shift);
-                    output.Scan[index] = value; 
+                    output.Scan[index] = value;
                 }
 
             }

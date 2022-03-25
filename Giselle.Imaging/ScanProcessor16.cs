@@ -10,23 +10,22 @@ namespace Giselle.Imaging
     {
         public static ScanProcessor InstanceRgb555 { get; } = new ScanProcessor16()
         {
-            RMaskBits = 0x7C00,
-            GMaskBits = 0x03E0,
-            BMaskBits = 0x001F,
+            RMask = 0x7C00,
+            GMask = 0x03E0,
+            BMask = 0x001F,
         };
         public static ScanProcessor InstanceRgb565 { get; } = new ScanProcessor16()
         {
-            RMaskBits = 0xF800,
-            GMaskBits = 0x07E0,
-            BMaskBits = 0x001F,
+            RMask = 0xF800,
+            GMask = 0x07E0,
+            BMask = 0x001F,
         };
         public static ScanProcessor InstanceArgb1555 { get; } = new ScanProcessor16()
         {
-            UseAlpha = true,
-            AMaskBits = 0x8000,
-            RMaskBits = 0x7C00,
-            GMaskBits = 0x03E0,
-            BMaskBits = 0x001F,
+            AMask = 0x8000,
+            RMask = 0x7C00,
+            GMask = 0x03E0,
+            BMask = 0x001F,
         };
 
         public ScanProcessor16()
@@ -38,24 +37,24 @@ namespace Giselle.Imaging
         {
             var b0 = inputScan[inputOffset + 0];
             var b1 = inputScan[inputOffset + 1];
-            var merged = b0 << 0x08 | b1 << 0x00;
+            var merged = (b1 << 0x08) | (b0 << 0x00);
 
-            formatScan[formatOffset + 0] = this.BMaskBits.SplitByte(merged);
-            formatScan[formatOffset + 1] = this.GMaskBits.SplitByte(merged);
-            formatScan[formatOffset + 2] = this.RMaskBits.SplitByte(merged);
-            formatScan[formatOffset + 3] = this.UseAlpha ? this.AMaskBits.SplitByte(merged) : byte.MaxValue;
+            formatScan[formatOffset + 0] = this.BMask.SplitByte(merged);
+            formatScan[formatOffset + 1] = this.GMask.SplitByte(merged);
+            formatScan[formatOffset + 2] = this.RMask.SplitByte(merged);
+            formatScan[formatOffset + 3] = this.AMask.SplitByte(merged, byte.MaxValue);
         }
 
         protected override void WritePixel(byte[] outputScan, int outputOffset, byte[] formatScan, int formatOffset)
         {
             var merged = 0;
-            merged = this.BMaskBits.MergeByte(merged, formatScan[formatOffset + 0]);
-            merged = this.GMaskBits.MergeByte(merged, formatScan[formatOffset + 1]);
-            merged = this.RMaskBits.MergeByte(merged, formatScan[formatOffset + 2]);
-            merged = this.UseAlpha ? this.AMaskBits.MergeByte(merged, formatScan[formatOffset + 3]) : merged;
+            merged = this.BMask.MergeByte(merged, formatScan[formatOffset + 0]);
+            merged = this.GMask.MergeByte(merged, formatScan[formatOffset + 1]);
+            merged = this.RMask.MergeByte(merged, formatScan[formatOffset + 2]);
+            merged = this.AMask.MergeByte(merged, formatScan[formatOffset + 3]);
 
-            outputScan[outputOffset + 0] = (byte)((merged >> 0x08) & 0xFF);
-            outputScan[outputOffset + 1] = (byte)((merged >> 0x00) & 0xFF);
+            outputScan[outputOffset + 0] = (byte)((merged >> 0x00) & 0xFF);
+            outputScan[outputOffset + 1] = (byte)((merged >> 0x08) & 0xFF);
         }
 
     }

@@ -10,6 +10,31 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessor
     {
+        public static ScanProcessor CreateScanProcessor(int bits, int aMask, int rMask, int gMask, int bMask)
+        {
+            if (bits == 1 || bits == 4 || bits == 8)
+            {
+                return new ScanProcessorIndexed();
+            }
+            else if (bits == 16)
+            {
+                return new ScanProcessor16() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+            }
+            else if (bits == 24)
+            {
+                return new ScanProcessor24() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+            }
+            else if (bits == 32)
+            {
+                return new ScanProcessor32() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown bits : {bits}");
+            }
+
+        }
+
         public static ScanProcessor GetScanProcessor(PixelFormat format)
         {
             if (format == PixelFormat.Format1bppIndexed || format == PixelFormat.Format4bppIndexed || format == PixelFormat.Format8bppIndexed)
@@ -64,9 +89,27 @@ namespace Giselle.Imaging
 
         }
 
-        public abstract void Read(ScanData input, Image32Argb image);
+        public byte[] Read(ScanData input)
+        {
+            var stride = this.GetFormatStride(input.Width);
+            var scan = new byte[input.Height * stride];
+            this.Read(input, scan);
+            return scan;
+        }
 
-        public abstract void Write(ScanData output, Image32Argb image);
+        public abstract void Read(ScanData input, byte[] formatScan);
+
+        public abstract void Write(ScanData output, byte[] formatScan);
+
+        public Color GetFormatColor(byte[] formatScan, int formatStride, int x, int y)
+        {
+            var offset = formatStride * y + (x * 4);
+            var b = formatScan[offset + 0];
+            var g = formatScan[offset + 1];
+            var r = formatScan[offset + 2];
+            var a = formatScan[offset + 3];
+            return Color.FromArgb(a, r, g, b);
+        }
 
         public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
 

@@ -140,16 +140,17 @@ namespace Giselle.Imaging.Bmp
             var colorsUsed = processor.ReadInt(); // 0 or 2^bitsPerPixel
             var importantColors = processor.ReadInt(); // Generally ingored
 
+            var rMask = 0;
+            var gMask = 0;
+            var bMask = 0;
+            var aMask = 0;
+
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                var rChannel = processor.ReadInt();
-                var gChannel = processor.ReadInt();
-                var bChannel = processor.ReadInt();
-                var aChannel = processor.ReadInt();
-            }
-            else if (compressionMethod == BmpCompressionMethod.AlphaBitsFields)
-            {
-
+                rMask = processor.ReadInt();
+                gMask = processor.ReadInt();
+                bMask = processor.ReadInt();
+                aMask = processor.ReadInt();
             }
 
             // Color Table
@@ -202,6 +203,12 @@ namespace Giselle.Imaging.Bmp
             {
                 WidthResoulution = widthPixelsPerMeter * DPICoefficient,
                 HeightResoulution = heightPixelsPerMeter * DPICoefficient,
+                UseBitFields = compressionMethod == BmpCompressionMethod.BitFields,
+                BitFieldsBits = (int)bitsPerPixel,
+                AMask = aMask,
+                RMask = rMask,
+                GMask = gMask,
+                BMask = bMask,
             };
         }
 
