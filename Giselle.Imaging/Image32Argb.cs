@@ -50,17 +50,20 @@ namespace Giselle.Imaging
             this.Scan = scan ?? new byte[height * stride];
         }
 
-        public Image32Argb(ScanData scanData) : this()
+        public Image32Argb(ScanData scanData) : this(scanData, ScanProcessor.GetScanProcessor(scanData.Format))
         {
-            var processor = ScanProcessor.GetScanProcessor(scanData.Format);
 
+        }
+
+        public Image32Argb(ScanData scanData, ScanProcessor scanProcessor) : this()
+        {
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = processor.GetFormatStride(this.Width);
+            this.Stride = scanProcessor.GetFormatStride(this.Width);
             this.Scan = new byte[scanData.Height * this.Stride];
             this.Resolution = scanData.Resolution;
 
-            processor.Read(scanData, this);
+            scanProcessor.Read(scanData, this);
         }
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);

@@ -11,7 +11,7 @@ namespace Giselle.Imaging
         public static ScanProcessor InstanceRgb888 { get; } = new ScanProcessor24()
         {
             RMaskBits = 0x0000FF,
-            GMaskBits = 0x00F000,
+            GMaskBits = 0x00FF00,
             BMaskBits = 0xFF0000,
         };
 
