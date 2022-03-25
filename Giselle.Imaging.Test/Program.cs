@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Bmp;
@@ -24,34 +25,35 @@ namespace Giselle.Imaging.Test
             Directory.CreateDirectory(inputDir);
             Directory.CreateDirectory(outputDir);
 
-            var inputs = Directory.GetFiles(inputDir, "*", SearchOption.AllDirectories);
+            var inputPaths = Directory.GetFiles(inputDir, "*", SearchOption.AllDirectories);
 
-            foreach (var input in inputs)
+            foreach (var inputPath in inputPaths)
             {
-                var relatedPath = input.Substring(inputDir.Length);
-                var output = Path.ChangeExtension(outputDir + relatedPath, ".png");
+                var relatedPath = inputPath.Substring(inputDir.Length);
+                var output = outputDir + relatedPath;
                 new FileInfo(output).Directory.Create();
 
-                using (var fs = new FileStream(input, FileMode.Open))
+                using (var inputStream = new FileStream(inputPath, FileMode.Open))
                 {
                     try
                     {
                         var codec = new BmpCodec();
-                        var scanData = codec.Read(fs);
+                        var scanData = codec.Read(inputStream);
 
-                        var image = new Image32Argb(scanData.CreateProcessor());
+                        var image = new Image32Argb(scanData);
                         Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
 
-                        using (var bitmap = image.ToBitmap())
-                        //using (var bitmap = scanData.ToBitmap())
+                        using (var outputStream = new FileStream(output, FileMode.Create))
                         {
-                            bitmap.Save(output, ImageFormat.Png);
+                            //SaveScanDataAsBitmap(outputStream, scanData);
+                            SaveScanDataAsCodec(outputStream, scanData, codec);
+                            //SaveImageAsCodec(outputStream, image, codec);
                         }
 
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(input);
+                        Console.WriteLine(inputPath);
                         Console.WriteLine(ex);
                     }
 
@@ -61,6 +63,31 @@ namespace Giselle.Imaging.Test
 
         }
 
+        public static void SaveScanDataAsBitmap(Stream output, ScanData scanData)
+        {
+            using (var bitmap = scanData.ToBitmap())
+            {
+                bitmap.Save(output, ImageFormat.Png);
+            }
+
+        }
+
+        public static void SaveScanDataAsCodec(Stream output, ScanData scanData, ImageCodec codec)
+        {
+            codec.Write(output, scanData);
+        }
+
+        public static void SaveImageAsCodec(Stream output, Image32Argb image, ImageCodec codec)
+        {
+            using (var bitmap = image.ToBitmap())
+            {
+                var scanData = codec.Encode(image);
+                SaveScanDataAsCodec(output, scanData, codec);
+            }
+
+        }
+
     }
+
 
 }

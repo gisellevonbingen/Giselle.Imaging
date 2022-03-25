@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Bmp
         BitFields = 3,
         Jpeg = 4,
         Png = 5,
-        AlphaBits = 6,
+        AlphaBitsFields = 6,
         Cmky = 11,
         CmkyRle8 = 12,
         CmkyRle4 = 13,

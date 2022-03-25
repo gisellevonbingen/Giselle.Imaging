@@ -16,6 +16,23 @@ namespace Giselle.Imaging
         public PixelFormat Format { get; }
         public byte[] Scan { get; }
         public Color[] ColorTable { get; }
+        public double WidthResoulution { get; set; }
+        public double HeightResoulution { get; set; }
+        public double Resolution
+        {
+            get => Math.Max(this.WidthResoulution, this.HeightResoulution);
+            set { this.WidthResoulution = value; this.HeightResoulution = value; }
+        }
+
+        public ScanData(Image32Argb image)
+        {
+            this.Width = image.Width;
+            this.Height = image.Height;
+            this.Stride = image.Stride;
+            this.Scan = image.Scan;
+            this.ColorTable = new Color[0];
+            this.Resolution = image.Resolution;
+        }
 
         public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan, Color[] colorTable)
         {
@@ -25,6 +42,7 @@ namespace Giselle.Imaging
             this.Format = format;
             this.Scan = scan;
             this.ColorTable = colorTable;
+            this.Resolution = 96.0D;
         }
 
         public ScanProcessor CreateProcessor()
@@ -46,6 +64,10 @@ namespace Giselle.Imaging
             else if (format == PixelFormat.Format8bppIndexed)
             {
                 return new ScanProcessorIndexed(width, height, scan, 8) { ColorTable = colorTable };
+            }
+            else if (format == PixelFormat.Format16bppRgb555)
+            {
+                return new ScanProcessor16Rgb555(width, height, scan);
             }
             else if (format == PixelFormat.Format24bppRgb)
             {

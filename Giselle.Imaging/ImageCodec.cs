@@ -23,6 +23,8 @@ namespace Giselle.Imaging
         public abstract ScanData Read(Stream input);
 
         public abstract void Write(Stream output, ScanData data);
+
+        public abstract ScanData Encode(Image32Argb image);
     }
 
 }

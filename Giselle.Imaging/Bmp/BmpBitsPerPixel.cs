@@ -8,11 +8,13 @@ namespace Giselle.Imaging.Bmp
 {
     public enum BmpBitsPerPixel : byte
     {
-        Indexed1 = 1,
-        Indexed4 = 4,
-        Indexed8 = 8,
-        Rgb24 = 24,
-        Argb32 = 32,
+        Undefined = 0,
+        Bpp1Indexed = 1,
+        Bpp4Indexed = 4,
+        Bpp8Indexed = 8,
+        Bpp16Rgb555 = 16,
+        Bpp24Rgb = 24,
+        Bpp32Argb = 32,
     }
 
 }

@@ -59,6 +59,13 @@ namespace Giselle.Imaging.IO
         {
             this.Write(value, 0, value.Length);
         }
+        public virtual void WriteBytes(IEnumerable<byte> value)
+        {
+            foreach (var b in value)
+            {
+                this.WriteByte(b);
+            }
+        }
         public virtual void WriteSByte(sbyte value)
         {
             this.WriteByte((byte)value);

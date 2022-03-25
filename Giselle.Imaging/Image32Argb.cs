@@ -16,7 +16,13 @@ namespace Giselle.Imaging
         public int Stride { get; }
         public PixelFormat Format => PixelFormat.Format32bppArgb;
         public byte[] Scan { get; }
-
+        public double WidthResoulution { get; set; }
+        public double HeightResoulution { get; set; }
+        public double Resolution
+        {
+            get => Math.Max(this.WidthResoulution, this.HeightResoulution);
+            set { this.WidthResoulution = value; this.HeightResoulution = value; }
+        }
         private readonly Lazy<IEnumerable<Color>> _Colors;
         public IEnumerable<Color> Colors => this._Colors.Value;
 
@@ -26,20 +32,12 @@ namespace Giselle.Imaging
 
         public Image32Argb()
         {
+            this.Resolution = 96.0D;
             this._Colors = new Lazy<IEnumerable<Color>>(() => new ImageEnumerable<Color>(this, s => s.Image[s.X, s.Y]));
-            this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this,  s => new ColorWithPosition(s.Image, s.X, s.Y)));
+            this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Image, s.X, s.Y)));
         }
 
-        public Image32Argb(int width, int height) : this()
-        {
-            this.Width = width;
-            this.Height = height;
-            this.Stride = ScanProcessor.GetStride(width, ScanProcessor32Argb.BitsPerPixel);
-            this.Scan = new byte[height * this.Stride];
-        }
-
-        public Image32Argb(ScanProcessor processor)
-            : this(processor.Width, processor.Height, processor.FormatStride, processor.Read())
+        public Image32Argb(int width, int height) : this(width, height, ScanProcessor.GetStride(width, ScanProcessor32Argb.BitsPerPixel), null)
         {
 
         }
@@ -49,7 +47,17 @@ namespace Giselle.Imaging
             this.Width = width;
             this.Height = height;
             this.Stride = stride;
-            this.Scan = scan;
+            this.Scan = scan ?? new byte[height * stride];
+        }
+
+        public Image32Argb(ScanData scanData) : this()
+        {
+            var processor = scanData.CreateProcessor();
+            this.Width = scanData.Width;
+            this.Height = scanData.Height;
+            this.Stride = processor.FormatStride;
+            this.Scan = processor.Read();
+            this.Resolution = scanData.Resolution;
         }
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
