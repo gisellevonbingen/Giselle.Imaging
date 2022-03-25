@@ -8,19 +8,19 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessorBytesPerPixel : ScanProcessor
     {
-        public ScanProcessorBytesPerPixel(int width, int height, byte[] readingScan, int readingBitsPerPixel) : base(width, height, readingScan, readingBitsPerPixel)
+        public ScanProcessorBytesPerPixel()
         {
 
         }
 
-        public override void Read(byte[] formatScan, int formatStride)
+        public override void Read(ScanData reading, byte[] formatScan, int formatStride)
         {
-            var rbpp = this.ReadingBitsPerPixel / 8;
+            var rbpp = reading.Format.GetBitsPerPixel() / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
-            var width = this.Width;
-            var height = this.Height;
-            var readingScan = this.ReadingScan;
-            var readingStride = this.ReadingStride;
+            var width = reading.Width;
+            var height = reading.Height;
+            var readingScan = reading.Scan;
+            var readingStride = reading.Stride;
 
             for (var y = 0; y < height; y++)
             {

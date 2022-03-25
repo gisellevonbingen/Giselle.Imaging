@@ -13,7 +13,7 @@ namespace Giselle.Imaging.Bmp
 
         public static int GetColorTableLength(this BmpBitsPerPixel value) => IsUseColorTable(value) ? (int)Math.Pow(2, (short)value) : 0;
 
-        public static BmpBitsPerPixel ToBitsPerPixel(this PixelFormat value)
+        public static BmpBitsPerPixel ToBmpBitsPerPixel(this PixelFormat value)
         {
             if (value == PixelFormat.Format1bppIndexed)
             {

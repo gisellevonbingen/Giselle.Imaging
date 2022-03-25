@@ -4,27 +4,27 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Bmp;
 
 namespace Giselle.Imaging
 {
     public class ScanProcessorIndexed : ScanProcessor
     {
-        public Color[] ColorTable { get; set; }
+        public static ScanProcessor Instance { get; } = new ScanProcessorIndexed();
 
-        public ScanProcessorIndexed(int width, int height, byte[] readingScan, int bitsPerPixel)
-            : base(width, height, readingScan, bitsPerPixel)
+        public ScanProcessorIndexed()
         {
-            this.ColorTable = new Color[0];
+
         }
 
-        public override void Read(byte[] formatScan, int formatStride)
+        public override void Read(ScanData reading, byte[] formatScan, int formatStride)
         {
             var maskBase = 0;
-            var bpp = this.ReadingBitsPerPixel;
+            var bpp = reading.Format.GetBitsPerPixel();
             var ppb = 8 / bpp;
             var dpp = this.FormatBitsPerPixel / 8;
-            var width = this.Width;
-            var height = this.Height;
+            var width = reading.Width;
+            var height = reading.Height;
 
             for (var i = 0; i < bpp; i++)
             {
@@ -37,9 +37,9 @@ namespace Giselle.Imaging
             {
                 var offsetBase = y * formatStride;
 
-                for (var i = 0; i < this.ReadingStride; i++)
+                for (var i = 0; i < reading.Stride; i++)
                 {
-                    var b = this.ReadingScan[index++];
+                    var b = reading.Scan[index++];
 
                     for (var bi = 0; bi < ppb; bi++)
                     {
@@ -55,7 +55,7 @@ namespace Giselle.Imaging
                         var shift = bpp * (ppb - 1 - bi);
                         var mask = maskBase << shift;
                         var tableIndex = (b & mask) >> shift;
-                        var p = this.ColorTable[tableIndex];
+                        var p = reading.ColorTable[tableIndex];
                         formatScan[offset + 0] = p.B;
                         formatScan[offset + 1] = p.G;
                         formatScan[offset + 2] = p.R;

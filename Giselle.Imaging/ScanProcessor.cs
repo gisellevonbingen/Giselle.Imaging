@@ -10,6 +10,31 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessor
     {
+        public static ScanProcessor GetScanProcessor(PixelFormat format)
+        {
+            if (format == PixelFormat.Format1bppIndexed || format == PixelFormat.Format4bppIndexed || format == PixelFormat.Format8bppIndexed)
+            {
+                return ScanProcessorIndexed.Instance;
+            }
+            else if (format == PixelFormat.Format16bppRgb555)
+            {
+                return ScanProcessor16Rgb555.Instance;
+            }
+            else if (format == PixelFormat.Format24bppRgb)
+            {
+                return ScanProcessor24Rgb.Instance;
+            }
+            else if (format == PixelFormat.Format32bppArgb)
+            {
+                return ScanProcessor32Argb.Instance;
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown PixelFormat : {format}");
+            }
+
+        }
+
         public static int GetStride(int width, int bitsPerPixel)
         {
             var divisor = 4;
@@ -22,35 +47,24 @@ namespace Giselle.Imaging
             return stride;
         }
 
-        public int Width { get; }
-        public int Height { get; }
-        public byte[] ReadingScan { get; }
-        public int ReadingStride { get; set; }
-        public int ReadingBitsPerPixel { get; }
-
-        public ScanProcessor(int width, int height, byte[] readingScan, int readingBitsPerPixel)
+        public ScanProcessor()
         {
-            this.Width = width;
-            this.Height = height;
-            this.ReadingScan = readingScan;
-            this.ReadingStride = GetStride(width, readingBitsPerPixel);
-            this.ReadingBitsPerPixel = readingBitsPerPixel;
+
         }
 
-        public byte[] Read() => this.Read(this.FormatStride);
-
-        public byte[] Read(int formatStride)
+        public byte[] Read(ScanData reading)
         {
-            var formatScan = new byte[this.Height * formatStride];
-            this.Read(formatScan, formatStride);
+            var formatStride = GetStride(reading.Width, this.FormatBitsPerPixel);
+            var formatScan = new byte[reading.Height * formatStride];
+            this.Read(reading, formatScan, formatStride);
             return formatScan;
         }
 
-        public abstract void Read(byte[] formatScan, int formatStride);
+        public abstract void Read(ScanData reading, byte[] formatScan, int formatStride);
 
-        public int FormatStride => GetStride(this.Width, this.FormatBitsPerPixel);
+        public int GetFormatBitsPerPixel(int width) => GetStride(width, this.FormatBitsPerPixel);
 
-        public int FormatBitsPerPixel => 32;
+        public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 
         public PixelFormat FormatPixelFormat => PixelFormat.Format32bppArgb;
 

@@ -45,45 +45,6 @@ namespace Giselle.Imaging
             this.Resolution = 96.0D;
         }
 
-        public ScanProcessor CreateProcessor()
-        {
-            var format = this.Format;
-            var width = this.Width;
-            var height = this.Height;
-            var scan = this.Scan;
-            var colorTable = this.ColorTable;
-
-            if (format == PixelFormat.Format1bppIndexed)
-            {
-                return new ScanProcessorIndexed(width, height, scan, 1) { ColorTable = colorTable };
-            }
-            else if (format == PixelFormat.Format4bppIndexed)
-            {
-                return new ScanProcessorIndexed(width, height, scan, 4) { ColorTable = colorTable };
-            }
-            else if (format == PixelFormat.Format8bppIndexed)
-            {
-                return new ScanProcessorIndexed(width, height, scan, 8) { ColorTable = colorTable };
-            }
-            else if (format == PixelFormat.Format16bppRgb555)
-            {
-                return new ScanProcessor16Rgb555(width, height, scan);
-            }
-            else if (format == PixelFormat.Format24bppRgb)
-            {
-                return new ScanProcessor24Rgb(width, height, scan);
-            }
-            else if (format == PixelFormat.Format32bppArgb)
-            {
-                return new ScanProcessor32Argb(width, height, scan);
-            }
-            else
-            {
-                throw new ArgumentException($"Unknown PixelFormat : {format}");
-            }
-
-        }
-
         public Bitmap ToBitmap()
         {
             unsafe

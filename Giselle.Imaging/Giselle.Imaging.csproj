@@ -50,6 +50,7 @@
     <Compile Include="Checksum\CRCException.cs" />
     <Compile Include="Checksum\CRCUtils.cs" />
     <Compile Include="ColorWithPosition.cs" />
+    <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="ScanProcessor16Rgb555.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />
     <Compile Include="ImageCodec.cs" />

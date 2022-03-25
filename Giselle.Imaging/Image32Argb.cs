@@ -37,7 +37,7 @@ namespace Giselle.Imaging
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Image, s.X, s.Y)));
         }
 
-        public Image32Argb(int width, int height) : this(width, height, ScanProcessor.GetStride(width, ScanProcessor32Argb.BitsPerPixel), null)
+        public Image32Argb(int width, int height) : this(width, height, ScanProcessor.GetStride(width, PixelFormat.Format32bppArgb.GetBitsPerPixel()), null)
         {
 
         }
@@ -52,11 +52,11 @@ namespace Giselle.Imaging
 
         public Image32Argb(ScanData scanData) : this()
         {
-            var processor = scanData.CreateProcessor();
+            var processor = ScanProcessor.GetScanProcessor(scanData.Format);
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = processor.FormatStride;
-            this.Scan = processor.Read();
+            this.Stride = processor.FormatBitsPerPixel;
+            this.Scan = processor.Read(scanData);
             this.Resolution = scanData.Resolution;
         }
 

@@ -8,9 +8,9 @@ namespace Giselle.Imaging
 {
     public class ScanProcessor32Argb : ScanProcessorBytesPerPixel
     {
-        public const int BitsPerPixel = 32;
+        public static ScanProcessor Instance { get; } = new ScanProcessor32Argb();
 
-        public ScanProcessor32Argb(int width, int height, byte[] readingScan) : base(width, height, readingScan, BitsPerPixel)
+        public ScanProcessor32Argb()
         {
 
         }

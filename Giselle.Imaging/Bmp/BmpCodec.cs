@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Bmp
         {
             var width = data.Width;
             var height = data.Height;
-            var bitsPerPixel = data.Format.ToBitsPerPixel();
+            var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
             var colorTable = data.ColorTable;
             var colorsUsed = bitsPerPixel.IsUseColorTable() ? colorTable.Length : 0;
             var stride = data.Stride;
