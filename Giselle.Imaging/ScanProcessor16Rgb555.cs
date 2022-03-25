@@ -33,7 +33,7 @@ namespace Giselle.Imaging
             outputScan[outputOffset] = rgb;
         }
 
-        protected byte SplitValue(int rgb, int shift)
+        protected byte SplitValue(byte rgb, int shift)
         {
             var mask = 0x1F;
             var raw = (rgb >> shift) & mask;
