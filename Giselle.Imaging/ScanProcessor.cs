@@ -18,15 +18,27 @@ namespace Giselle.Imaging
             }
             else if (format == PixelFormat.Format16bppRgb555)
             {
-                return ScanProcessor16Rgb555.Instance;
+                return ScanProcessor16.InstanceRgb555;
+            }
+            else if (format == PixelFormat.Format16bppRgb565)
+            {
+                return ScanProcessor16.InstanceRgb565;
+            }
+            else if (format == PixelFormat.Format16bppArgb1555)
+            {
+                return ScanProcessor16.InstanceArgb1555;
             }
             else if (format == PixelFormat.Format24bppRgb)
             {
-                return ScanProcessor24Rgb.Instance;
+                return ScanProcessor24.InstanceRgb888;
+            }
+            else if (format == PixelFormat.Format32bppRgb)
+            {
+                return ScanProcessor32.InstanceRgb888;
             }
             else if (format == PixelFormat.Format32bppArgb)
             {
-                return ScanProcessor32Argb.Instance;
+                return ScanProcessor32.InstanceArgb8888;
             }
             else
             {

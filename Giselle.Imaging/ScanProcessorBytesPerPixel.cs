@@ -8,6 +8,12 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessorBytesPerPixel : ScanProcessor
     {
+        public bool UseAlpha { get; set; }
+        public Int32MaskBits AMaskBits { get; set; }
+        public Int32MaskBits RMaskBits { get; set; }
+        public Int32MaskBits GMaskBits { get; set; }
+        public Int32MaskBits BMaskBits { get; set; }
+
         public ScanProcessorBytesPerPixel()
         {
 

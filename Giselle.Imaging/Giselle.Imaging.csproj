@@ -51,8 +51,9 @@
     <Compile Include="Checksum\CRCUtils.cs" />
     <Compile Include="ColorWithPosition.cs" />
     <Compile Include="EncodeOptions.cs" />
+    <Compile Include="Int32MaskBits.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
-    <Compile Include="ScanProcessor16Rgb555.cs" />
+    <Compile Include="ScanProcessor16.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />
     <Compile Include="ImageCodec.cs" />
     <Compile Include="IO\DataProcessor.cs" />
@@ -62,10 +63,13 @@
     <Compile Include="Image32Argb.cs" />
     <Compile Include="ScanData.cs" />
     <Compile Include="ScanProcessor.cs" />
-    <Compile Include="ScanProcessor24Rgb.cs" />
-    <Compile Include="ScanProcessor32Argb.cs" />
+    <Compile Include="ScanProcessor24.cs" />
+    <Compile Include="ScanProcessor32.cs" />
     <Compile Include="ScanProcessorBytesPerPixel.cs" />
     <Compile Include="ScanProcessorIndexed.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tiff\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
