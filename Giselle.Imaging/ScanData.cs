@@ -24,7 +24,6 @@ namespace Giselle.Imaging
             set { this.WidthResoulution = value; this.HeightResoulution = value; }
         }
         public bool UseBitFields { get; set; }
-        public int BitFieldsBits { get; set; }
         public int AMask { get; set; }
         public int RMask { get; set; }
         public int GMask { get; set; }
@@ -57,7 +56,7 @@ namespace Giselle.Imaging
 
                 if (this.UseBitFields == true)
                 {
-                    var processor = ScanProcessor.CreateScanProcessor(this.BitFieldsBits, this.AMask, this.RMask, this.GMask, this.BMask);
+                    var processor = ScanProcessor.CreateScanProcessor(format.GetBitsPerPixel(), this.AMask, this.RMask, this.GMask, this.BMask);
                     stride = processor.GetFormatStride(this.Width);
                     format = processor.FormatPixelFormat;
                     scan = processor.Read(this);

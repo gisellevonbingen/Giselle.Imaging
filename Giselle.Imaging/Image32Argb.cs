@@ -56,7 +56,7 @@ namespace Giselle.Imaging
 
             if (scanData.UseBitFields == true)
             {
-                processor = ScanProcessor.CreateScanProcessor(scanData.BitFieldsBits, scanData.AMask, scanData.RMask, scanData.GMask, scanData.BMask);
+                processor = ScanProcessor.CreateScanProcessor(scanData.Format.GetBitsPerPixel(), scanData.AMask, scanData.RMask, scanData.GMask, scanData.BMask);
             }
             else
             {

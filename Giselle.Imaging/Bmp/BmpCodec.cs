@@ -39,7 +39,7 @@ namespace Giselle.Imaging.Bmp
             var width = data.Width;
             var height = data.Height;
             var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
-            var compressionMethod = bitsPerPixel == BmpBitsPerPixel.Bpp32Argb ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
+            var compressionMethod = data.UseBitFields ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
             var colorTable = data.ColorTable;
             var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
             var stride = data.Stride;
@@ -76,10 +76,10 @@ namespace Giselle.Imaging.Bmp
             // BitFields
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                processor.WriteUInt(0x00FF0000);
-                processor.WriteUInt(0x0000FF00);
-                processor.WriteUInt(0x000000FF);
-                processor.WriteUInt(0xFF000000);
+                processor.WriteInt(data.RMask);
+                processor.WriteInt(data.GMask);
+                processor.WriteInt(data.BMask);
+                processor.WriteInt(data.AMask);
                 processor.WriteUInt(0x206E6957);
                 processor.WriteBytes(new byte[48]);
             }
@@ -204,7 +204,6 @@ namespace Giselle.Imaging.Bmp
                 WidthResoulution = widthPixelsPerMeter * DPICoefficient,
                 HeightResoulution = heightPixelsPerMeter * DPICoefficient,
                 UseBitFields = compressionMethod == BmpCompressionMethod.BitFields,
-                BitFieldsBits = (int)bitsPerPixel,
                 AMask = aMask,
                 RMask = rMask,
                 GMask = gMask,
@@ -260,7 +259,22 @@ namespace Giselle.Imaging.Bmp
 
             }
 
-            return image.Encode(format, usedColors);
+            var scanData = image.Encode(format, usedColors);
+
+            if (bitsPerPixel == BmpBitsPerPixel.Bpp32Argb)
+            {
+                unchecked
+                {
+                    scanData.UseBitFields = true;
+                    scanData.RMask = (int)(0x00FF0000);
+                    scanData.GMask = (int)(0x0000FF00);
+                    scanData.BMask = (int)(0x000000FF);
+                    scanData.AMask = (int)(0xFF000000);
+                }
+
+            }
+
+            return scanData;
         }
 
         public BmpBitsPerPixel GetPrefferedBitsPerPixel(int colorCount)
