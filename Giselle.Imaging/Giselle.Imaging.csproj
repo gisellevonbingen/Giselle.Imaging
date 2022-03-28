@@ -54,6 +54,20 @@
     <Compile Include="Int32ChannelMask.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="ScanProcessor16.cs" />
+    <Compile Include="Tiff\TiffCompressionMethod.cs" />
+    <Compile Include="Tiff\TiffEntryExtensions.cs" />
+    <Compile Include="Tiff\TiffNewSubfileTypeFlag.cs" />
+    <Compile Include="Tiff\TiffPhotometricInterpretation.cs" />
+    <Compile Include="Tiff\TiffPredictor.cs" />
+    <Compile Include="Tiff\TiffRational.cs" />
+    <Compile Include="Tiff\TiffSubfile.cs" />
+    <Compile Include="Tiff\TiffCodec.cs" />
+    <Compile Include="Tiff\TiffEncodeOptions.cs" />
+    <Compile Include="Tiff\TiffEntry.cs" />
+    <Compile Include="Tiff\TiffValueType.cs" />
+    <Compile Include="Tiff\TiffEntryTypeExtensions.cs" />
+    <Compile Include="Tiff\TiffResolutionUnit.cs" />
+    <Compile Include="Tiff\TiffTagId.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />
     <Compile Include="ImageCodec.cs" />
     <Compile Include="IO\DataProcessor.cs" />
@@ -68,8 +82,6 @@
     <Compile Include="ScanProcessorBytesPerPixel.cs" />
     <Compile Include="ScanProcessorIndexed.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tiff\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

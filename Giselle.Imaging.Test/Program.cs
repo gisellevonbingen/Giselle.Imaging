@@ -32,32 +32,29 @@ namespace Giselle.Imaging.Test
                 var relatedPath = inputPath.Substring(inputDir.Length);
                 var output = outputDir + relatedPath;
                 new FileInfo(output).Directory.Create();
+                var inputBytes = File.ReadAllBytes(inputPath);
 
-                using (var inputStream = new FileStream(inputPath, FileMode.Open))
+                try
                 {
-                    try
+                    var codec = ImageCodec.FindCodec(inputBytes);
+                    var scanData = ImageCodec.ReadAsScanData(inputBytes);
+
+                    var image = new Image32Argb(scanData);
+                    Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
+
+                    using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        var codec = new BmpCodec();
-                        var scanData = codec.Read(inputStream);
-
-                        var image = new Image32Argb(scanData);
-                        Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
-
-                        using (var outputStream = new FileStream(output, FileMode.Create))
-                        {
-                            //SaveScanDataAsBitmap(outputStream, scanData);
-                            //SaveScanDataAsCodec(outputStream, scanData, codec);
-                            SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() { BitsPerPixel = scanData.Format.ToBmpBitsPerPixel() });
-                            //SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() {  });
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(inputPath);
-                        Console.WriteLine(ex);
+                        //SaveScanDataAsBitmap(outputStream, scanData);
+                        //SaveScanDataAsCodec(outputStream, scanData, codec);
+                        SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() { BitsPerPixel = scanData.Format.ToBmpBitsPerPixel() });
+                        //SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() {  });
                     }
 
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(inputPath);
+                    Console.WriteLine(ex);
                 }
 
             }
@@ -78,7 +75,7 @@ namespace Giselle.Imaging.Test
             codec.Write(output, scanData);
         }
 
-        public static void SaveImageAsCodec<T>(Stream output, Image32Argb image, IImageCodec<T> codec, T options) where T : EncodeOptions, new()
+        public static void SaveImageAsCodec(Stream output, Image32Argb image, IImageCodec codec, EncodeOptions options)
         {
             var scanData = codec.Encode(image, options);
             SaveScanDataAsCodec(output, scanData, codec);

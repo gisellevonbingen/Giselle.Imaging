@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Bmp
 {
     public class BmpCodec : ImageCodec<BmpEncodeOptions>
     {
-        public const int SignatureLength = 2;
+        public static BmpCodec Instance { get; } = new BmpCodec();
         public static IList<byte> SignatureBM { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x4D });
         public static IList<byte> SignatureBA { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x41 });
         public static IList<byte> SignatureCI { get; } = Array.AsReadOnly(new byte[] { 0x43, 0x49 });
@@ -25,88 +25,16 @@ namespace Giselle.Imaging.Bmp
 
         public const double DPICoefficient = 25.4D / 1000.0D;
 
+        public static DataProcessor CreateBMPProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
+
         public BmpCodec()
         {
 
         }
 
-        public static DataProcessor CreateBMPProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
+        public override int BytesForTest => 2;
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
-
-        public override void Write(Stream output, ScanData data)
-        {
-            var width = data.Width;
-            var height = data.Height;
-            var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
-            var compressionMethod = data.UseBitFields ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
-            var colorTable = data.ColorTable;
-            var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
-            var stride = data.Stride;
-            var scan = data.Scan;
-
-            var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
-            var infoSize = 40 + bitFiledsSize;
-            var colorTableSize = colorsUsed * 4;
-            var scanSize = scan.Length;
-            var scanOffset = 14 + infoSize + colorTableSize;
-
-            var processor = CreateBMPProcessor(output);
-
-            // File Header
-            processor.WriteBytes(SignatureBM);
-            processor.WriteInt(scanOffset + scanSize);
-            processor.WriteShort(0);
-            processor.WriteShort(0);
-            processor.WriteInt(scanOffset);
-
-            // Bitmap Info Header
-            processor.WriteInt(infoSize);
-            processor.WriteInt(width);
-            processor.WriteInt(height);
-            processor.WriteShort(1);
-            processor.WriteShort((short)bitsPerPixel);
-            processor.WriteInt((int)compressionMethod);
-            processor.WriteInt(0);
-            processor.WriteInt((int)(data.WidthResoulution / DPICoefficient));
-            processor.WriteInt((int)(data.HeightResoulution / DPICoefficient));
-            processor.WriteInt(colorsUsed);
-            processor.WriteInt(colorsUsed);
-
-            // BitFields
-            if (compressionMethod == BmpCompressionMethod.BitFields)
-            {
-                processor.WriteInt(data.RMask);
-                processor.WriteInt(data.GMask);
-                processor.WriteInt(data.BMask);
-                processor.WriteInt(data.AMask);
-                processor.WriteUInt(0x206E6957);
-                processor.WriteBytes(new byte[48]);
-            }
-
-            if (colorsUsed > 0)
-            {
-                for (var i = 0; i < colorsUsed; i++)
-                {
-                    var color = colorTable[i];
-                    processor.WriteByte(color.B);
-                    processor.WriteByte(color.G);
-                    processor.WriteByte(color.R);
-                    processor.WriteByte(255);
-                }
-
-            }
-
-            for (var y = height - 1; y > -1; y--)
-            {
-                for (var x = 0; x < stride; x++)
-                {
-                    processor.WriteByte(scan[y * stride + x]);
-                }
-
-            }
-
-        }
 
         public override ScanData Read(Stream input)
         {
@@ -114,7 +42,7 @@ namespace Giselle.Imaging.Bmp
             var originOffset = processor.ReadLength;
 
             // Signature
-            var signature = processor.ReadBytes(SignatureLength);
+            var signature = processor.ReadBytes(BytesForTest);
 
             if (this.Test(signature) == false)
             {
@@ -209,6 +137,80 @@ namespace Giselle.Imaging.Bmp
                 GMask = gMask,
                 BMask = bMask,
             };
+        }
+
+        public override void Write(Stream output, ScanData data)
+        {
+            var width = data.Width;
+            var height = data.Height;
+            var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
+            var compressionMethod = data.UseBitFields ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
+            var colorTable = data.ColorTable;
+            var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
+            var stride = data.Stride;
+            var scan = data.Scan;
+
+            var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
+            var infoSize = 40 + bitFiledsSize;
+            var colorTableSize = colorsUsed * 4;
+            var scanSize = scan.Length;
+            var scanOffset = 14 + infoSize + colorTableSize;
+
+            var processor = CreateBMPProcessor(output);
+
+            // File Header
+            processor.WriteBytes(SignatureBM);
+            processor.WriteInt(scanOffset + scanSize);
+            processor.WriteShort(0);
+            processor.WriteShort(0);
+            processor.WriteInt(scanOffset);
+
+            // Bitmap Info Header
+            processor.WriteInt(infoSize);
+            processor.WriteInt(width);
+            processor.WriteInt(height);
+            processor.WriteShort(1);
+            processor.WriteShort((short)bitsPerPixel);
+            processor.WriteInt((int)compressionMethod);
+            processor.WriteInt(0);
+            processor.WriteInt((int)(data.WidthResoulution / DPICoefficient));
+            processor.WriteInt((int)(data.HeightResoulution / DPICoefficient));
+            processor.WriteInt(colorsUsed);
+            processor.WriteInt(colorsUsed);
+
+            // BitFields
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                processor.WriteInt(data.RMask);
+                processor.WriteInt(data.GMask);
+                processor.WriteInt(data.BMask);
+                processor.WriteInt(data.AMask);
+                processor.WriteUInt(0x206E6957);
+                processor.WriteBytes(new byte[48]);
+            }
+
+            if (colorsUsed > 0)
+            {
+                for (var i = 0; i < colorsUsed; i++)
+                {
+                    var color = colorTable[i];
+                    processor.WriteByte(color.B);
+                    processor.WriteByte(color.G);
+                    processor.WriteByte(color.R);
+                    processor.WriteByte(255);
+                }
+
+            }
+
+            for (var y = height - 1; y > -1; y--)
+            {
+                for (var x = 0; x < stride; x++)
+                {
+                    processor.WriteByte(scan[y * stride + x]);
+                }
+
+            }
+
         }
 
         public override ScanData Encode(Image32Argb image, BmpEncodeOptions options)

@@ -195,6 +195,11 @@ namespace Giselle.Imaging.IO
         
         public virtual void SkipByRead(long length)
         {
+            if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException($"{nameof(length)} is {length}");
+            }
+
             for (var i = 0L; i < length; i++)
             {
                 this.ReadByte();
