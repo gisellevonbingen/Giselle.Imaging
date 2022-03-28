@@ -73,7 +73,6 @@ namespace Giselle.Imaging.Tiff
 
                 ifdOffset = processor.ReadInt();
 
-
                 foreach (var entry in entries)
                 {
                     if (entry.IsOffset == true)
@@ -93,7 +92,6 @@ namespace Giselle.Imaging.Tiff
 
                     this.ReadEntry(entry, processor, subFile);
                 }
-
 
             }
 

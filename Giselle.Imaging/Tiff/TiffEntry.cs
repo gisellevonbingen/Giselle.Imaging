@@ -28,7 +28,20 @@ namespace Giselle.Imaging.Tiff
             this.TagId = (TiffTagId)processor.ReadUShort();
             this.ValueType = processor.ReadShort().ToTiffEntryType();
             this.ValueCount = processor.ReadInt();
-            this.ValueOrOffset = processor.ReadInt();
+
+            if (this.IsOffset == true)
+            {
+                this.ValueOrOffset = processor.ReadInt();
+            }
+            else
+            {
+                var type = this.CastValueTypeInteger();
+                var o1 = processor.ReadLength;
+                this.ValueOrOffset = type.ReadAsSigned(processor);
+                var o2 = processor.ReadLength;
+                processor.SkipByRead(4 - (o2 - o1));
+            }
+
         }
 
         public override string ToString()
