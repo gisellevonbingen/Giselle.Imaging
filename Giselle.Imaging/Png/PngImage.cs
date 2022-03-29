@@ -18,7 +18,7 @@ namespace Giselle.Imaging.Png
         public byte Interlace { get; set; }
         public Argb32[] ColorTable { get; set; } = new Argb32[0];
 
-        public int BitsPerPixel => PngColorTypeExtensions.GetBitsPerPixel(this.ColorType, this.BitDepth);
+        public PixelFormat PixelFormat => PngColorTypeExtensions.ToPixelFormat(this.ColorType, this.BitDepth);
 
     }
 

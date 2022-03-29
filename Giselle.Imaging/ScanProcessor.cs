@@ -70,15 +70,19 @@ namespace Giselle.Imaging
 
         }
 
+        public static int GetBytesPerWidth(int width, int bitsPerPixel)
+        {
+            var w1 = bitsPerPixel <= 8 ? 1 : (bitsPerPixel / 8);
+            var w2 = bitsPerPixel < 8 ? (8 / bitsPerPixel) : 1;
+            return (width * w1) / w2;
+        }
+
         public static int GetStride(int width, int bitsPerPixel)
         {
             var divisor = 4;
-            var w1 = bitsPerPixel <= 8 ? 1 : (bitsPerPixel / 8);
-            var w2 = bitsPerPixel < 8 ? (8 / bitsPerPixel) : 1;
-
-            var readingWidth = (width * w1) / w2;
-            var readingMod = readingWidth % divisor;
-            var stride = readingMod == 0 ? readingWidth : (readingWidth - readingMod + divisor);
+            var bytePerWidth = GetBytesPerWidth(width, bitsPerPixel);
+            var mod = bytePerWidth % divisor;
+            var stride = mod == 0 ? bytePerWidth : (bytePerWidth - mod + divisor);
             return stride;
         }
 

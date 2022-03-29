@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Bmp;
 using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Png
@@ -71,7 +72,7 @@ namespace Giselle.Imaging.Png
 
                 Console.WriteLine(image.ColorType);
                 Console.WriteLine(image.BitDepth);
-                Console.WriteLine(image.BitsPerPixel);
+                Console.WriteLine(image.PixelFormat);
             }
             else if (type.Equals(PngKnownChunkNames.PLTE) == true)
             {
@@ -118,37 +119,12 @@ namespace Giselle.Imaging.Png
                     {
                         var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
                         var hasAlpha = image.HasAlpha;
+                        var stride = ScanProcessor.GetStride(image.Width, image.PixelFormat.GetBitsPerPixel());
 
                         for (var yi = 0; yi < image.Height; yi++)
                         {
                             var x = dataProcessor.ReadByte();
-                            var fr = dataProcessor.ReadByte();
-                            var fg = dataProcessor.ReadByte();
-                            var fb = dataProcessor.ReadByte();
-                            var fa = hasAlpha ? dataProcessor.ReadByte() : byte.MaxValue;
-
-                            for (var xi = 0; xi < image.Width - 1; xi++)
-                            {
-                                var rr = dataProcessor.ReadByte();
-                                var rg = dataProcessor.ReadByte();
-                                var rb = dataProcessor.ReadByte();
-                                var ra = hasAlpha ? dataProcessor.ReadByte() : byte.MaxValue;
-                                byte pr = 0;
-                                byte pg = 0;
-                                byte pb = 0;
-                                byte pa = 0;
-
-                                pr = (byte)((fr + rr) % 256);
-                                pg = (byte)((fg + rg) % 256);
-                                pb = (byte)((fb + rb) % 256);
-                                pa = (byte)((fa + ra) % 256);
-
-                                fr = pr;
-                                fg = pg;
-                                fb = pb;
-                                fa = pa;
-                                Console.WriteLine($"#{pa:X2}{pr:X2}{pg:X2}{pb:X2}");
-                            }
+                            var bytes = dataProcessor.ReadBytes(stride);
 
                             Console.WriteLine("========== FEED ==========");
                         }

@@ -38,7 +38,7 @@ namespace Giselle.Imaging
         {
             this.Width = width;
             this.Height = height;
-            this.Stride = ScanProcessor.GetStride(width, this.Format.GetBitsPerPixel());
+            this.Stride = ScanProcessor.GetStride(width, this.PixelFormat.GetBitsPerPixel());
             this.Scan = new byte[height * this.Stride];
         }
 
@@ -52,7 +52,7 @@ namespace Giselle.Imaging
             scanProcessor.Read(scanData, this.Scan);
         }
 
-        public PixelFormat Format => PixelFormat.Format32bppArgb8888;
+        public PixelFormat PixelFormat => PixelFormat.Format32bppArgb8888;
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
 

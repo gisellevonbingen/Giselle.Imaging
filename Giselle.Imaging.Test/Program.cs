@@ -42,7 +42,7 @@ namespace Giselle.Imaging.Test
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        codec.Write(outputStream, image, new BmpEncodeOptions() { BitsPerPixel = image.Format.ToBmpBitsPerPixel() });
+                        codec.Write(outputStream, image, new BmpEncodeOptions() { BitsPerPixel = image.PixelFormat.ToBmpBitsPerPixel() });
                     }
 
                 }
