@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -36,7 +34,7 @@ namespace Giselle.Imaging.Bmp
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
-        public override Image32Argb Read(Stream input)
+        public override ImageArgb32 Read(Stream input)
         {
             var processor = CreateBMPProcessor(input);
             var originOffset = processor.ReadLength;
@@ -82,7 +80,7 @@ namespace Giselle.Imaging.Bmp
             }
 
             // Color Table
-            var colorTable = new Color[colorsUsed];
+            var colorTable = new Argb32[colorsUsed];
 
             if (colorsUsed > 0)
             {
@@ -92,7 +90,7 @@ namespace Giselle.Imaging.Bmp
                     var g = processor.ReadByte();
                     var r = processor.ReadByte();
                     var _ = processor.ReadByte();
-                    colorTable[i] = Color.FromArgb(r, g, b);
+                    colorTable[i] = new Argb32(r, g, b);
                 }
 
             }
@@ -140,7 +138,7 @@ namespace Giselle.Imaging.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(bitsPerPixel.ToPixelFormat());
             }
 
-            var image  = new Image32Argb(width, height)
+            var image  = new ImageArgb32(width, height)
             {
                 WidthResoulution = widthPixelsPerMeter * DPICoefficient,
                 HeightResoulution = heightPixelsPerMeter * DPICoefficient,
@@ -149,10 +147,10 @@ namespace Giselle.Imaging.Bmp
             return image;
         }
 
-        public override void Write(Stream output, Image32Argb image, BmpEncodeOptions options)
+        public override void Write(Stream output, ImageArgb32 image, BmpEncodeOptions options)
         {
             var bitsPerPixel = options.BitsPerPixel;
-            var usedColors = new Color[0];
+            var usedColors = new Argb32[0];
 
             if (bitsPerPixel != BmpBitsPerPixel.Undefined)
             {

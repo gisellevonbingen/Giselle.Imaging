@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,11 +26,11 @@ namespace Giselle.Imaging.Bmp
             {
                 return BmpBitsPerPixel.Bpp16Rgb555;
             }
-            else if (value == PixelFormat.Format24bppRgb)
+            else if (value == PixelFormat.Format24bppRgb888)
             {
                 return BmpBitsPerPixel.Bpp24Rgb;
             }
-            else if (value == PixelFormat.Format32bppArgb)
+            else if (value == PixelFormat.Format32bppArgb8888)
             {
                 return BmpBitsPerPixel.Bpp32Argb;
             }
@@ -62,11 +61,11 @@ namespace Giselle.Imaging.Bmp
             }
             else if (value == BmpBitsPerPixel.Bpp24Rgb)
             {
-                return PixelFormat.Format24bppRgb;
+                return PixelFormat.Format24bppRgb888;
             }
             else if (value == BmpBitsPerPixel.Bpp32Argb)
             {
-                return PixelFormat.Format32bppArgb;
+                return PixelFormat.Format32bppArgb8888;
             }
             else
             {

@@ -1,14 +1,11 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
-using Giselle.Imaging.Png;
 
 namespace Giselle.Imaging.Png
 {
@@ -26,7 +23,7 @@ namespace Giselle.Imaging.Png
 
         public override bool Test(byte[] bytes) => bytes.StartsWith(Signature);
 
-        public override Image32Argb Read(Stream stream)
+        public override ImageArgb32 Read(Stream stream)
         {
             var processor = new DataProcessor(stream) { IsBigEndian = true };
             var signature = Signature;
@@ -78,14 +75,14 @@ namespace Giselle.Imaging.Png
             }
             else if (type.Equals(PngKnownChunkNames.PLTE) == true)
             {
-                var colorTable = new List<Color>();
+                var colorTable = new List<Argb32>();
 
                 while (chunkProcessor.Position < chunkProcessor.Length)
                 {
                     var r = chunkProcessor.ReadByte();
                     var g = chunkProcessor.ReadByte();
                     var b = chunkProcessor.ReadByte();
-                    var color = Color.FromArgb(r, g, b);
+                    var color = new Argb32(r, g, b);
                     colorTable.Add(color);
                 }
 
@@ -230,7 +227,7 @@ namespace Giselle.Imaging.Png
             }
         }
 
-        public override void Write(Stream output, Image32Argb image, PngEncodeOptions options)
+        public override void Write(Stream output, ImageArgb32 image, PngEncodeOptions options)
         {
             throw new NotImplementedException();
         }

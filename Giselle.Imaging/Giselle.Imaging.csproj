@@ -35,13 +35,13 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Argb32.cs" />
     <Compile Include="Bmp\BmpBitsPerPixel.cs" />
     <Compile Include="Bmp\BmpBitsPerPixelExtensions.cs" />
     <Compile Include="Bmp\BmpCodec.cs" />
@@ -52,6 +52,7 @@
     <Compile Include="ColorWithPosition.cs" />
     <Compile Include="EncodeOptions.cs" />
     <Compile Include="Int32ChannelMask.cs" />
+    <Compile Include="PixelFormat.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="Png\PngChunkStream.cs" />
     <Compile Include="Png\PngCodec.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\ObjectUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Image32Argb.cs" />
+    <Compile Include="ImageArgb32.cs" />
     <Compile Include="ScanData.cs" />
     <Compile Include="ScanProcessor.cs" />
     <Compile Include="ScanProcessor24.cs" />

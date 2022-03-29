@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,7 +35,7 @@ namespace Giselle.Imaging
 
         public static ScanProcessor GetScanProcessor(PixelFormat format)
         {
-            if (format == PixelFormat.Format1bppIndexed || format == PixelFormat.Format4bppIndexed || format == PixelFormat.Format8bppIndexed)
+            if (format.GetColorTableLength() > 0)
             {
                 return ScanProcessorIndexed.Instance;
             }
@@ -53,15 +51,15 @@ namespace Giselle.Imaging
             {
                 return ScanProcessor16.InstanceArgb1555;
             }
-            else if (format == PixelFormat.Format24bppRgb)
+            else if (format == PixelFormat.Format24bppRgb888)
             {
                 return ScanProcessor24.InstanceRgb888;
             }
-            else if (format == PixelFormat.Format32bppRgb)
+            else if (format == PixelFormat.Format32bppRgb888)
             {
                 return ScanProcessor32.InstanceRgb888;
             }
-            else if (format == PixelFormat.Format32bppArgb)
+            else if (format == PixelFormat.Format32bppArgb8888)
             {
                 return ScanProcessor32.InstanceArgb8888;
             }
@@ -101,21 +99,21 @@ namespace Giselle.Imaging
 
         public abstract void Write(ScanData output, byte[] formatScan);
 
-        public Color GetFormatColor(byte[] formatScan, int formatStride, int x, int y)
+        public Argb32 GetFormatColor(byte[] formatScan, int formatStride, int x, int y)
         {
             var offset = formatStride * y + (x * 4);
             var b = formatScan[offset + 0];
             var g = formatScan[offset + 1];
             var r = formatScan[offset + 2];
             var a = formatScan[offset + 3];
-            return Color.FromArgb(a, r, g, b);
+            return new Argb32(a, r, g, b);
         }
 
         public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
 
         public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 
-        public PixelFormat FormatPixelFormat => PixelFormat.Format32bppArgb;
+        public PixelFormat FormatPixelFormat => PixelFormat.Format32bppArgb8888;
 
     }
 

@@ -29,7 +29,7 @@ namespace Giselle.Imaging.Tiff
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
-        public override Image32Argb Read(Stream input)
+        public override ImageArgb32 Read(Stream input)
         {
             var processor = CreateTiffProcessor(input);
             // Signature
@@ -180,7 +180,7 @@ namespace Giselle.Imaging.Tiff
 
         }
 
-        public override void Write(Stream output, Image32Argb image, TiffEncodeOptions options)
+        public override void Write(Stream output, ImageArgb32 image, TiffEncodeOptions options)
         {
             throw new NotImplementedException();
         }

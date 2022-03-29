@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +13,7 @@ namespace Giselle.Imaging
         public int Stride { get; set; }
         public int BitsPerPixel { get; set; }
         public byte[] Scan { get; set; }
-        public Color[] ColorTable { get; set; }
+        public Argb32[] ColorTable { get; set; }
 
         public ScanData(int width, int height, int stride, int bitsPerPixel)
             : this(width, height, stride, bitsPerPixel, new byte[height * stride])
@@ -29,14 +27,14 @@ namespace Giselle.Imaging
 
         }
 
-        public ScanData(int width, int height, int stride, int bitsPerPixel, byte[] scan, Color[] colorTable)
+        public ScanData(int width, int height, int stride, int bitsPerPixel, byte[] scan, Argb32[] colorTable)
         {
             this.Width = width;
             this.Height = height;
             this.Stride = stride;
             this.BitsPerPixel = bitsPerPixel;
             this.Scan = scan;
-            this.ColorTable = colorTable ?? new Color[0];
+            this.ColorTable = colorTable ?? new Argb32[0];
         }
 
     }

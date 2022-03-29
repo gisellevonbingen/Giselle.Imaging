@@ -20,19 +20,19 @@ namespace Giselle.Imaging
 
         bool Test(Stream stream);
 
-        Image32Argb Read(byte[] input);
+        ImageArgb32 Read(byte[] input);
 
-        Image32Argb Read(Stream input);
+        ImageArgb32 Read(Stream input);
 
-        void Write(Stream output, Image32Argb data);
+        void Write(Stream output, ImageArgb32 data);
 
-        void Write(Stream output, Image32Argb image, EncodeOptions options);
+        void Write(Stream output, ImageArgb32 image, EncodeOptions options);
 
     }
 
     public interface IImageCodec<in T> : IImageCodec where T : EncodeOptions, new()
     {
-        void Write(Stream output, Image32Argb image, T options);
+        void Write(Stream output, ImageArgb32 image, T options);
     }
 
     public abstract class ImageCodec : IImageCodec
@@ -100,7 +100,7 @@ namespace Giselle.Imaging
             return null;
         }
 
-        public static Image32Argb FromBytes(byte[] bytes) => FindCodec(bytes)?.Read(bytes);
+        public static ImageArgb32 FromBytes(byte[] bytes) => FindCodec(bytes)?.Read(bytes);
 
         public abstract int BytesForTest { get; }
 
@@ -136,7 +136,7 @@ namespace Giselle.Imaging
 
         public abstract bool Test(byte[] bytes);
 
-        public Image32Argb Read(byte[] bytes)
+        public ImageArgb32 Read(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             {
@@ -145,20 +145,20 @@ namespace Giselle.Imaging
 
         }
 
-        public abstract Image32Argb Read(Stream input);
+        public abstract ImageArgb32 Read(Stream input);
 
-        public abstract void Write(Stream output, Image32Argb image);
+        public abstract void Write(Stream output, ImageArgb32 image);
 
-        public abstract void Write(Stream output, Image32Argb image, EncodeOptions options);
+        public abstract void Write(Stream output, ImageArgb32 image, EncodeOptions options);
     }
 
     public abstract class ImageCodec<T> : ImageCodec, IImageCodec<T> where T : EncodeOptions, new()
     {
-        public override void Write(Stream output, Image32Argb image) => this.Write(output, image, new T());
+        public override void Write(Stream output, ImageArgb32 image) => this.Write(output, image, new T());
 
-        public abstract void Write(Stream output, Image32Argb image, T options);
+        public abstract void Write(Stream output, ImageArgb32 image, T options);
 
-        public override void Write(Stream output, Image32Argb image, EncodeOptions options) => this.Write(output, image, (options as T) ?? new T());
+        public override void Write(Stream output, ImageArgb32 image, EncodeOptions options) => this.Write(output, image, (options as T) ?? new T());
     }
 
 }
