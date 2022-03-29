@@ -33,11 +33,13 @@ namespace Giselle.Imaging.Png
 
         public PNGChunkStreamMode Mode { get; private set; }
         public DataProcessor BaseProcessor { get; private set; }
+        public bool IgnoreCRC { get; set; }
 
         protected PngChunkStream()
         {
             this._Position = 0;
             this.AccumulatingCRC = CRCUtils.CRC32Seed;
+            this.IgnoreCRC = false;
         }
 
         public PngChunkStream(DataProcessor input) : this()
@@ -116,6 +118,11 @@ namespace Giselle.Imaging.Png
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            if (this.IgnoreCRC == true)
+            {
+                return;
+            }
 
             var ccrc = CRCUtils.FinalizeCalculateCRC32(this.AccumulatingCRC);
 

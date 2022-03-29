@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Bmp;
 using Giselle.Imaging.IO;
@@ -41,13 +42,81 @@ namespace Giselle.Imaging.Png
             {
                 using (var chunkStream = new PngChunkStream(processor))
                 {
-                    this.ReadChunk(chunkStream, image);
+                    try
+                    {
+                        this.ReadChunk(chunkStream, image);
+                    }
+                    catch (Exception)
+                    {
+                        chunkStream.IgnoreCRC = true;
+                        throw;
+                    }
 
-                    if (chunkStream.Equals(PngKnownChunkNames.IEND) == true)
+                    if (chunkStream.Type.Equals(PngKnownChunkNames.IEND) == true)
                     {
                         break;
                     }
 
+                }
+
+            }
+
+            image.CompressedScanData.Position = 0;
+
+            using (var ds = new DeflateStream(image.CompressedScanData, CompressionMode.Decompress))
+            {
+                var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
+                var bitsPerPixel = image.PixelFormat.GetBitsPerPixel();
+                var samples = bitsPerPixel / image.BitDepth;
+                var stride = ScanProcessor.GetStride(image.Width, bitsPerPixel);
+                var scanline = new byte[stride];
+                var scan = new byte[image.Height * stride];
+
+                for (var yi = 0; yi < image.Height; yi++)
+                {
+                    var x = dataProcessor.ReadByte();
+                    var bytes = dataProcessor.ReadBytes(stride);
+                    var before = new byte[samples];
+
+                    if (x == 0)
+                    {
+                        scanline = bytes;
+                    }
+                    else if (x == 1)
+                    {
+                        for (var i = 0; i < image.Width; i++)
+                        {
+                            scanline[i] = (byte)(bytes[i] + before[i % samples]);
+                            before[i % samples] = scanline[i];
+                        }
+
+                    }
+                    else if (x == 2)
+                    {
+                        for (var i = 0; i < image.Width; i++)
+                        {
+                            scanline[i] = (byte)(bytes[i] + scanline[i]);
+                            before[i % samples] = scanline[i];
+                        }
+
+                    }
+                    else if (x == 3)
+                    {
+                        for (var i = 0; i < image.Width; i++)
+                        {
+                            scanline[i] = (byte)(bytes[i] + (before[i % samples] + scanline[i]) / 2);
+                            before[i % samples] = scanline[i];
+                        }
+
+                    }
+                    else if (x == 4)
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    Array.Copy(scanline, 0, scan, yi * stride, stride);
+
+                    Console.WriteLine($"========== FEED ========== {yi} / {image.Height}");
                 }
 
             }
@@ -112,27 +181,7 @@ namespace Giselle.Imaging.Png
                 var bits = chunkProcessor.ReadByte();
 
                 var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length - 6));
-
-                using (var ms = new MemoryStream(block))
-                {
-                    using (var ds = new DeflateStream(ms, CompressionMode.Decompress))
-                    {
-                        var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
-                        var hasAlpha = image.HasAlpha;
-                        var stride = ScanProcessor.GetStride(image.Width, image.PixelFormat.GetBitsPerPixel());
-
-                        for (var yi = 0; yi < image.Height; yi++)
-                        {
-                            var x = dataProcessor.ReadByte();
-                            var bytes = dataProcessor.ReadBytes(stride);
-
-                            Console.WriteLine("========== FEED ==========");
-                        }
-
-                    }
-
-                }
-
+                image.CompressedScanData.Write(block, 0, block.Length);
                 var checkValue = chunkProcessor.ReadInt();
             }
             else if (type.Equals(PngKnownChunkNames.iCCP) == true)

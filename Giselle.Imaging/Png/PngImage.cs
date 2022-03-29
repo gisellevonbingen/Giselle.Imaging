@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Giselle.Imaging.Png
         public byte Filter { get; set; }
         public byte Interlace { get; set; }
         public Argb32[] ColorTable { get; set; } = new Argb32[0];
+        public MemoryStream CompressedScanData { get; set; } = new MemoryStream();
 
         public PixelFormat PixelFormat => PngColorTypeExtensions.ToPixelFormat(this.ColorType, this.BitDepth);
 
