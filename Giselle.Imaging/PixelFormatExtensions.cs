@@ -31,10 +31,16 @@ namespace Giselle.Imaging
                 case PixelFormat.Format2bppIndexed: return 2;
                 case PixelFormat.Format4bppIndexed: return 4;
                 case PixelFormat.Format8bppIndexed: return 8;
+
                 case PixelFormat.Format16bppRgb555: return 16;
+                case PixelFormat.Format16bppRgb565: return 16;
+                case PixelFormat.Format16bppArgb1555: return 16;
+
                 case PixelFormat.Format24bppRgb888: return 24;
+
                 case PixelFormat.Format32bppRgb888: return 32;
                 case PixelFormat.Format32bppArgb8888: return 32;
+
                 default: return 0;
             };
 
