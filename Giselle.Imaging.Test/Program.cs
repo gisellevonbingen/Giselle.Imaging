@@ -37,17 +37,12 @@ namespace Giselle.Imaging.Test
                 try
                 {
                     var codec = ImageCodec.FindCodec(inputBytes);
-                    var scanData = ImageCodec.ReadAsScanData(inputBytes);
-
-                    var image = new Image32Argb(scanData);
+                    var image = ImageCodec.FromBytes(inputBytes);
                     Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        //SaveScanDataAsBitmap(outputStream, scanData);
-                        //SaveScanDataAsCodec(outputStream, scanData, codec);
-                        SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() { BitsPerPixel = scanData.Format.ToBmpBitsPerPixel() });
-                        //SaveImageAsCodec(outputStream, image, codec, new BmpEncodeOptions() {  });
+                        codec.Write(outputStream, image, new BmpEncodeOptions() { BitsPerPixel = image.Format.ToBmpBitsPerPixel() });
                     }
 
                 }
@@ -61,27 +56,6 @@ namespace Giselle.Imaging.Test
 
         }
 
-        public static void SaveScanDataAsBitmap(Stream output, ScanData scanData)
-        {
-            using (var bitmap = scanData.ToBitmap())
-            {
-                bitmap.Save(output, ImageFormat.Png);
-            }
-
-        }
-
-        public static void SaveScanDataAsCodec(Stream output, ScanData scanData, IImageCodec codec)
-        {
-            codec.Write(output, scanData);
-        }
-
-        public static void SaveImageAsCodec(Stream output, Image32Argb image, IImageCodec codec, EncodeOptions options)
-        {
-            var scanData = codec.Encode(image, options);
-            SaveScanDataAsCodec(output, scanData, codec);
-        }
-
     }
-
 
 }

@@ -19,26 +19,19 @@ namespace Giselle.Imaging
 
         bool Test(Stream stream);
 
-        ScanData Read(byte[] input);
+        Image32Argb Read(byte[] input);
 
-        ScanData Read(Stream input);
+        Image32Argb Read(Stream input);
 
-        void Write(Stream output, ScanData data);
-
-        void Write(Stream output, Image32Argb image);
+        void Write(Stream output, Image32Argb data);
 
         void Write(Stream output, Image32Argb image, EncodeOptions options);
 
-        ScanData Encode(Image32Argb image);
-
-        ScanData Encode(Image32Argb image, EncodeOptions options);
     }
 
     public interface IImageCodec<in T> : IImageCodec where T : EncodeOptions, new()
     {
         void Write(Stream output, Image32Argb image, T options);
-
-        ScanData Encode(Image32Argb image, T options);
     }
 
     public abstract class ImageCodec : IImageCodec
@@ -105,7 +98,7 @@ namespace Giselle.Imaging
             return null;
         }
 
-        public static ScanData ReadAsScanData(byte[] bytes) => FindCodec(bytes)?.Read(bytes);
+        public static Image32Argb FromBytes(byte[] bytes) => FindCodec(bytes)?.Read(bytes);
 
         public abstract int BytesForTest { get; }
 
@@ -141,7 +134,7 @@ namespace Giselle.Imaging
 
         public abstract bool Test(byte[] bytes);
 
-        public ScanData Read(byte[] bytes)
+        public Image32Argb Read(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             {
@@ -150,46 +143,20 @@ namespace Giselle.Imaging
 
         }
 
-        public abstract ScanData Read(Stream input);
+        public abstract Image32Argb Read(Stream input);
 
-        public void Write(Stream output, Image32Argb image)
-        {
-            var scanData = this.Encode(image);
-            this.Write(output, scanData);
-        }
-
-        public abstract void Write(Stream output, ScanData data);
+        public abstract void Write(Stream output, Image32Argb image);
 
         public abstract void Write(Stream output, Image32Argb image, EncodeOptions options);
-
-        public abstract ScanData Encode(Image32Argb image);
-
-        public abstract ScanData Encode(Image32Argb image, EncodeOptions options);
     }
 
     public abstract class ImageCodec<T> : ImageCodec, IImageCodec<T> where T : EncodeOptions, new()
     {
-        public void Write(Stream output, Image32Argb image, T option)
-        {
-            var scanData = this.Encode(image);
-            this.Write(output, scanData);
-        }
+        public override void Write(Stream output, Image32Argb image) => this.Write(output, image, new T());
 
-        public override void Write(Stream output, Image32Argb image, EncodeOptions options)
-        {
-            var scanData = this.Encode(image, options);
-            this.Write(output, scanData);
-        }
+        public abstract void Write(Stream output, Image32Argb image, T options);
 
-        public abstract ScanData Encode(Image32Argb image, T option);
-
-        public override ScanData Encode(Image32Argb image) => this.Encode(image, new T());
-
-        public override ScanData Encode(Image32Argb image, EncodeOptions options) => this.Encode(image, options as T);
-
-        void IImageCodec.Write(Stream output, Image32Argb image, EncodeOptions options) => this.Write(output, image, (options as T) ?? new T());
-
-        ScanData IImageCodec.Encode(Image32Argb image, EncodeOptions options) => this.Encode(image, (options as T) ?? new T());
+        public override void Write(Stream output, Image32Argb image, EncodeOptions options) => this.Write(output, image, (options as T) ?? new T());
     }
 
 }

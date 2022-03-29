@@ -37,39 +37,22 @@ namespace Giselle.Imaging
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Image, s.X, s.Y)));
         }
 
-        public Image32Argb(int width, int height) : this(width, height, ScanProcessor.GetStride(width, PixelFormat.Format32bppArgb.GetBitsPerPixel()), null)
-        {
-
-        }
-
-        public Image32Argb(int width, int height, int stride, byte[] scan) : this()
+        public Image32Argb(int width, int height) : this()
         {
             this.Width = width;
             this.Height = height;
-            this.Stride = stride;
-            this.Scan = scan ?? new byte[height * stride];
+            this.Stride = ScanProcessor.GetStride(width, PixelFormat.Format32bppArgb.GetBitsPerPixel());
+            this.Scan = new byte[height * this.Stride];
         }
 
-        public Image32Argb(ScanData scanData) : this()
+        public Image32Argb(ScanData scanData, ScanProcessor scanProcessor) : this()
         {
-            ScanProcessor processor;
-
-            if (scanData.UseBitFields == true)
-            {
-                processor = ScanProcessor.CreateScanProcessor(scanData.Format.GetBitsPerPixel(), scanData.AMask, scanData.RMask, scanData.GMask, scanData.BMask);
-            }
-            else
-            {
-                processor = ScanProcessor.GetScanProcessor(scanData.Format);
-            }
-
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = processor.GetFormatStride(this.Width);
+            this.Stride = scanProcessor.GetFormatStride(this.Width);
             this.Scan = new byte[this.Height * this.Stride];
-            this.Resolution = scanData.Resolution;
 
-            processor.Read(scanData, this.Scan);
+            scanProcessor.Read(scanData, this.Scan);
         }
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
@@ -122,42 +105,6 @@ namespace Giselle.Imaging
 
             }
 
-        }
-
-        public ScanData Encode(PixelFormat format)
-        {
-            return this.Encode(format, null);
-        }
-
-        public ScanData Encode(PixelFormat format, Color[] colorTable)
-        {
-            var colorTableLength = format.GetColorTableLength();
-
-            if (colorTableLength > 0)
-            {
-                if (colorTable == null)
-                {
-                    colorTable = this.Colors.Distinct().ToArray();
-                }
-
-                if (colorTable.Length > colorTableLength)
-                {
-                    throw new ArgumentException($"image's used colors kind({colorTable.Length}) exceeds ColorTableLength({colorTableLength})");
-                }
-
-            }
-
-            var processor = ScanProcessor.GetScanProcessor(format);
-            var stride = ScanProcessor.GetStride(this.Width, format.GetBitsPerPixel());
-            var scan = new byte[this.Height * stride];
-            var scanData = new ScanData(this.Width, this.Height, stride, format, scan, colorTable)
-            {
-                WidthResoulution = this.WidthResoulution,
-                HeightResoulution = this.HeightResoulution,
-            };
-            processor.Write(scanData, this.Scan);
-
-            return scanData;
         }
 
         public class ImageEnumerable<T> : IEnumerable<T>

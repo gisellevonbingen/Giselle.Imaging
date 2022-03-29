@@ -16,18 +16,12 @@ namespace Giselle.Imaging
         public PixelFormat Format { get; set; }
         public byte[] Scan { get; set; }
         public Color[] ColorTable { get; set; }
-        public double WidthResoulution { get; set; }
-        public double HeightResoulution { get; set; }
-        public double Resolution
+
+        public ScanData(int width, int height, int stride, PixelFormat format)
+            : this(width, height, stride, format, new byte[height * stride])
         {
-            get => Math.Max(this.WidthResoulution, this.HeightResoulution);
-            set { this.WidthResoulution = value; this.HeightResoulution = value; }
+
         }
-        public bool UseBitFields { get; set; }
-        public int AMask { get; set; }
-        public int RMask { get; set; }
-        public int GMask { get; set; }
-        public int BMask { get; set; }
 
         public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan)
             : this(width, height, stride, format, scan, null)
@@ -43,47 +37,6 @@ namespace Giselle.Imaging
             this.Format = format;
             this.Scan = scan;
             this.ColorTable = colorTable ?? new Color[0];
-            this.Resolution = 96.0D;
-        }
-
-        public Bitmap ToBitmap()
-        {
-            unsafe
-            {
-                var stride = this.Stride;
-                var format = this.Format;
-                var scan = this.Scan;
-
-                if (this.UseBitFields == true)
-                {
-                    var processor = ScanProcessor.CreateScanProcessor(format.GetBitsPerPixel(), this.AMask, this.RMask, this.GMask, this.BMask);
-                    stride = processor.GetFormatStride(this.Width);
-                    format = processor.FormatPixelFormat;
-                    scan = processor.Read(this);
-                }
-
-                fixed (byte* scan0 = scan)
-                {
-                    var bitmap = new Bitmap(this.Width, this.Height, stride, format, (IntPtr)scan0);
-                    var colorTable = this.ColorTable;
-                    var palette = bitmap.Palette;
-                    var len = Math.Min(colorTable.Length, palette.Entries.Length);
-
-                    if (len > 0)
-                    {
-                        for (var i = 0; i < len; i++)
-                        {
-                            palette.Entries[i] = colorTable[i];
-                        }
-
-                        bitmap.Palette = palette;
-                    }
-
-                    return bitmap;
-                }
-
-            }
-
         }
 
     }

@@ -36,7 +36,7 @@ namespace Giselle.Imaging.Bmp
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
-        public override ScanData Read(Stream input)
+        public override Image32Argb Read(Stream input)
         {
             var processor = CreateBMPProcessor(input);
             var originOffset = processor.ReadLength;
@@ -127,96 +127,32 @@ namespace Giselle.Imaging.Bmp
                 processor.SkipByRead(gap2Length);
             }
 
-            return new ScanData(width, height, stride, bitsPerPixel.ToPixelFormat(), scan, colorTable)
+            var scanData = new ScanData(width, height, stride, bitsPerPixel.ToPixelFormat(), scan, colorTable);
+
+            ScanProcessor scanProcessor;
+
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                scanProcessor = ScanProcessor.CreateScanProcessor(scanData.Format.GetBitsPerPixel(), aMask, rMask, gMask, bMask);
+            }
+            else
+            {
+                scanProcessor = ScanProcessor.GetScanProcessor(scanData.Format);
+            }
+
+            var image  = new Image32Argb(width, height)
             {
                 WidthResoulution = widthPixelsPerMeter * DPICoefficient,
                 HeightResoulution = heightPixelsPerMeter * DPICoefficient,
-                UseBitFields = compressionMethod == BmpCompressionMethod.BitFields,
-                AMask = aMask,
-                RMask = rMask,
-                GMask = gMask,
-                BMask = bMask,
             };
+            scanProcessor.Read(scanData, image.Scan);
+            return image;
         }
 
-        public override void Write(Stream output, ScanData data)
-        {
-            var width = data.Width;
-            var height = data.Height;
-            var bitsPerPixel = data.Format.ToBmpBitsPerPixel();
-            var compressionMethod = data.UseBitFields ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
-            var colorTable = data.ColorTable;
-            var colorsUsed = data.Format.IsUseColorTable() ? colorTable.Length : 0;
-            var stride = data.Stride;
-            var scan = data.Scan;
-
-            var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
-            var infoSize = 40 + bitFiledsSize;
-            var colorTableSize = colorsUsed * 4;
-            var scanSize = scan.Length;
-            var scanOffset = 14 + infoSize + colorTableSize;
-
-            var processor = CreateBMPProcessor(output);
-
-            // File Header
-            processor.WriteBytes(SignatureBM);
-            processor.WriteInt(scanOffset + scanSize);
-            processor.WriteShort(0);
-            processor.WriteShort(0);
-            processor.WriteInt(scanOffset);
-
-            // Bitmap Info Header
-            processor.WriteInt(infoSize);
-            processor.WriteInt(width);
-            processor.WriteInt(height);
-            processor.WriteShort(1);
-            processor.WriteShort((short)bitsPerPixel);
-            processor.WriteInt((int)compressionMethod);
-            processor.WriteInt(0);
-            processor.WriteInt((int)(data.WidthResoulution / DPICoefficient));
-            processor.WriteInt((int)(data.HeightResoulution / DPICoefficient));
-            processor.WriteInt(colorsUsed);
-            processor.WriteInt(colorsUsed);
-
-            // BitFields
-            if (compressionMethod == BmpCompressionMethod.BitFields)
-            {
-                processor.WriteInt(data.RMask);
-                processor.WriteInt(data.GMask);
-                processor.WriteInt(data.BMask);
-                processor.WriteInt(data.AMask);
-                processor.WriteUInt(0x206E6957);
-                processor.WriteBytes(new byte[48]);
-            }
-
-            if (colorsUsed > 0)
-            {
-                for (var i = 0; i < colorsUsed; i++)
-                {
-                    var color = colorTable[i];
-                    processor.WriteByte(color.B);
-                    processor.WriteByte(color.G);
-                    processor.WriteByte(color.R);
-                    processor.WriteByte(255);
-                }
-
-            }
-
-            for (var y = height - 1; y > -1; y--)
-            {
-                for (var x = 0; x < stride; x++)
-                {
-                    processor.WriteByte(scan[y * stride + x]);
-                }
-
-            }
-
-        }
-
-        public override ScanData Encode(Image32Argb image, BmpEncodeOptions options)
+        public override void Write(Stream output, Image32Argb image, BmpEncodeOptions options)
         {
             var bitsPerPixel = options.BitsPerPixel;
-            Color[] usedColors = null;
+            var usedColors = new Color[0];
 
             if (bitsPerPixel != BmpBitsPerPixel.Undefined)
             {
@@ -251,32 +187,100 @@ namespace Giselle.Imaging.Bmp
             }
 
             var format = bitsPerPixel.ToPixelFormat();
+            var rMask = 0;
+            var gMask = 0;
+            var bMask = 0;
+            var aMask = 0;
 
-            if (format.IsUseColorTable() == true)
-            {
-                if (usedColors == null)
-                {
-                    usedColors = image.Colors.Distinct().ToArray();
-                }
+            var compressionMethod = bitsPerPixel == BmpBitsPerPixel.Bpp32Argb ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
 
-            }
-
-            var scanData = image.Encode(format, usedColors);
-
-            if (bitsPerPixel == BmpBitsPerPixel.Bpp32Argb)
+            if (compressionMethod == BmpCompressionMethod.BitFields)
             {
                 unchecked
                 {
-                    scanData.UseBitFields = true;
-                    scanData.RMask = (int)(0x00FF0000);
-                    scanData.GMask = (int)(0x0000FF00);
-                    scanData.BMask = (int)(0x000000FF);
-                    scanData.AMask = (int)(0xFF000000);
+                    rMask = (int)(0x00FF0000);
+                    gMask = (int)(0x0000FF00);
+                    bMask = (int)(0x000000FF);
+                    aMask = (int)(0xFF000000);
                 }
 
             }
 
-            return scanData;
+            ScanProcessor scanProcessor;
+
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                scanProcessor = ScanProcessor.CreateScanProcessor((int)bitsPerPixel, aMask, rMask, gMask, bMask);
+            }
+            else
+            {
+                scanProcessor = ScanProcessor.GetScanProcessor(format);
+            }
+
+            var stride = ScanProcessor.GetStride(image.Width, (int)bitsPerPixel);
+            var scanData = new ScanData(image.Width, image.Height, stride, format);
+            scanProcessor.Write(scanData, image.Scan);
+
+            var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
+            var infoSize = 40 + bitFiledsSize;
+            var colorTableSize = usedColors.Length * 4;;
+            var scanOffset = 14 + infoSize + colorTableSize;
+
+            var processor = CreateBMPProcessor(output);
+
+            // File Header
+            processor.WriteBytes(SignatureBM);
+            processor.WriteInt(scanOffset + scanData.Scan.Length);
+            processor.WriteShort(0);
+            processor.WriteShort(0);
+            processor.WriteInt(scanOffset);
+
+            // Bitmap Info Header
+            processor.WriteInt(infoSize);
+            processor.WriteInt(image.Width);
+            processor.WriteInt(image.Height);
+            processor.WriteShort(1);
+            processor.WriteShort((short)bitsPerPixel);
+            processor.WriteInt((int)compressionMethod);
+            processor.WriteInt(0);
+            processor.WriteInt((int)(image.WidthResoulution / DPICoefficient));
+            processor.WriteInt((int)(image.HeightResoulution / DPICoefficient));
+            processor.WriteInt(usedColors.Length);
+            processor.WriteInt(usedColors.Length);
+
+            // BitFields
+            if (compressionMethod == BmpCompressionMethod.BitFields)
+            {
+                processor.WriteInt(rMask);
+                processor.WriteInt(gMask);
+                processor.WriteInt(bMask);
+                processor.WriteInt(aMask);
+                processor.WriteUInt(0x206E6957);
+                processor.WriteBytes(new byte[48]);
+            }
+
+            if (usedColors.Length > 0)
+            {
+                for (var i = 0; i < usedColors.Length; i++)
+                {
+                    var color = usedColors[i];
+                    processor.WriteByte(color.B);
+                    processor.WriteByte(color.G);
+                    processor.WriteByte(color.R);
+                    processor.WriteByte(255);
+                }
+
+            }
+
+            for (var y = image.Height - 1; y > -1; y--)
+            {
+                for (var x = 0; x < stride; x++)
+                {
+                    processor.WriteByte(scanData.Scan[y * stride + x]);
+                }
+
+            }
+
         }
 
         public BmpBitsPerPixel GetPrefferedBitsPerPixel(int colorCount)
