@@ -13,28 +13,28 @@ namespace Giselle.Imaging
         public int Width { get; set; }
         public int Height { get; set; }
         public int Stride { get; set; }
-        public PixelFormat Format { get; set; }
+        public int BitsPerPixel { get; set; }
         public byte[] Scan { get; set; }
         public Color[] ColorTable { get; set; }
 
-        public ScanData(int width, int height, int stride, PixelFormat format)
-            : this(width, height, stride, format, new byte[height * stride])
+        public ScanData(int width, int height, int stride, int bitsPerPixel)
+            : this(width, height, stride, bitsPerPixel, new byte[height * stride])
         {
 
         }
 
-        public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan)
-            : this(width, height, stride, format, scan, null)
+        public ScanData(int width, int height, int stride, int bitsPerPixel, byte[] scan)
+            : this(width, height, stride, bitsPerPixel, scan, null)
         {
 
         }
 
-        public ScanData(int width, int height, int stride, PixelFormat format, byte[] scan, Color[] colorTable)
+        public ScanData(int width, int height, int stride, int bitsPerPixel, byte[] scan, Color[] colorTable)
         {
             this.Width = width;
             this.Height = height;
             this.Stride = stride;
-            this.Format = format;
+            this.BitsPerPixel = bitsPerPixel;
             this.Scan = scan;
             this.ColorTable = colorTable ?? new Color[0];
         }

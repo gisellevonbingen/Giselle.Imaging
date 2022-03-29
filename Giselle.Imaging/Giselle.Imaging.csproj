@@ -53,6 +53,14 @@
     <Compile Include="EncodeOptions.cs" />
     <Compile Include="Int32ChannelMask.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
+    <Compile Include="Png\PngChunkStream.cs" />
+    <Compile Include="Png\PngCodec.cs" />
+    <Compile Include="Png\PngColorType.cs" />
+    <Compile Include="Png\PngColorTypeExtensions.cs" />
+    <Compile Include="Png\PngEncodeOptions.cs" />
+    <Compile Include="Png\PngImage.cs" />
+    <Compile Include="Png\PngKnownChunkNames.cs" />
+    <Compile Include="Png\PngRawChunk.cs" />
     <Compile Include="ScanProcessor16.cs" />
     <Compile Include="Tiff\TiffCompressionMethod.cs" />
     <Compile Include="Tiff\TiffEntryExtensions.cs" />

@@ -12,7 +12,7 @@ namespace Giselle.Imaging
     {
         public static ScanProcessor CreateScanProcessor(int bits, int aMask, int rMask, int gMask, int bMask)
         {
-            if (bits == 1 || bits == 4 || bits == 8)
+            if (bits == 1 || bits == 2 || bits == 4 || bits == 8)
             {
                 return new ScanProcessorIndexed();
             }

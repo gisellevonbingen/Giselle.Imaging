@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Bmp;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Png;
 using Giselle.Imaging.Tiff;
 
 namespace Giselle.Imaging
@@ -52,6 +53,7 @@ namespace Giselle.Imaging
         {
             Register(BmpCodec.Instance);
             Register(TiffCodec.Instance);
+            Register(PngCodec.Instance);
         }
 
         public static IImageCodec FindCodec(Stream input)

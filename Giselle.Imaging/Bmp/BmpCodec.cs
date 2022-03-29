@@ -127,17 +127,17 @@ namespace Giselle.Imaging.Bmp
                 processor.SkipByRead(gap2Length);
             }
 
-            var scanData = new ScanData(width, height, stride, bitsPerPixel.ToPixelFormat(), scan, colorTable);
+            var scanData = new ScanData(width, height, stride, (int)bitsPerPixel, scan, colorTable);
 
             ScanProcessor scanProcessor;
 
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                scanProcessor = ScanProcessor.CreateScanProcessor(scanData.Format.GetBitsPerPixel(), aMask, rMask, gMask, bMask);
+                scanProcessor = ScanProcessor.CreateScanProcessor((int)bitsPerPixel, aMask, rMask, gMask, bMask);
             }
             else
             {
-                scanProcessor = ScanProcessor.GetScanProcessor(scanData.Format);
+                scanProcessor = ScanProcessor.GetScanProcessor(bitsPerPixel.ToPixelFormat());
             }
 
             var image  = new Image32Argb(width, height)
@@ -218,7 +218,7 @@ namespace Giselle.Imaging.Bmp
             }
 
             var stride = ScanProcessor.GetStride(image.Width, (int)bitsPerPixel);
-            var scanData = new ScanData(image.Width, image.Height, stride, format);
+            var scanData = new ScanData(image.Width, image.Height, stride, (int)bitsPerPixel);
             scanProcessor.Write(scanData, image.Scan);
 
             var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;

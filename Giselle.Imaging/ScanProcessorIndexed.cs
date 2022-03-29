@@ -20,7 +20,7 @@ namespace Giselle.Imaging
         public override void Read(ScanData input, byte[] formatScan)
         {
             var mask = 0;
-            var bpp = input.Format.GetBitsPerPixel();
+            var bpp = input.BitsPerPixel;
             var ppb = 8 / bpp;
             var dpp = this.FormatBitsPerPixel / 8;
             var formatStride = this.GetFormatStride(input.Width);
@@ -69,7 +69,7 @@ namespace Giselle.Imaging
         public override void Write(ScanData output, byte[] formatScan)
         {
             var maskBase = 0;
-            var bpp = output.Format.GetBitsPerPixel();
+            var bpp = output.BitsPerPixel;
             var ppb = 8 / bpp;
             var formatStride = this.GetFormatStride(output.Width);
 
