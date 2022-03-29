@@ -52,6 +52,9 @@
     <Compile Include="ColorWithPosition.cs" />
     <Compile Include="EncodeOptions.cs" />
     <Compile Include="Int32ChannelMask.cs" />
+    <Compile Include="IO\Pipe.cs" />
+    <Compile Include="IO\PipeReadStream.cs" />
+    <Compile Include="IO\PipeWriteStream.cs" />
     <Compile Include="PixelFormat.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="Png\PngChunkStream.cs" />

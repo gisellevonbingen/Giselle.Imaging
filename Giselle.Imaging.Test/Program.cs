@@ -8,14 +8,44 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Bmp;
+using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Test
 {
     public class Program
     {
         public static void Main()
+        {
+            //TestPipe();
+            TestCodec();
+        }
+
+        public static void TestPipe()
+        {
+            var pipe = new Pipe();
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var buffer = new byte[16];
+                    var len = pipe.Reader.Read(buffer, 0, buffer.Length);
+                    Console.WriteLine($"Read : {len}");
+                }
+            }).Start();
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var data = new byte[Console.ReadLine().Length];
+                    pipe.Writer.Write(data, 0, data.Length);
+                }
+            }).Start();
+        }
+
+        public static void TestCodec()
         {
             var rootDir = @"C:\Users\Seil\Desktop\Test\";
             var inputDir = $@"{rootDir}Input\";
