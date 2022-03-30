@@ -34,7 +34,7 @@ namespace Giselle.Imaging.Png
                 if (colorType == PngColorType.IndexedColor)
                 {
                     var padding = (bitDepth % 8 == 0) ? 1 : 2;
-                    return ScanProcessor.GetStridePadding(width, bitsPerPixel, padding);
+                    return ScanProcessor.GetStride(width, bitsPerPixel, padding);
                 }
                 else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
                 {

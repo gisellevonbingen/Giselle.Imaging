@@ -104,7 +104,7 @@ namespace Giselle.Imaging.Bmp
                 processor.SkipByRead(gap1Length);
             }
 
-            var stride = ScanProcessor.GetStridePadding4(width, (short)bitsPerPixel);
+            var stride = ScanProcessor.GetStride(width, (short)bitsPerPixel);
             var scan = new byte[height * stride];
 
             for (var y = height - 1; y > -1; y--)
@@ -211,7 +211,7 @@ namespace Giselle.Imaging.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(format);
             }
 
-            var stride = ScanProcessor.GetStridePadding4(image.Width, (int)bitsPerPixel);
+            var stride = ScanProcessor.GetStride(image.Width, (int)bitsPerPixel);
             var scanData = new ScanData(image.Width, image.Height, stride, (int)bitsPerPixel);
             scanProcessor.Write(scanData, image.Scan);
 

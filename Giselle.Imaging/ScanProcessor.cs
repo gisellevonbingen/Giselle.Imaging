@@ -77,9 +77,9 @@ namespace Giselle.Imaging
             return (width * w1) / w2;
         }
 
-        public static int GetStridePadding4(int width, int bitsPerPixel) => GetStridePadding(width, bitsPerPixel, 4);
+        public static int GetStride(int width, int bitsPerPixel) => GetStride(width, bitsPerPixel, 4);
 
-        public static int GetStridePadding(int width, int bitsPerPixel, int padding)
+        public static int GetStride(int width, int bitsPerPixel, int padding)
         {
             var bytePerWidth = GetBytesPerWidth(width, bitsPerPixel);
             var mod = bytePerWidth % padding;
@@ -114,7 +114,7 @@ namespace Giselle.Imaging
             return new Argb32(a, r, g, b);
         }
 
-        public int GetFormatStride(int width) => GetStridePadding4(width, this.FormatBitsPerPixel);
+        public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
 
         public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 
