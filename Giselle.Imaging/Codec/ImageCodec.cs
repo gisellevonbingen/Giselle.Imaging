@@ -8,7 +8,7 @@ using Giselle.Imaging.Codec.Bmp;
 using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.Codec.Tiff;
 
-namespace Giselle.Imaging
+namespace Giselle.Imaging.Codec
 {
     public interface IImageCodec
     {

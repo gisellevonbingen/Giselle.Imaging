@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging
+namespace Giselle.Imaging.Scan
 {
     public struct Int32ChannelMask : IEquatable<Int32ChannelMask>
     {
@@ -19,7 +19,7 @@ namespace Giselle.Imaging
             var offset = 0;
             var length = 0;
             var bits = sizeof(uint) * 8;
-            var i = 0;
+            int i;
 
             for (i = 0; i < bits; i++)
             {
