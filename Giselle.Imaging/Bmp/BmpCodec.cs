@@ -23,7 +23,7 @@ namespace Giselle.Imaging.Bmp
 
         public const double DPICoefficient = 25.4D / 1000.0D;
 
-        public static DataProcessor CreateBMPProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
+        public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
 
         public BmpCodec()
         {
@@ -36,7 +36,7 @@ namespace Giselle.Imaging.Bmp
 
         public override ImageArgb32 Read(Stream input)
         {
-            var processor = CreateBMPProcessor(input);
+            var processor = CreateBmpProcessor(input);
             var originOffset = processor.ReadLength;
 
             // Signature
@@ -220,7 +220,7 @@ namespace Giselle.Imaging.Bmp
             var colorTableSize = usedColors.Length * 4; ;
             var scanOffset = 14 + infoSize + colorTableSize;
 
-            var processor = CreateBMPProcessor(output);
+            var processor = CreateBmpProcessor(output);
 
             // File Header
             processor.WriteBytes(SignatureBM);

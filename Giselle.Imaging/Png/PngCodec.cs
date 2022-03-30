@@ -17,6 +17,8 @@ namespace Giselle.Imaging.Png
         public static PngCodec Instance { get; } = new PngCodec();
         public static IList<byte> Signature { get; } = Array.AsReadOnly(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
 
+        public static DataProcessor CreatePngProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
+
         public PngCodec()
         {
 
@@ -28,7 +30,7 @@ namespace Giselle.Imaging.Png
 
         public override ImageArgb32 Read(Stream stream)
         {
-            var processor = new DataProcessor(stream) { IsBigEndian = true };
+            var processor = CreatePngProcessor(stream);
             var signature = Signature;
             var read = processor.ReadBytes(signature.Count);
 
@@ -71,7 +73,7 @@ namespace Giselle.Imaging.Png
 
             using (var ds = new ZlibStream(image.CompressedScanData, CompressionMode.Decompress))
             {
-                var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
+                var dataProcessor = CreatePngProcessor(ds);
                 var scanline = new byte[stride];
 
                 for (var yi = 0; yi < image.Height; yi++)
@@ -133,7 +135,7 @@ namespace Giselle.Imaging.Png
 
         private void ReadChunk(PngChunkStream chunkStream, PngImage image)
         {
-            var chunkProcessor = new DataProcessor(chunkStream) { IsBigEndian = true };
+            var chunkProcessor = CreatePngProcessor(chunkStream);
             var type = chunkStream.Type;
 
             if (type.Equals(PngKnownChunkNames.IHDR) == true)
