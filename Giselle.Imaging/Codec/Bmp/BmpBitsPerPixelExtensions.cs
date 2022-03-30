@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Bmp
+namespace Giselle.Imaging.Codec.Bmp
 {
     public static class BmpBitsPerPixelExtensions
     {

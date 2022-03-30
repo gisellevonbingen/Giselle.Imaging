@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 using Ionic.Zlib;
 
-namespace Giselle.Imaging.Png
+namespace Giselle.Imaging.Codec.Png
 {
     public class PngCodec : ImageCodec<PngEncodeOptions>
     {

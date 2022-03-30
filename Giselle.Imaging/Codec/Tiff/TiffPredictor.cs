@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Tiff
+namespace Giselle.Imaging.Codec.Tiff
 {
-    public enum TiffResolutionUnit
+    public enum TiffPredictor : ushort
     {
         Undefined = 0,
-        NoAbsolute = 1,
-        Inch = 2,
-        Centimeter = 3,
+        NoPrediction = 1,
+        HorizontalDifferencing = 2,
     }
 
 }

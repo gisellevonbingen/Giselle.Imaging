@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Tiff
+namespace Giselle.Imaging.Codec.Tiff
 {
     public class TiffCodec : ImageCodec<TiffEncodeOptions>
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Tiff
+namespace Giselle.Imaging.Codec.Tiff
 {
     public static class TiffEntryTypeExtensions
     {

@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Giselle.Imaging.Bmp;
+using Giselle.Imaging.Codec.Bmp;
 using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Test

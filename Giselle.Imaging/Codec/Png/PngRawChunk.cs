@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Giselle.Imaging.Checksum;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Png
+namespace Giselle.Imaging.Codec.Png
 {
     public class PNGRawChunk
     {

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Bmp;
-using Giselle.Imaging.IO;
-using Giselle.Imaging.Png;
-using Giselle.Imaging.Tiff;
+using Giselle.Imaging.Codec.Bmp;
+using Giselle.Imaging.Codec.Png;
+using Giselle.Imaging.Codec.Tiff;
 
 namespace Giselle.Imaging
 {

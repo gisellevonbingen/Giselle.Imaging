@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Bmp
+namespace Giselle.Imaging.Codec.Bmp
 {
     public class BmpCodec : ImageCodec<BmpEncodeOptions>
     {

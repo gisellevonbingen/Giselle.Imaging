@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Markup;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Tiff
+namespace Giselle.Imaging.Codec.Tiff
 {
     public static class TiffEntryExtensions
     {
