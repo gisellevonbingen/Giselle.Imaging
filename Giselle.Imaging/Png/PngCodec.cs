@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Bmp;
 using Giselle.Imaging.IO;
+using Ionic.Zlib;
+using Microsoft.Win32.SafeHandles;
 
 namespace Giselle.Imaging.Png
 {
@@ -63,65 +64,71 @@ namespace Giselle.Imaging.Png
 
             image.CompressedScanData.Position = 0;
 
-            using (var ds = new DeflateStream(image.CompressedScanData, CompressionMode.Decompress))
+            var bitsPerPixel = image.PixelFormat.GetBitsPerPixel();
+            var stride = ScanProcessor.GetBytesPerWidth(image.Width, bitsPerPixel);
+            var scan = new byte[image.Height * stride];
+
+            using (var ds = new ZlibStream(image.CompressedScanData, CompressionMode.Decompress))
             {
                 var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
-                var bitsPerPixel = image.PixelFormat.GetBitsPerPixel();
                 var samples = bitsPerPixel / image.BitDepth;
-                var stride = ScanProcessor.GetStride(image.Width, bitsPerPixel);
                 var scanline = new byte[stride];
-                var scan = new byte[image.Height * stride];
 
                 for (var yi = 0; yi < image.Height; yi++)
                 {
-                    var x = dataProcessor.ReadByte();
-                    var bytes = dataProcessor.ReadBytes(stride);
-                    var before = new byte[samples];
+                    var filter = dataProcessor.ReadByte();
+                    var strideBytes = dataProcessor.ReadBytes(stride);
+                    var currLineSamples1 = new byte[samples];
+                    var lastLineSamples2 = new byte[samples];
 
-                    if (x == 0)
+                    for (var xi = 0; xi < stride; xi++)
                     {
-                        scanline = bytes;
-                    }
-                    else if (x == 1)
-                    {
-                        for (var i = 0; i < image.Width; i++)
+                        var x = strideBytes[xi];
+                        var a = currLineSamples1[xi % samples];
+                        var b = scanline[xi];
+                        var c = lastLineSamples2[xi % samples];
+                        byte result = 0;
+
+                        if (filter == 0)
                         {
-                            scanline[i] = (byte)(bytes[i] + before[i % samples]);
-                            before[i % samples] = scanline[i];
+                            result = x;
+                        }
+                        else if (filter == 1)
+                        {
+                            result = (byte)(x + a);
+                        }
+                        else if (filter == 2)
+                        {
+                            result = (byte)(x + b);
+                        }
+                        else if (filter == 3)
+                        {
+                            result = (byte)(x + (a + b) / 2);
+                        }
+                        else if (filter == 4)
+                        {
+                            var p = a + b - c;
+                            var pa = Math.Abs(p - a);
+                            var pb = Math.Abs(p - b);
+                            var pc = Math.Abs(p - c);
+                            if (pa <= pb && pa <= pc) result = a;
+                            else if (pb <= pc) result = b;
+                            else result = c;
                         }
 
-                    }
-                    else if (x == 2)
-                    {
-                        for (var i = 0; i < image.Width; i++)
-                        {
-                            scanline[i] = (byte)(bytes[i] + scanline[i]);
-                            before[i % samples] = scanline[i];
-                        }
-
-                    }
-                    else if (x == 3)
-                    {
-                        for (var i = 0; i < image.Width; i++)
-                        {
-                            scanline[i] = (byte)(bytes[i] + (before[i % samples] + scanline[i]) / 2);
-                            before[i % samples] = scanline[i];
-                        }
-
-                    }
-                    else if (x == 4)
-                    {
-                        throw new NotImplementedException();
+                        scanline[xi] = result;
+                        currLineSamples1[xi % samples] = result;
+                        lastLineSamples2[xi % samples] = a;
                     }
 
                     Array.Copy(scanline, 0, scan, yi * stride, stride);
-
-                    Console.WriteLine($"========== FEED ========== {yi} / {image.Height}");
                 }
 
             }
 
-            throw new NotImplementedException();
+            var scanData = new ScanData(image.Width, image.Height, stride, bitsPerPixel, scan);
+            var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, image.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
+            return new ImageArgb32(scanData, scanProcessor);
         }
 
         private void ReadChunk(PngChunkStream chunkStream, PngImage image)
@@ -175,14 +182,8 @@ namespace Giselle.Imaging.Png
             }
             else if (type.Equals(PngKnownChunkNames.IDAT) == true)
             {
-                var code = chunkProcessor.ReadByte();
-                var cm = (code & 0x0F) >> 0x00;
-                var ci = (code & 0xF0) >> 0x04;
-                var bits = chunkProcessor.ReadByte();
-
-                var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length - 6));
+                var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length));
                 image.CompressedScanData.Write(block, 0, block.Length);
-                var checkValue = chunkProcessor.ReadInt();
             }
             else if (type.Equals(PngKnownChunkNames.iCCP) == true)
             {
@@ -250,6 +251,7 @@ namespace Giselle.Imaging.Png
             {
                 var raw = new PNGRawChunk(chunkStream);
             }
+
         }
 
         public override void Write(Stream output, ImageArgb32 image, PngEncodeOptions options)

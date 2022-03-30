@@ -8,7 +8,7 @@ namespace Giselle.Imaging
 {
     public abstract class ScanProcessor
     {
-        public static ScanProcessor CreateScanProcessor(int bits, int aMask, int rMask, int gMask, int bMask)
+        public static ScanProcessor CreateScanProcessor(int bits, uint aMask, uint rMask, uint gMask, uint bMask)
         {
             if (bits == 1 || bits == 2 || bits == 4 || bits == 8)
             {
@@ -77,12 +77,13 @@ namespace Giselle.Imaging
             return (width * w1) / w2;
         }
 
-        public static int GetStride(int width, int bitsPerPixel)
+        public static int GetStridePadding4(int width, int bitsPerPixel) => GetStridePadding(width, bitsPerPixel, 4);
+
+        public static int GetStridePadding(int width, int bitsPerPixel, int padding)
         {
-            var divisor = 4;
             var bytePerWidth = GetBytesPerWidth(width, bitsPerPixel);
-            var mod = bytePerWidth % divisor;
-            var stride = mod == 0 ? bytePerWidth : (bytePerWidth - mod + divisor);
+            var mod = bytePerWidth % padding;
+            var stride = mod == 0 ? bytePerWidth : (bytePerWidth - mod + padding);
             return stride;
         }
 
@@ -113,7 +114,7 @@ namespace Giselle.Imaging
             return new Argb32(a, r, g, b);
         }
 
-        public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
+        public int GetFormatStride(int width) => GetStridePadding4(width, this.FormatBitsPerPixel);
 
         public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 

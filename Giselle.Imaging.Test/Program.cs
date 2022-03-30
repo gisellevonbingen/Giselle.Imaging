@@ -72,7 +72,8 @@ namespace Giselle.Imaging.Test
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        codec.Write(outputStream, image, new BmpEncodeOptions() { BitsPerPixel = image.PixelFormat.ToBmpBitsPerPixel() });
+                        //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { BitsPerPixel = image.PixelFormat.ToBmpBitsPerPixel() });
+                        SaveImageAsBitmap(outputStream, image);
                     }
 
                 }
@@ -84,6 +85,16 @@ namespace Giselle.Imaging.Test
 
             }
 
+        }
+
+        public static void SaveImageAsBitmap(FileStream outputStream, ImageArgb32 image)
+        {
+            image.ToBitmap().Save(outputStream, ImageFormat.Png);
+        }
+
+        public static void SaveImageAsReadCodec(Stream output, ImageArgb32 image, IImageCodec codec, EncodeOptions options)
+        {
+            codec.Write(output, image, options);
         }
 
     }

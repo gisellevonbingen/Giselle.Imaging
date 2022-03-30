@@ -66,17 +66,17 @@ namespace Giselle.Imaging.Bmp
             var colorsUsed = processor.ReadInt(); // 0 or 2^bitsPerPixel
             var importantColors = processor.ReadInt(); // Generally ingored
 
-            var rMask = 0;
-            var gMask = 0;
-            var bMask = 0;
-            var aMask = 0;
+            uint rMask = 0;
+            uint gMask = 0;
+            uint bMask = 0;
+            uint aMask = 0;
 
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                rMask = processor.ReadInt();
-                gMask = processor.ReadInt();
-                bMask = processor.ReadInt();
-                aMask = processor.ReadInt();
+                rMask = processor.ReadUInt();
+                gMask = processor.ReadUInt();
+                bMask = processor.ReadUInt();
+                aMask = processor.ReadUInt();
             }
 
             // Color Table
@@ -104,7 +104,7 @@ namespace Giselle.Imaging.Bmp
                 processor.SkipByRead(gap1Length);
             }
 
-            var stride = ScanProcessor.GetStride(width, (short)bitsPerPixel);
+            var stride = ScanProcessor.GetStridePadding4(width, (short)bitsPerPixel);
             var scan = new byte[height * stride];
 
             for (var y = height - 1; y > -1; y--)
@@ -138,7 +138,7 @@ namespace Giselle.Imaging.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(bitsPerPixel.ToPixelFormat());
             }
 
-            var image  = new ImageArgb32(width, height)
+            var image = new ImageArgb32(width, height)
             {
                 WidthResoulution = widthPixelsPerMeter * DPICoefficient,
                 HeightResoulution = heightPixelsPerMeter * DPICoefficient,
@@ -185,23 +185,19 @@ namespace Giselle.Imaging.Bmp
             }
 
             var format = bitsPerPixel.ToPixelFormat();
-            var rMask = 0;
-            var gMask = 0;
-            var bMask = 0;
-            var aMask = 0;
+            uint rMask = 0;
+            uint gMask = 0;
+            uint bMask = 0;
+            uint aMask = 0;
 
             var compressionMethod = bitsPerPixel == BmpBitsPerPixel.Bpp32Argb ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb;
 
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                unchecked
-                {
-                    rMask = (int)(0x00FF0000);
-                    gMask = (int)(0x0000FF00);
-                    bMask = (int)(0x000000FF);
-                    aMask = (int)(0xFF000000);
-                }
-
+                rMask = 0x00FF0000;
+                gMask = 0x0000FF00;
+                bMask = 0x000000FF;
+                aMask = 0xFF000000;
             }
 
             ScanProcessor scanProcessor;
@@ -215,13 +211,13 @@ namespace Giselle.Imaging.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(format);
             }
 
-            var stride = ScanProcessor.GetStride(image.Width, (int)bitsPerPixel);
+            var stride = ScanProcessor.GetStridePadding4(image.Width, (int)bitsPerPixel);
             var scanData = new ScanData(image.Width, image.Height, stride, (int)bitsPerPixel);
             scanProcessor.Write(scanData, image.Scan);
 
             var bitFiledsSize = compressionMethod == BmpCompressionMethod.BitFields ? 68 : 0;
             var infoSize = 40 + bitFiledsSize;
-            var colorTableSize = usedColors.Length * 4;;
+            var colorTableSize = usedColors.Length * 4; ;
             var scanOffset = 14 + infoSize + colorTableSize;
 
             var processor = CreateBMPProcessor(output);
@@ -249,10 +245,10 @@ namespace Giselle.Imaging.Bmp
             // BitFields
             if (compressionMethod == BmpCompressionMethod.BitFields)
             {
-                processor.WriteInt(rMask);
-                processor.WriteInt(gMask);
-                processor.WriteInt(bMask);
-                processor.WriteInt(aMask);
+                processor.WriteUInt(rMask);
+                processor.WriteUInt(gMask);
+                processor.WriteUInt(bMask);
+                processor.WriteUInt(aMask);
                 processor.WriteUInt(0x206E6957);
                 processor.WriteBytes(new byte[48]);
             }
