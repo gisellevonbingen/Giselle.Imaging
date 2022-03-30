@@ -22,6 +22,33 @@ namespace Giselle.Imaging.Png
 
         public PixelFormat PixelFormat => PngColorTypeExtensions.ToPixelFormat(this.ColorType, this.BitDepth);
 
+        public int Stride
+        {
+            get
+            {
+                var width = this.Width;
+                var colorType = this.ColorType;
+                var bitDepth = this.BitDepth;
+                var bitsPerPixel = PngColorTypeExtensions.ToPixelFormat(colorType, bitDepth).GetBitsPerPixel();
+
+                if (colorType == PngColorType.IndexedColor)
+                {
+                    var padding = (bitDepth % 8 == 0) ? 1 : 2;
+                    return ScanProcessor.GetStridePadding(width, bitsPerPixel, padding);
+                }
+                else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
+                {
+                    return ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
+                }
+                else
+                {
+                    throw new NotImplementedException($"ColorType({colorType}) is Not Supported");
+                }
+
+            }
+
+        }
+
     }
 
 }

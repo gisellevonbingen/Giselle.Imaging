@@ -65,13 +65,13 @@ namespace Giselle.Imaging.Png
             image.CompressedScanData.Position = 0;
 
             var bitsPerPixel = image.PixelFormat.GetBitsPerPixel();
-            var stride = ScanProcessor.GetBytesPerWidth(image.Width, bitsPerPixel);
+            var samples = bitsPerPixel / image.BitDepth;
+            var stride = image.Stride;
             var scan = new byte[image.Height * stride];
 
             using (var ds = new ZlibStream(image.CompressedScanData, CompressionMode.Decompress))
             {
                 var dataProcessor = new DataProcessor(ds) { IsBigEndian = true };
-                var samples = bitsPerPixel / image.BitDepth;
                 var scanline = new byte[stride];
 
                 for (var yi = 0; yi < image.Height; yi++)
@@ -126,7 +126,7 @@ namespace Giselle.Imaging.Png
 
             }
 
-            var scanData = new ScanData(image.Width, image.Height, stride, bitsPerPixel, scan);
+            var scanData = new ScanData(image.Width, image.Height, stride, bitsPerPixel, scan, image.ColorTable);
             var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, image.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
             return new ImageArgb32(scanData, scanProcessor);
         }
@@ -145,10 +145,6 @@ namespace Giselle.Imaging.Png
                 image.Compression = chunkProcessor.ReadByte();
                 image.Filter = chunkProcessor.ReadByte();
                 image.Interlace = chunkProcessor.ReadByte();
-
-                Console.WriteLine(image.ColorType);
-                Console.WriteLine(image.BitDepth);
-                Console.WriteLine(image.PixelFormat);
             }
             else if (type.Equals(PngKnownChunkNames.PLTE) == true)
             {
