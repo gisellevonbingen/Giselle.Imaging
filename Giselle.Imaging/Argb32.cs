@@ -29,6 +29,8 @@ namespace Giselle.Imaging
             this.B = b;
         }
 
+        public Argb32 DeriveA(byte a) => new Argb32(a, this.R, this.G, this.B);
+
         public override bool Equals(object obj) => obj is Argb32 other && this.Equals(other);
 
         public bool Equals(Argb32 other) => (this.A == other.A) && (this.R == other.R) && (this.G == other.G) && (this.B == other.B);

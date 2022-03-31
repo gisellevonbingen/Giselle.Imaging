@@ -47,6 +47,7 @@
     <Compile Include="Codec\Bmp\BmpRawImage.cs" />
     <Compile Include="Codec\CommonCompressionLevel.cs" />
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
+    <Compile Include="ColorTableUtils.cs" />
     <Compile Include="IPhysicalValue.cs" />
     <Compile Include="PhysicalDensity.cs" />
     <Compile Include="Argb32.cs" />

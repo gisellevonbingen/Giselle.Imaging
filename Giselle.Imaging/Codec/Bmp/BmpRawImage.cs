@@ -110,7 +110,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public ImageArgb32 Decode()
         {
-            var scanData = new ScanData(this.Width, this.Height, this.Stride, (int)this.BitsPerPixel, this.ScanData, this.ColorTable);
+            var scanData = new ScanData(this.Width, this.Height, this.Stride, (int)this.BitsPerPixel, this.ScanData) { ColorTable = this.ColorTable };
 
             ScanProcessor scanProcessor;
 
