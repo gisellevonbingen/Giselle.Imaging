@@ -48,6 +48,7 @@
     <Compile Include="Codec\CommonCompressionLevel.cs" />
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
     <Compile Include="ColorTableUtils.cs" />
+    <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="Physical\IPhysicalValue.cs" />
     <Compile Include="Physical\PhysicalDensity.cs" />
     <Compile Include="Argb32.cs" />

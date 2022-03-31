@@ -16,6 +16,13 @@ namespace Giselle.Imaging.Codec.Png
             else return PhysicalUnit.Undefined;
         }
 
+        public static PngPhysicalPixelDimensionsUnit ToPngPhysicalPixelDimensionsUnit(this PhysicalUnit value)
+        {
+            if (value == PhysicalUnit.Undefined) return PngPhysicalPixelDimensionsUnit.AspectRatio;
+            else if (value == PhysicalUnit.Meter) return PngPhysicalPixelDimensionsUnit.Meter;
+            else return PngPhysicalPixelDimensionsUnit.AspectRatio;
+        }
+
     }
 
 }
