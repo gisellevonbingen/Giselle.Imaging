@@ -20,6 +20,9 @@ namespace Giselle.Imaging.Codec.Png
         public byte Interlace { get; set; }
         public Argb32[] ColorTable { get; set; } = new Argb32[0];
         public MemoryStream CompressedScanData { get; set; } = new MemoryStream();
+        public PngPhysicalPixelDimensionsUnit PhysicalPixelDimensionsUnit { get; set; }
+        public int XPixelsPerUnit { get; set; }
+        public int YPixelsPerUnit { get; set; }
 
         public PixelFormat PixelFormat => PngColorTypeExtensions.ToPixelFormat(this.ColorType, this.BitDepth);
 

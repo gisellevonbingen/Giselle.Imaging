@@ -129,7 +129,12 @@ namespace Giselle.Imaging.Codec.Png
 
             var scanData = new ScanData(image.Width, image.Height, stride, bitsPerPixel, scan, image.ColorTable);
             var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, image.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
-            return new ImageArgb32(scanData, scanProcessor);
+            var densityUnit = image.PhysicalPixelDimensionsUnit.ToDensityUnit();
+            return new ImageArgb32(scanData, scanProcessor)
+            {
+                WidthResoulution = new PhysicalDensity(image.XPixelsPerUnit, densityUnit),
+                HeightResoulution = new PhysicalDensity(image.YPixelsPerUnit, densityUnit),
+            };
         }
 
         private void ReadChunk(PngChunkStream chunkStream, PngImage image)
@@ -211,9 +216,9 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngKnownChunkNames.pHYs) == true)
             {
-                var widthpu = chunkProcessor.ReadInt();
-                var heightpu = chunkProcessor.ReadInt();
-                var unit = chunkProcessor.ReadByte();
+                image.XPixelsPerUnit = chunkProcessor.ReadInt();
+                image.YPixelsPerUnit = chunkProcessor.ReadInt();
+                image.PhysicalPixelDimensionsUnit = (PngPhysicalPixelDimensionsUnit) chunkProcessor.ReadByte();
             }
             else if (type.Equals(PngKnownChunkNames.tRNS) == true)
             {

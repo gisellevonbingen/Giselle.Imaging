@@ -44,6 +44,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IPhysicalValue.cs" />
+    <Compile Include="PhysicalDensity.cs" />
     <Compile Include="Argb32.cs" />
     <Compile Include="Codec\Bmp\BmpBitsPerPixel.cs" />
     <Compile Include="Codec\Bmp\BmpBitsPerPixelExtensions.cs" />
@@ -52,8 +54,14 @@
     <Compile Include="Codec\Bmp\BmpEncodeOptions.cs" />
     <Compile Include="Checksum\CRCException.cs" />
     <Compile Include="Checksum\CRCUtils.cs" />
+    <Compile Include="Codec\Png\PngPhysicalPixelDimensionsUnit.cs" />
+    <Compile Include="Codec\Png\PngPhysicalPixelDimensionsUnitExtensions.cs" />
     <Compile Include="ColorWithPosition.cs" />
     <Compile Include="Codec\EncodeOptions.cs" />
+    <Compile Include="PhysicalLength.cs" />
+    <Compile Include="PhysicalUnit.cs" />
+    <Compile Include="PhysicalUnitUtils.cs" />
+    <Compile Include="PhysicalValueUtils.cs" />
     <Compile Include="Scan\Int32ChannelMask.cs" />
     <Compile Include="IO\Pipe.cs" />
     <Compile Include="IO\PipeReadStream.cs" />

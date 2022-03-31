@@ -22,8 +22,6 @@ namespace Giselle.Imaging.Codec.Bmp
         public static IList<byte> SignaturePT { get; } = Array.AsReadOnly(new byte[] { 0x50, 0x54 });
         public static IList<IList<byte>> Signatures { get; } = Array.AsReadOnly(new IList<byte>[] { SignatureBM, SignatureBA, SignatureCI, SignatureCP, SignatureIC, SignaturePT });
 
-        public const double DPICoefficient = 25.4D / 1000.0D;
-
         public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
 
         public BmpCodec()
@@ -141,8 +139,8 @@ namespace Giselle.Imaging.Codec.Bmp
 
             var image = new ImageArgb32(width, height)
             {
-                WidthResoulution = widthPixelsPerMeter * DPICoefficient,
-                HeightResoulution = heightPixelsPerMeter * DPICoefficient,
+                WidthResoulution = new PhysicalDensity(widthPixelsPerMeter, PhysicalUnit.Meter),
+                HeightResoulution = new PhysicalDensity(heightPixelsPerMeter, PhysicalUnit.Meter),
             };
             scanProcessor.Read(scanData, image.Scan);
             return image;
@@ -238,8 +236,8 @@ namespace Giselle.Imaging.Codec.Bmp
             processor.WriteShort((short)bitsPerPixel);
             processor.WriteInt((int)compressionMethod);
             processor.WriteInt(0);
-            processor.WriteInt((int)(image.WidthResoulution / DPICoefficient));
-            processor.WriteInt((int)(image.HeightResoulution / DPICoefficient));
+            processor.WriteInt((int)(image.WidthResoulution.GetConvertValue(PhysicalUnit.Meter)));
+            processor.WriteInt((int)(image.HeightResoulution.GetConvertValue(PhysicalUnit.Meter)));
             processor.WriteInt(usedColors.Length);
             processor.WriteInt(usedColors.Length);
 

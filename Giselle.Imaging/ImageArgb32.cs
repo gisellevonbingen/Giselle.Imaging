@@ -14,11 +14,11 @@ namespace Giselle.Imaging
         public int Height { get; }
         public int Stride { get; }
         public byte[] Scan { get; }
-        public double WidthResoulution { get; set; }
-        public double HeightResoulution { get; set; }
-        public double Resolution
+        public PhysicalDensity WidthResoulution { get; set; }
+        public PhysicalDensity HeightResoulution { get; set; }
+        public PhysicalDensity Resolution
         {
-            get => Math.Max(this.WidthResoulution, this.HeightResoulution);
+            get => PhysicalValueUtils.Max(new[] { this.WidthResoulution, this.HeightResoulution });
             set { this.WidthResoulution = value; this.HeightResoulution = value; }
         }
         private readonly Lazy<IEnumerable<Argb32>> _Colors;
@@ -30,7 +30,7 @@ namespace Giselle.Imaging
 
         public ImageArgb32()
         {
-            this.Resolution = 96.0D;
+            this.Resolution = new PhysicalDensity(96.0D, PhysicalUnit.Inch);
             this._Colors = new Lazy<IEnumerable<Argb32>>(() => new ImageEnumerable<Argb32>(this, s => s.Image[s.X, s.Y]));
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Image, s.X, s.Y)));
         }
@@ -52,6 +52,10 @@ namespace Giselle.Imaging
 
             scanProcessor.Read(scanData, this.Scan);
         }
+
+        public PhysicalLength PrintWidth => new PhysicalLength(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);
+
+        public PhysicalLength PrintHeight => new PhysicalLength(this.Height / this.HeightResoulution.Value, this.HeightResoulution.Unit);
 
         public PixelFormat PixelFormat => PixelFormat.Format32bppArgb8888;
 
