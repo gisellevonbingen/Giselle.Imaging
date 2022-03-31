@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging
+namespace Giselle.Imaging.Physical
 {
-    public struct PhysicalDensity : IPhysicalValue
+    public struct PhysicalLength : IPhysicalValue
     {
         public PhysicalUnit Unit { get; set; }
         public double Value { get; set; }
 
-        public PhysicalDensity(double value, PhysicalUnit unit) : this()
+        public PhysicalLength(double value, PhysicalUnit unit) : this()
         {
             this.Unit = unit;
             this.Value = value;
@@ -19,7 +19,7 @@ namespace Giselle.Imaging
 
         public override string ToString()
         {
-            return $"{this.Value:F2} pixels/{this.Unit.ToDisplayString()}";
+            return $"{this.Value:F2} {this.Unit.ToDisplayString()}";
         }
 
     }

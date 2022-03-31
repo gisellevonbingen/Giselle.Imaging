@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging
+namespace Giselle.Imaging.Physical
 {
     public enum PhysicalUnit : byte
     {
