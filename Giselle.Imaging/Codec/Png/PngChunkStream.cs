@@ -53,11 +53,12 @@ namespace Giselle.Imaging.Codec.Png
             this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, typeBytes);
         }
 
-        public PngChunkStream(DataProcessor output, string type) : this()
+        public PngChunkStream(DataProcessor output, string type, int length) : this()
         {
             this.Mode = PNGChunkStreamMode.Write;
             this.BaseProcessor = output;
-            this.Length = 0;
+            this.Length = length;
+            output.WriteInt(length);
 
             var typeBytes = this.FixType(Encoding.ASCII.GetBytes(type));
             this.Type = Encoding.ASCII.GetString(typeBytes);
@@ -119,18 +120,13 @@ namespace Giselle.Imaging.Codec.Png
         {
             base.Dispose(disposing);
 
-            if (this.IgnoreCRC == true)
-            {
-                return;
-            }
-
             var ccrc = CRCUtils.FinalizeCalculateCRC32(this.AccumulatingCRC);
 
             if (this.Mode == PNGChunkStreamMode.Read)
             {
                 var rcrc = this.BaseProcessor.ReadUInt();
 
-                if (ccrc != rcrc)
+                if (this.IgnoreCRC == false && ccrc != rcrc)
                 {
                     throw new CRCException($"Read CRC are mismatch with Calculcated CRC - {rcrc} vs {ccrc}");
                 }

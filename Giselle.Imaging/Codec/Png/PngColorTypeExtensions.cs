@@ -8,7 +8,18 @@ namespace Giselle.Imaging.Codec.Png
 {
     public static class PngColorTypeExtensions
     {
-        public static PixelFormat ToPixelFormat(PngColorType type, int bitDepth)
+        public static (PngColorType ColorType, byte BitDepth) ToPngPixelFormat(this PixelFormat format)
+        {
+            if (format == PixelFormat.Format1bppIndexed) return (PngColorType.IndexedColor, 1);
+            else if (format == PixelFormat.Format2bppIndexed) return (PngColorType.IndexedColor, 2);
+            else if (format == PixelFormat.Format4bppIndexed) return (PngColorType.IndexedColor, 4);
+            else if (format == PixelFormat.Format8bppIndexed) return (PngColorType.IndexedColor, 8);
+            else if (format == PixelFormat.Format24bppRgb888) return (PngColorType.Truecolor, 8);
+            else return (PngColorType.TruecolorWithAlpha, 8);
+
+        }
+
+        public static PixelFormat ToPixelFormat(PngColorType type, byte bitDepth)
         {
             if (type == PngColorType.IndexedColor)
             {
@@ -19,14 +30,14 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type == PngColorType.Truecolor)
             {
-                return PixelFormat.Format24bppRgb888;
+                if (bitDepth == 8) return PixelFormat.Format24bppRgb888;
             }
             else if (type == PngColorType.TruecolorWithAlpha)
             {
-                return PixelFormat.Format32bppArgb8888;
+                if (bitDepth == 8) return PixelFormat.Format32bppArgb8888;
             }
 
-            throw new ArgumentException($"Unknown values : type={type}, bitDepth={bitDepth}");
+            throw new ArgumentException($"Unknown Values : type={type}, bitDepth={bitDepth}");
         }
 
     }

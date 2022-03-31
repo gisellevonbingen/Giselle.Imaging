@@ -73,8 +73,8 @@ namespace Giselle.Imaging.Test
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() {  });
-                        SaveImageAsBitmap(outputStream, image);
+                        SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });
+                        //SaveImageAsBitmap(outputStream, image);
                     }
 
                 }

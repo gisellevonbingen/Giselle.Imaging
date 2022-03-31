@@ -8,7 +8,9 @@ namespace Giselle.Imaging.Codec.Png
 {
     public class PngEncodeOptions : EncodeOptions
     {
-
+        public PngColorType? ColorType { get; set; } = null;
+        public byte BitDepth { get; set; } = 0;
+        public CommonCompressionLevel CompressionLevel { get; set; } = CommonCompressionLevel.BestSpeed;
     }
 
 }

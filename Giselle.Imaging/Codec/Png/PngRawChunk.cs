@@ -55,54 +55,6 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public PNGRawChunk(PngChunkStream stream)
-        {
-            this.Type = stream.Type;
-
-            using (var ms = new MemoryStream())
-            {
-                stream.CopyTo(ms);
-                this.Data = ms.ToArray();
-            }
-
-        }
-
-        public void Read(DataProcessor processor)
-        {
-            var length = processor.ReadInt();
-            this.TypeRaw = processor.ReadBytes(TypeLength);
-            this.Data = processor.ReadBytes(length);
-
-            var ccrc = this.CRC32;
-            var rcrc = processor.ReadUInt();
-
-            if (ccrc != rcrc)
-            {
-                throw new CRCException($"Read CRC are mismatch with Calculcated CRC - {rcrc} vs {ccrc}");
-            }
-
-        }
-
-        public void Write(DataProcessor processor)
-        {
-            processor.WriteInt(this.Data.Length);
-            processor.WriteBytes(this.TypeRaw);
-            processor.WriteBytes(this.Data);
-            processor.WriteUInt(this.CRC32);
-        }
-
-        public uint CRC32
-        {
-            get
-            {
-                var crc = CRCUtils.CRC32Seed;
-                crc = CRCUtils.AccumulateCRC32(crc, this.TypeRaw);
-                crc = CRCUtils.AccumulateCRC32(crc, this.Data);
-                return CRCUtils.FinalizeCalculateCRC32(crc);
-            }
-
-        }
-
     }
 
 }

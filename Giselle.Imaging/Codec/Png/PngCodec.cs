@@ -27,9 +27,9 @@ namespace Giselle.Imaging.Codec.Png
 
         public override bool Test(byte[] bytes) => bytes.StartsWith(Signature);
 
-        public override ImageArgb32 Read(Stream stream)
+        public override ImageArgb32 Read(Stream input)
         {
-            var processor = CreatePngProcessor(stream);
+            var processor = CreatePngProcessor(input);
             var signature = Signature;
             var read = processor.ReadBytes(signature.Count);
 
@@ -39,226 +39,19 @@ namespace Giselle.Imaging.Codec.Png
             }
 
             var raw = new PngRawImage();
-
-            while (true)
-            {
-                using (var chunkStream = new PngChunkStream(processor))
-                {
-                    try
-                    {
-                        this.ReadChunk(chunkStream, raw);
-                    }
-                    catch (Exception)
-                    {
-                        chunkStream.IgnoreCRC = true;
-                        throw;
-                    }
-
-                    if (chunkStream.Type.Equals(PngKnownChunkNames.IEND) == true)
-                    {
-                        break;
-                    }
-
-                }
-
-            }
-
-            raw.CompressedScanData.Position = 0;
-
-            var bitsPerPixel = raw.PixelFormat.GetBitsPerPixel();
-            var samples = bitsPerPixel / raw.BitDepth;
-            var stride = raw.Stride;
-            var scan = new byte[raw.Height * stride];
-
-            using (var ds = new ZlibStream(raw.CompressedScanData, CompressionMode.Decompress))
-            {
-                var dataProcessor = CreatePngProcessor(ds);
-                var scanline = new byte[stride];
-
-                for (var yi = 0; yi < raw.Height; yi++)
-                {
-                    var filter = dataProcessor.ReadByte();
-                    var strideBytes = dataProcessor.ReadBytes(stride);
-                    var currLineSamples1 = new byte[samples];
-                    var lastLineSamples2 = new byte[samples];
-
-                    for (var xi = 0; xi < stride; xi++)
-                    {
-                        var x = strideBytes[xi];
-                        var a = currLineSamples1[xi % samples];
-                        var b = scanline[xi];
-                        var c = lastLineSamples2[xi % samples];
-                        byte result = 0;
-
-                        if (filter == 0)
-                        {
-                            result = x;
-                        }
-                        else if (filter == 1)
-                        {
-                            result = (byte)(x + a);
-                        }
-                        else if (filter == 2)
-                        {
-                            result = (byte)(x + b);
-                        }
-                        else if (filter == 3)
-                        {
-                            result = (byte)(x + (a + b) / 2);
-                        }
-                        else if (filter == 4)
-                        {
-                            var p = a + b - c;
-                            var pa = Math.Abs(p - a);
-                            var pb = Math.Abs(p - b);
-                            var pc = Math.Abs(p - c);
-                            if (pa <= pb && pa <= pc) result = a;
-                            else if (pb <= pc) result = b;
-                            else result = c;
-                        }
-
-                        scanline[xi] = result;
-                        currLineSamples1[xi % samples] = result;
-                        lastLineSamples2[xi % samples] = a;
-                    }
-
-                    Array.Copy(scanline, 0, scan, yi * stride, stride);
-                }
-
-            }
-
-            var scanData = new ScanData(raw.Width, raw.Height, stride, bitsPerPixel, scan, raw.ColorTable);
-            var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, raw.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
-            var densityUnit = raw.PhysicalPixelDimensionsUnit.ToDensityUnit();
-            return new ImageArgb32(scanData, scanProcessor)
-            {
-                WidthResoulution = new PhysicalDensity(raw.XPixelsPerUnit, densityUnit),
-                HeightResoulution = new PhysicalDensity(raw.YPixelsPerUnit, densityUnit),
-            };
-        }
-
-        private void ReadChunk(PngChunkStream chunkStream, PngRawImage image)
-        {
-            var chunkProcessor = CreatePngProcessor(chunkStream);
-            var type = chunkStream.Type;
-
-            if (type.Equals(PngKnownChunkNames.IHDR) == true)
-            {
-                image.Width = chunkProcessor.ReadInt();
-                image.Height = chunkProcessor.ReadInt();
-                image.BitDepth = chunkProcessor.ReadByte();
-                image.ColorType = (PngColorType)chunkProcessor.ReadByte();
-                image.Compression = chunkProcessor.ReadByte();
-                image.Filter = chunkProcessor.ReadByte();
-                image.Interlace = chunkProcessor.ReadByte();
-            }
-            else if (type.Equals(PngKnownChunkNames.PLTE) == true)
-            {
-                var colorTable = new List<Argb32>();
-
-                while (chunkProcessor.Position < chunkProcessor.Length)
-                {
-                    var r = chunkProcessor.ReadByte();
-                    var g = chunkProcessor.ReadByte();
-                    var b = chunkProcessor.ReadByte();
-                    var color = new Argb32(r, g, b);
-                    colorTable.Add(color);
-                }
-
-                image.ColorTable = colorTable.ToArray();
-            }
-            else if (type.Equals(PngKnownChunkNames.gAMA) == true)
-            {
-                var gamma = chunkProcessor.ReadInt();
-            }
-            else if (type.Equals(PngKnownChunkNames.cHRM) == true)
-            {
-                var whiteX = chunkProcessor.ReadInt();
-                var whiteY = chunkProcessor.ReadInt();
-                var rX = chunkProcessor.ReadInt();
-                var rY = chunkProcessor.ReadInt();
-                var gX = chunkProcessor.ReadInt();
-                var gY = chunkProcessor.ReadInt();
-                var bX = chunkProcessor.ReadInt();
-                var bY = chunkProcessor.ReadInt();
-            }
-            else if (type.Equals(PngKnownChunkNames.IDAT) == true)
-            {
-                var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length));
-                image.CompressedScanData.Write(block, 0, block.Length);
-            }
-            else if (type.Equals(PngKnownChunkNames.iCCP) == true)
-            {
-                var name = string.Empty;
-
-                using (var ms = new MemoryStream())
-                {
-                    while (true)
-                    {
-                        var b = chunkProcessor.ReadByte();
-
-                        if (b == 0x00)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            ms.WriteByte(b);
-                        }
-
-                    }
-
-                    name = Encoding.ASCII.GetString(ms.ToArray());
-                }
-
-                var compressionMethod = chunkProcessor.ReadByte();
-                var compressionProfile = chunkProcessor.ReadBytes((int)chunkProcessor.Remain);
-            }
-            else if (type.Equals(PngKnownChunkNames.pHYs) == true)
-            {
-                image.XPixelsPerUnit = chunkProcessor.ReadInt();
-                image.YPixelsPerUnit = chunkProcessor.ReadInt();
-                image.PhysicalPixelDimensionsUnit = (PngPhysicalPixelDimensionsUnit) chunkProcessor.ReadByte();
-            }
-            else if (type.Equals(PngKnownChunkNames.tRNS) == true)
-            {
-                if (image.ColorType == PngColorType.Greyscale)
-                {
-                    chunkProcessor.ReadShort();
-                }
-                else if (image.ColorType == PngColorType.Truecolor)
-                {
-                    var r = chunkProcessor.ReadShort();
-                    var g = chunkProcessor.ReadShort();
-                    var b = chunkProcessor.ReadShort();
-                }
-                else if (image.ColorType == PngColorType.IndexedColor)
-                {
-                    var alphas = new List<byte>();
-
-                    while (chunkProcessor.Position < chunkProcessor.Length)
-                    {
-                        var a = chunkProcessor.ReadByte();
-                        alphas.Add(a);
-                    }
-
-                }
-
-            }
-            else if (type.Equals(PngKnownChunkNames.IEND) == true)
-            {
-
-            }
-            else
-            {
-                var rawChunk = new PNGRawChunk(chunkStream);
-            }
-
+            raw.Read(processor);
+            var image = raw.Decode();
+            return image;
         }
 
         public override void Write(Stream output, ImageArgb32 image, PngEncodeOptions options)
         {
-            throw new NotImplementedException();
+            var processor = CreatePngProcessor(output);
+            processor.WriteBytes(Signature);
+
+            var raw = new PngRawImage();
+            raw.Encode(image, options);
+            raw.Write(processor);
         }
 
     }
