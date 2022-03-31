@@ -8,7 +8,7 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Png
 {
-    public class PngImage
+    public class PngRawImage
     {
         public int Width { get; set; }
         public int Height { get; set; }

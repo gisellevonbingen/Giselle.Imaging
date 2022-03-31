@@ -44,6 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Codec\Bmp\BmpRawImage.cs" />
     <Compile Include="IPhysicalValue.cs" />
     <Compile Include="PhysicalDensity.cs" />
     <Compile Include="Argb32.cs" />

@@ -38,7 +38,7 @@ namespace Giselle.Imaging.Codec.Png
                 throw new IOException();
             }
 
-            var image = new PngImage();
+            var raw = new PngRawImage();
 
             while (true)
             {
@@ -46,7 +46,7 @@ namespace Giselle.Imaging.Codec.Png
                 {
                     try
                     {
-                        this.ReadChunk(chunkStream, image);
+                        this.ReadChunk(chunkStream, raw);
                     }
                     catch (Exception)
                     {
@@ -63,19 +63,19 @@ namespace Giselle.Imaging.Codec.Png
 
             }
 
-            image.CompressedScanData.Position = 0;
+            raw.CompressedScanData.Position = 0;
 
-            var bitsPerPixel = image.PixelFormat.GetBitsPerPixel();
-            var samples = bitsPerPixel / image.BitDepth;
-            var stride = image.Stride;
-            var scan = new byte[image.Height * stride];
+            var bitsPerPixel = raw.PixelFormat.GetBitsPerPixel();
+            var samples = bitsPerPixel / raw.BitDepth;
+            var stride = raw.Stride;
+            var scan = new byte[raw.Height * stride];
 
-            using (var ds = new ZlibStream(image.CompressedScanData, CompressionMode.Decompress))
+            using (var ds = new ZlibStream(raw.CompressedScanData, CompressionMode.Decompress))
             {
                 var dataProcessor = CreatePngProcessor(ds);
                 var scanline = new byte[stride];
 
-                for (var yi = 0; yi < image.Height; yi++)
+                for (var yi = 0; yi < raw.Height; yi++)
                 {
                     var filter = dataProcessor.ReadByte();
                     var strideBytes = dataProcessor.ReadBytes(stride);
@@ -127,17 +127,17 @@ namespace Giselle.Imaging.Codec.Png
 
             }
 
-            var scanData = new ScanData(image.Width, image.Height, stride, bitsPerPixel, scan, image.ColorTable);
-            var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, image.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
-            var densityUnit = image.PhysicalPixelDimensionsUnit.ToDensityUnit();
+            var scanData = new ScanData(raw.Width, raw.Height, stride, bitsPerPixel, scan, raw.ColorTable);
+            var scanProcessor = ScanProcessor.CreateScanProcessor(bitsPerPixel, raw.HasAlpha ? 0xFF000000 : 0x00000000, 0x000000FF, 0x0000FF00, 0x00FF0000);
+            var densityUnit = raw.PhysicalPixelDimensionsUnit.ToDensityUnit();
             return new ImageArgb32(scanData, scanProcessor)
             {
-                WidthResoulution = new PhysicalDensity(image.XPixelsPerUnit, densityUnit),
-                HeightResoulution = new PhysicalDensity(image.YPixelsPerUnit, densityUnit),
+                WidthResoulution = new PhysicalDensity(raw.XPixelsPerUnit, densityUnit),
+                HeightResoulution = new PhysicalDensity(raw.YPixelsPerUnit, densityUnit),
             };
         }
 
-        private void ReadChunk(PngChunkStream chunkStream, PngImage image)
+        private void ReadChunk(PngChunkStream chunkStream, PngRawImage image)
         {
             var chunkProcessor = CreatePngProcessor(chunkStream);
             var type = chunkStream.Type;
@@ -251,7 +251,7 @@ namespace Giselle.Imaging.Codec.Png
             }
             else
             {
-                var raw = new PNGRawChunk(chunkStream);
+                var rawChunk = new PNGRawChunk(chunkStream);
             }
 
         }

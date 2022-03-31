@@ -47,21 +47,22 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             // File Header
+            var raw = new BmpRawImage();
             var fileSize = processor.ReadInt();
-            var reserved1 = processor.ReadShort(); // Depends on application
-            var reserved2 = processor.ReadShort(); // Depends on application
+            raw.Reserved1 = processor.ReadShort(); // Depends on application
+            raw.Reserved2 = processor.ReadShort(); // Depends on application
             var scanDataOffset = processor.ReadInt();
 
             // Bitmap Info Header
             var headerSize = processor.ReadInt(); // Must be 40
-            var width = processor.ReadInt();
-            var height = processor.ReadInt();
+            raw.Width = processor.ReadInt();
+            raw.Height = processor.ReadInt();
             var planes = processor.ReadShort(); // Must be 1
-            var bitsPerPixel = (BmpBitsPerPixel)processor.ReadShort();
-            var compressionMethod = (BmpCompressionMethod)processor.ReadInt();
+            raw.BitsPerPixel = (BmpBitsPerPixel)processor.ReadShort();
+            raw.CompressionMethod = (BmpCompressionMethod)processor.ReadInt();
             var compressedImageSize = processor.ReadInt(); // Dummy 0 can be when unused
-            var widthPixelsPerMeter = processor.ReadInt();  // Pixels per meter
-            var heightPixelsPerMeter = processor.ReadInt(); // Pixels per meter
+            raw.WidthPixelsPerMeter = processor.ReadInt();  // Pixels per meter
+            raw.HeightPixelsPerMeter = processor.ReadInt(); // Pixels per meter
             var colorsUsed = processor.ReadInt(); // 0 or 2^bitsPerPixel
             var importantColors = processor.ReadInt(); // Generally ingored
 
@@ -70,7 +71,7 @@ namespace Giselle.Imaging.Codec.Bmp
             uint bMask = 0;
             uint aMask = 0;
 
-            if (compressionMethod == BmpCompressionMethod.BitFields)
+            if (raw.CompressionMethod == BmpCompressionMethod.BitFields)
             {
                 rMask = processor.ReadUInt();
                 gMask = processor.ReadUInt();
@@ -79,7 +80,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             // Color Table
-            var colorTable = new Argb32[colorsUsed];
+            raw.ColorTable = new Argb32[colorsUsed];
 
             if (colorsUsed > 0)
             {
@@ -89,7 +90,7 @@ namespace Giselle.Imaging.Codec.Bmp
                     var g = processor.ReadByte();
                     var r = processor.ReadByte();
                     var _ = processor.ReadByte();
-                    colorTable[i] = new Argb32(r, g, b);
+                    raw.ColorTable[i] = new Argb32(r, g, b);
                 }
 
             }
@@ -103,14 +104,14 @@ namespace Giselle.Imaging.Codec.Bmp
                 processor.SkipByRead(gap1Length);
             }
 
-            var stride = ScanProcessor.GetStride(width, (short)bitsPerPixel);
-            var scan = new byte[height * stride];
+            var stride = raw.Stride;
+            raw.ScanData = new byte[raw.Height * stride];
 
-            for (var y = height - 1; y > -1; y--)
+            for (var y = raw.Height - 1; y > -1; y--)
             {
                 for (var x = 0; x < stride; x++)
                 {
-                    scan[y * stride + x] = processor.ReadByte();
+                    raw.ScanData[y * stride + x] = processor.ReadByte();
                 }
 
             }
@@ -124,23 +125,23 @@ namespace Giselle.Imaging.Codec.Bmp
                 processor.SkipByRead(gap2Length);
             }
 
-            var scanData = new ScanData(width, height, stride, (int)bitsPerPixel, scan, colorTable);
+            var scanData = new ScanData(raw.Width, raw.Height, stride, (int)raw.BitsPerPixel, raw.ScanData, raw.ColorTable);
 
             ScanProcessor scanProcessor;
 
-            if (compressionMethod == BmpCompressionMethod.BitFields)
+            if (raw.CompressionMethod == BmpCompressionMethod.BitFields)
             {
-                scanProcessor = ScanProcessor.CreateScanProcessor((int)bitsPerPixel, aMask, rMask, gMask, bMask);
+                scanProcessor = ScanProcessor.CreateScanProcessor((int)raw.BitsPerPixel, aMask, rMask, gMask, bMask);
             }
             else
             {
-                scanProcessor = ScanProcessor.GetScanProcessor(bitsPerPixel.ToPixelFormat());
+                scanProcessor = ScanProcessor.GetScanProcessor(raw.BitsPerPixel.ToPixelFormat());
             }
 
-            var image = new ImageArgb32(width, height)
+            var image = new ImageArgb32(raw.Width, raw.Height)
             {
-                WidthResoulution = new PhysicalDensity(widthPixelsPerMeter, PhysicalUnit.Meter),
-                HeightResoulution = new PhysicalDensity(heightPixelsPerMeter, PhysicalUnit.Meter),
+                WidthResoulution = new PhysicalDensity(raw.WidthPixelsPerMeter, PhysicalUnit.Meter),
+                HeightResoulution = new PhysicalDensity(raw.HeightPixelsPerMeter, PhysicalUnit.Meter),
             };
             scanProcessor.Read(scanData, image.Scan);
             return image;
