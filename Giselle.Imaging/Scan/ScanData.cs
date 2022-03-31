@@ -16,7 +16,7 @@ namespace Giselle.Imaging.Scan
         public Argb32[] ColorTable { get; set; }
 
         public ScanData(int width, int height, int stride, int bitsPerPixel)
-            : this(width, height, stride, bitsPerPixel, new byte[height * stride])
+            : this(width, height, stride, bitsPerPixel, null)
         {
 
         }
@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Scan
             this.Height = height;
             this.Stride = stride;
             this.BitsPerPixel = bitsPerPixel;
-            this.Scan = scan;
+            this.Scan = scan ?? new byte[height * stride];
             this.ColorTable = colorTable ?? new Argb32[0];
         }
 

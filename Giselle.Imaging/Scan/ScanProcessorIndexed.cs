@@ -85,7 +85,7 @@ namespace Giselle.Imaging.Scan
 
                     if (tableIndex == -1)
                     {
-                        throw new IndexOutOfRangeException($"x:{x}, y:{y}'s color ${color} is not contains in ColorTable");
+                        throw new IndexOutOfRangeException($"x:{x}, y:{y}'s color #{color} is not contains in ColorTable");
                     }
 
                     var index = (output.Stride * y) + (x / ppb);

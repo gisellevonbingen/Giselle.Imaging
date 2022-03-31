@@ -98,6 +98,28 @@ namespace Giselle.Imaging
 
         }
 
+        public Argb32[] GetColorTable(PixelFormat format)
+        {
+            var colorTableLength = format.GetColorTableLength();
+
+            if (colorTableLength > 0)
+            {
+                var usedColors = this.Colors.Distinct().ToArray();
+
+                if (usedColors.Length > colorTableLength)
+                {
+                    throw new ArgumentException($"Image's Used Colors Kind({usedColors.Length}) Exceeds ColorTableLength({colorTableLength})");
+                }
+
+                return usedColors;
+            }
+            else
+            {
+                return new Argb32[0];
+            }
+
+        }
+
         public class ImageEnumerable<T> : IEnumerable<T>
         {
             public ImageArgb32 Image { get; }

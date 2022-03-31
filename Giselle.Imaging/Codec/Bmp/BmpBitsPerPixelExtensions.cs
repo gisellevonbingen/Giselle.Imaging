@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Codec.Bmp
             {
                 return BmpBitsPerPixel.Bpp1Indexed;
             }
-            else if (value == PixelFormat.Format4bppIndexed)
+            else if (value == PixelFormat.Format2bppIndexed || value == PixelFormat.Format4bppIndexed)
             {
                 return BmpBitsPerPixel.Bpp4Indexed;
             }
@@ -36,7 +36,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
             else
             {
-                return BmpBitsPerPixel.Undefined;
+                return BmpBitsPerPixel.Bpp24Rgb;
             }
 
         }
@@ -69,7 +69,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
             else
             {
-                return PixelFormat.Undefined;
+                throw new ArgumentException($"Unknown BmpBitsPerPixel : {value}");
             }
 
         }

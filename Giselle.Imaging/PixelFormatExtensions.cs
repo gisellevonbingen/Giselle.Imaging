@@ -8,6 +8,30 @@ namespace Giselle.Imaging
 {
     public static class PixelFormatExtensions
     {
+        public static PixelFormat GetPrefferedIndexedFormat(this int colorCount, PixelFormat fallback = PixelFormat.Undefined)
+        {
+            var lastCount = 0;
+            var lastPixelFormat = fallback;
+
+            foreach (var e in Enum.GetValues(typeof(PixelFormat)) as PixelFormat[])
+            {
+                var colorTableLength = e.GetColorTableLength();
+
+                if (colorTableLength > 0 && colorTableLength >= colorCount)
+                {
+                    if (lastCount == 0 || colorTableLength < lastCount)
+                    {
+                        lastPixelFormat = e;
+                        lastCount = colorTableLength;
+                    }
+
+                }
+
+            }
+
+            return lastPixelFormat;
+        }
+
         public static bool IsUseColorTable(this PixelFormat value) => GetColorTableLength(value) > 0;
 
         public static int GetColorTableLength(this PixelFormat value)
