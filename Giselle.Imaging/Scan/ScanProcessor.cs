@@ -72,7 +72,7 @@ namespace Giselle.Imaging.Scan
 
         public static int GetBytesPerWidth(int width, int bitsPerPixel)
         {
-            var w1 = bitsPerPixel <= 8 ? 1 : (bitsPerPixel / 8);
+            var w1 = bitsPerPixel < 8 ? 1 : (bitsPerPixel / 8);
             var w2 = bitsPerPixel < 8 ? (8 / bitsPerPixel) : 1;
             return (width * w1) / w2;
         }
