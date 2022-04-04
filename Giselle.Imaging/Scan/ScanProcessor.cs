@@ -82,10 +82,17 @@ namespace Giselle.Imaging.Scan
         public static int GetStride(int width, int bitsPerPixel, int padding)
         {
             var bytePerWidth = GetBytesPerWidth(width, bitsPerPixel);
+            return ApplyPadding(bytePerWidth, padding);
+        }
+
+        public static int ApplyPadding(int bytePerWidth, int padding)
+        {
             var mod = bytePerWidth % padding;
             var stride = mod == 0 ? bytePerWidth : (bytePerWidth - mod + padding);
             return stride;
         }
+
+        public static int GetPaddedQuotient(int value, int padding) => ApplyPadding(value, padding) / padding;
 
         public ScanProcessor()
         {

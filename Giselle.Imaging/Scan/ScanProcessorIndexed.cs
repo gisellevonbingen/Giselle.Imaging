@@ -28,34 +28,47 @@ namespace Giselle.Imaging.Scan
                 mask |= 1 << i;
             }
 
+            var passProcessor = new InterlacePassProcessor(input);
             var index = 0;
 
-            for (var y = 0; y < input.Height; y++)
+            while (passProcessor.NextPass() == true)
             {
-                var offsetBase = y * formatStride;
+                var passInfo = passProcessor.PassInfo;
 
-                for (var i = 0; i < input.Stride; i++)
+                for (var yi = 0; yi < passInfo.PixelsY; yi++)
                 {
-                    var b = input.Scan[index++];
-
-                    for (var bi = 0; bi < ppb; bi++)
+                    for (var xi = 0; xi < passInfo.Stride; xi++)
                     {
-                        var x = i * ppb + bi;
+                        var b = input.Scan[index++];
 
-                        if (x >= input.Width)
+                        for (var bi = 0; bi < ppb; bi++)
                         {
-                            break;
+                            try
+                            {
+                                (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
+                                //Console.WriteLine(x);
+
+                                if (x >= input.Width)
+                                {
+                                    break;
+                                }
+
+                                var offset = (y * formatStride) + (x * dpp);
+                                var shift = bpp * (ppb - 1 - bi);
+                                var tableIndex = (b >> shift) & mask;
+                                var color = input.ColorTable[tableIndex];
+                                formatScan[offset + 0] = color.B;
+                                formatScan[offset + 1] = color.G;
+                                formatScan[offset + 2] = color.R;
+                                formatScan[offset + 3] = color.A;
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
+
                         }
 
-                        var offset = offsetBase + (i * ppb * dpp) + (bi * dpp);
-
-                        var shift = bpp * (ppb - 1 - bi);
-                        var tableIndex = (b >> shift) & mask;
-                        var color = input.ColorTable[tableIndex];
-                        formatScan[offset + 0] = color.B;
-                        formatScan[offset + 1] = color.G;
-                        formatScan[offset + 2] = color.R;
-                        formatScan[offset + 3] = color.A;
                     }
 
                 }

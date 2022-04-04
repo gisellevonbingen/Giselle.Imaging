@@ -111,7 +111,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public ImageArgb32 Decode()
         {
-            var scanData = new ScanData(this.Width, this.Height, this.Stride, (int)this.BitsPerPixel, this.ScanData) { ColorTable = this.ColorTable };
+            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
 
             ScanProcessor scanProcessor;
 
@@ -190,7 +190,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             var stride = ScanProcessor.GetStride(image.Width, (int)this.BitsPerPixel);
-            var scanData = new ScanData(image.Width, image.Height, stride, (int)this.BitsPerPixel) { ColorTable = this.ColorTable };
+            var scanData = new ScanData(image.Width, image.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[image.Height * stride], ColorTable = this.ColorTable };
             scanProcessor.Write(scanData, image.Scan);
             this.ScanData = scanData.Scan;
         }

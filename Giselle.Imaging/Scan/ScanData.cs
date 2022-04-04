@@ -13,21 +13,54 @@ namespace Giselle.Imaging.Scan
         public int Stride { get; set; }
         public int BitsPerPixel { get; set; }
         public byte[] Scan { get; set; }
+
         public Argb32[] ColorTable { get; set; } = new Argb32[0];
 
-        public ScanData(int width, int height, int stride, int bitsPerPixel)
-            : this(width, height, stride, bitsPerPixel, null)
-        {
+        public int InterlaceBlockWidth { get; set; } = 1;
+        public int InterlaceBlockHeight { get; set; } = 1;
+        public InterlacePass[] InterlacePasses { get; set; } = new InterlacePass[0];
 
-        }
-
-        public ScanData(int width, int height, int stride, int bitsPerPixel, byte[] scan)
+        public ScanData(int width, int height, int bitsPerPixel)
         {
             this.Width = width;
             this.Height = height;
-            this.Stride = stride;
             this.BitsPerPixel = bitsPerPixel;
-            this.Scan = scan ?? new byte[height * stride];
+        }
+
+        public int PreferredScanSize
+        {
+            get
+            {
+                var passes = this.InterlacePasses;
+
+                if (passes.Length == 0)
+                {
+                    return this.Height * this.Stride;
+                }
+                else
+                {
+                    var totalBytes = 0;
+
+                    for (var i = 0; i < passes.Length; i++)
+                    {
+                        var info = this.GetInterlacePassInformation(i);
+                        totalBytes += info.PixelsY * info.Stride;
+                    }
+
+                    return totalBytes;
+                }
+
+            }
+
+        }
+
+        public InterlacePassInformation GetInterlacePassInformation(int interlacePassIndex)
+        {
+            var pass = this.InterlacePasses[interlacePassIndex];
+            var pixelsX = ScanProcessor.GetPaddedQuotient(this.Width, pass.IntervalX);
+            var pixelsY = ScanProcessor.GetPaddedQuotient(this.Height, pass.IntervalY);
+            var stride = ScanProcessor.GetPaddedQuotient(pixelsX * this.BitsPerPixel, 8);
+            return new InterlacePassInformation() { PixelsX = pixelsX, PixelsY = pixelsY, Stride = stride };
         }
 
     }

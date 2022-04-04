@@ -81,6 +81,9 @@
     <Compile Include="Codec\Png\PngRawImage.cs" />
     <Compile Include="Codec\Png\PngKnownChunkNames.cs" />
     <Compile Include="Codec\Png\PngRawChunk.cs" />
+    <Compile Include="Scan\InterlacePassInformation.cs" />
+    <Compile Include="Scan\InterlacePassProcessor.cs" />
+    <Compile Include="Scan\InterlacePass.cs" />
     <Compile Include="Scan\ScanProcessor16.cs" />
     <Compile Include="Codec\Tiff\TiffCompressionMethod.cs" />
     <Compile Include="Codec\Tiff\TiffEntryExtensions.cs" />
