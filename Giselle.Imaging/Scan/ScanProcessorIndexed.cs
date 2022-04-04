@@ -43,29 +43,21 @@ namespace Giselle.Imaging.Scan
 
                         for (var bi = 0; bi < ppb; bi++)
                         {
-                            try
-                            {
-                                (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
-                                //Console.WriteLine(x);
+                            (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
 
-                                if (x >= input.Width)
-                                {
-                                    break;
-                                }
-
-                                var offset = (y * formatStride) + (x * dpp);
-                                var shift = bpp * (ppb - 1 - bi);
-                                var tableIndex = (b >> shift) & mask;
-                                var color = input.ColorTable[tableIndex];
-                                formatScan[offset + 0] = color.B;
-                                formatScan[offset + 1] = color.G;
-                                formatScan[offset + 2] = color.R;
-                                formatScan[offset + 3] = color.A;
-                            }
-                            catch (Exception)
+                            if (x >= input.Width)
                             {
-                                throw;
+                                break;
                             }
+
+                            var offset = (y * formatStride) + (x * dpp);
+                            var shift = bpp * (ppb - 1 - bi);
+                            var tableIndex = (b >> shift) & mask;
+                            var color = input.ColorTable[tableIndex];
+                            formatScan[offset + 0] = color.B;
+                            formatScan[offset + 1] = color.G;
+                            formatScan[offset + 2] = color.R;
+                            formatScan[offset + 3] = color.A;
 
                         }
 

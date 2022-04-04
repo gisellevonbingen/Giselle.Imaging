@@ -77,7 +77,7 @@ namespace Giselle.Imaging.Scan
             return (width * w1) / w2;
         }
 
-        public static int GetStride(int width, int bitsPerPixel) => GetStride(width, bitsPerPixel, 4);
+        public static int GetStride4(int width, int bitsPerPixel) => GetStride(width, bitsPerPixel, 4);
 
         public static int GetStride(int width, int bitsPerPixel, int padding)
         {
@@ -121,7 +121,7 @@ namespace Giselle.Imaging.Scan
             return new Argb32(a, r, g, b);
         }
 
-        public int GetFormatStride(int width) => GetStride(width, this.FormatBitsPerPixel);
+        public int GetFormatStride(int width) => GetStride4(width, this.FormatBitsPerPixel);
 
         public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
 

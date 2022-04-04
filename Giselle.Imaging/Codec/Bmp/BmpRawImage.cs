@@ -31,7 +31,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         }
 
-        public int Stride => ScanProcessor.GetStride(this.Width, (short)this.BitsPerPixel);
+        public int Stride => ScanProcessor.GetStride4(this.Width, (short)this.BitsPerPixel);
 
         public void Read(DataProcessor input)
         {
@@ -189,7 +189,7 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(format);
             }
 
-            var stride = ScanProcessor.GetStride(image.Width, (int)this.BitsPerPixel);
+            var stride = ScanProcessor.GetStride4(image.Width, (int)this.BitsPerPixel);
             var scanData = new ScanData(image.Width, image.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[image.Height * stride], ColorTable = this.ColorTable };
             scanProcessor.Write(scanData, image.Scan);
             this.ScanData = scanData.Scan;

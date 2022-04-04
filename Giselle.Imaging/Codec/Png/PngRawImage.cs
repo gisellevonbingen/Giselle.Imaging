@@ -41,6 +41,24 @@ namespace Giselle.Imaging.Codec.Png
             set => (this.ColorType, this.BitDepth) = value.ToPngPixelFormat();
         }
 
+        public int StridePadding
+        {
+            get
+            {
+                if (this.BitDepth == 8)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return this.Width % 8 == 0 ? 1 : 2;
+                }
+
+            }
+
+        }
+
+
         public int Stride
         {
             get
@@ -52,8 +70,7 @@ namespace Giselle.Imaging.Codec.Png
 
                 if (colorType == PngColorType.IndexedColor)
                 {
-                    var padding = (bitDepth % 8 == 0) ? 1 : 2;
-                    return ScanProcessor.GetStride(width, bitsPerPixel, padding);
+                    return ScanProcessor.GetStride(width, bitsPerPixel, this.StridePadding);
                 }
                 else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
                 {
@@ -207,14 +224,15 @@ namespace Giselle.Imaging.Codec.Png
             var samples = bitsPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;
 
-            var passes = new List<InterlacePass>();
-            var blockWidth = 0;
-            var blockHeight = 0;
+            var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
+            var scanData = new ScanData(width, height, bitsPerPixel) { Stride = this.Stride, ColorTable = colorTable };
 
             if (this.Interlace == 1)
             {
-                blockWidth = 8;
-                blockHeight = 8;
+                scanData.InterlaceBlockWidth = 8;
+                scanData.InterlaceBlockHeight = 8;
+
+                var passes = new List<InterlacePass>();
                 passes.Add(new InterlacePass(0, 0, 8, 8));
                 passes.Add(new InterlacePass(4, 0, 8, 8));
                 passes.Add(new InterlacePass(0, 4, 4, 8));
@@ -222,16 +240,9 @@ namespace Giselle.Imaging.Codec.Png
                 passes.Add(new InterlacePass(0, 2, 2, 4));
                 passes.Add(new InterlacePass(1, 0, 2, 2));
                 passes.Add(new InterlacePass(0, 1, 1, 2));
-            }
-            else if (this.Interlace == 0)
-            {
-                blockWidth = 1;
-                blockHeight = 1;
-                passes.Add(new InterlacePass(0, 0, 1, 1));
+                scanData.InterlacePasses = passes.ToArray();
             }
 
-            var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
-            var scanData = new ScanData(width, height, bitsPerPixel) { InterlaceBlockWidth = blockWidth, InterlaceBlockHeight = blockHeight, Stride = this.Stride, ColorTable = colorTable, InterlacePasses = passes.ToArray() };
             var passProcessor = new InterlacePassProcessor(scanData);
             scanData.Scan = new byte[scanData.PreferredScanSize];
 
@@ -248,7 +259,6 @@ namespace Giselle.Imaging.Codec.Png
                     for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
                         var filter = dataProcessor.ReadByte();
-                        //Console.WriteLine(passProcessor.PassIndex + " " + yi + " " + filter);
                         var strideBytes = dataProcessor.ReadBytes(passInfo.Stride);
                         var currLineSamples1 = new byte[samples];
                         var lastLineSamples2 = new byte[samples];

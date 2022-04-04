@@ -40,7 +40,7 @@ namespace Giselle.Imaging
         {
             this.Width = width;
             this.Height = height;
-            this.Stride = ScanProcessor.GetStride(width, this.PixelFormat.GetBitsPerPixel());
+            this.Stride = ScanProcessor.GetStride4(width, this.PixelFormat.GetBitsPerPixel());
             this.Scan = new byte[height * this.Stride];
         }
 
