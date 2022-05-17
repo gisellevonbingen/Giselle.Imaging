@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
@@ -51,39 +52,35 @@ namespace Giselle.Imaging.Codec.Png
                 }
                 else
                 {
-                    return this.Width % 8 == 0 ? 1 : 2;
+                    var bpp = this.PixelFormat.GetBitsPerPixel();
+                    var mod = bpp == 1 ? 8 : bpp;
+                    return this.Width % mod == 0 ? 1 : 2;
                 }
 
             }
 
         }
 
-
-        public int Stride
+        public static int GetStride(int width, PngColorType colorType, byte bitDepth, int stridePadding)
         {
-            get
+            var bitsPerPixel = PngColorTypeExtensions.ToPixelFormat(colorType, bitDepth).GetBitsPerPixel();
+
+            if (colorType == PngColorType.IndexedColor)
             {
-                var width = this.Width;
-                var colorType = this.ColorType;
-                var bitDepth = this.BitDepth;
-                var bitsPerPixel = PngColorTypeExtensions.ToPixelFormat(colorType, bitDepth).GetBitsPerPixel();
-
-                if (colorType == PngColorType.IndexedColor)
-                {
-                    return ScanProcessor.GetStride(width, bitsPerPixel, this.StridePadding);
-                }
-                else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
-                {
-                    return ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
-                }
-                else
-                {
-                    throw new NotImplementedException($"ColorType({colorType}) is Not Supported");
-                }
-
+                return ScanProcessor.GetStride(width, bitsPerPixel, stridePadding);
+            }
+            else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
+            {
+                return ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
+            }
+            else
+            {
+                throw new NotImplementedException($"ColorType({colorType}) is Not Supported");
             }
 
         }
+
+        public int Stride => GetStride(this.Width, this.ColorType, this.BitDepth, this.StridePadding);
 
         public void Read(DataProcessor input)
         {
@@ -227,20 +224,25 @@ namespace Giselle.Imaging.Codec.Png
             var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
             var scanData = new ScanData(width, height, bitsPerPixel) { Stride = this.Stride, ColorTable = colorTable };
 
+            if (this.BitDepth == 2)
+            {
+
+            }
+
             if (this.Interlace == 1)
             {
                 scanData.InterlaceBlockWidth = 8;
                 scanData.InterlaceBlockHeight = 8;
-
-                var passes = new List<InterlacePass>();
-                passes.Add(new InterlacePass(0, 0, 8, 8));
-                passes.Add(new InterlacePass(4, 0, 8, 8));
-                passes.Add(new InterlacePass(0, 4, 4, 8));
-                passes.Add(new InterlacePass(2, 0, 4, 4));
-                passes.Add(new InterlacePass(0, 2, 2, 4));
-                passes.Add(new InterlacePass(1, 0, 2, 2));
-                passes.Add(new InterlacePass(0, 1, 1, 2));
-                scanData.InterlacePasses = passes.ToArray();
+                scanData.InterlacePasses = new[]
+                {
+                    new InterlacePass(0, 0, 8, 8),
+                    new InterlacePass(4, 0, 8, 8),
+                    new InterlacePass(0, 4, 4, 8),
+                    new InterlacePass(2, 0, 4, 4),
+                    new InterlacePass(0, 2, 2, 4),
+                    new InterlacePass(1, 0, 2, 2),
+                    new InterlacePass(0, 1, 1, 2)
+                };
             }
 
             var passProcessor = new InterlacePassProcessor(scanData);
@@ -258,6 +260,13 @@ namespace Giselle.Imaging.Codec.Png
 
                     for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
+                        var y = passProcessor.GetPosition(0, yi).Y;
+
+                        if (y >= height)
+                        {
+                            break;
+                        }
+
                         var filter = dataProcessor.ReadByte();
                         var strideBytes = dataProcessor.ReadBytes(passInfo.Stride);
                         var currLineSamples1 = new byte[samples];
@@ -359,6 +368,12 @@ namespace Giselle.Imaging.Codec.Png
 
             (this.RgbTable, this.AlphaTable) = ColorTableUtils.SplitColorTable(colorTable);
             var stride = this.Stride;
+
+            if (this.BitDepth == 2)
+            {
+
+            }
+
             var bitPerPixel = image.PixelFormat.GetBitsPerPixel();
             var samples = bitPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;

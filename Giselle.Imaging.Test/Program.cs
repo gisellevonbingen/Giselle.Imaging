@@ -67,9 +67,11 @@ namespace Giselle.Imaging.Test
 
                 try
                 {
+                    Console.WriteLine("===================================");
+                    Console.WriteLine(relatedPath);
                     var codec = ImageCodec.FindCodec(inputBytes);
                     var image = ImageCodec.FromBytes(inputBytes);
-                    Console.WriteLine(relatedPath + " unique colors = " + image.Colors.Distinct().Count());
+                    Console.WriteLine("unique colors = " + image.Colors.Distinct().Count());
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {

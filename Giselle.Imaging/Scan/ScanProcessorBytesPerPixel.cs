@@ -24,16 +24,29 @@ namespace Giselle.Imaging.Scan
             var fbpp = this.FormatBitsPerPixel / 8;
             var formatStirde = this.GetFormatStride(input.Width);
 
-            for (var y = 0; y < input.Height; y++)
-            {
-                var formatOffsetBase = y * formatStirde;
-                var readingOffsetBase = y * input.Stride;
+            var passProcessor = new InterlacePassProcessor(input);
+            var index = 0;
 
-                for (var x = 0; x < input.Width; x++)
+            while (passProcessor.NextPass() == true)
+            {
+                var passInfo = passProcessor.PassInfo;
+
+                for (var yi = 0; yi < passInfo.PixelsY; yi++)
                 {
-                    var formatOffset = formatOffsetBase + (x * fbpp);
-                    var inputOffset = readingOffsetBase + (x * ibpp);
-                    this.ReadPixel(input.Scan, inputOffset, formatScan, formatOffset);
+                    for (var xi = 0; xi < passInfo.Stride; xi++)
+                    {
+                        (var x, var y) = passProcessor.GetPosition(xi, yi);
+
+                        if (x >= input.Width || y >= input.Height)
+                        {
+                            break;
+                        }
+
+                        var formatOffset = (y * formatStirde) + (x * fbpp);
+                        this.ReadPixel(input.Scan, index, formatScan, formatOffset);
+                        index += ibpp;
+                    }
+
                 }
 
             }

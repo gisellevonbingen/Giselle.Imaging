@@ -45,7 +45,7 @@ namespace Giselle.Imaging.Scan
                         {
                             (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
 
-                            if (x >= input.Width)
+                            if (x >= input.Width || y >= input.Height)
                             {
                                 break;
                             }
@@ -58,7 +58,6 @@ namespace Giselle.Imaging.Scan
                             formatScan[offset + 1] = color.G;
                             formatScan[offset + 2] = color.R;
                             formatScan[offset + 3] = color.A;
-
                         }
 
                     }

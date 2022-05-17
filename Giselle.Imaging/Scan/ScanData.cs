@@ -57,8 +57,8 @@ namespace Giselle.Imaging.Scan
         public InterlacePassInformation GetInterlacePassInformation(int interlacePassIndex)
         {
             var pass = this.InterlacePasses[interlacePassIndex];
-            var pixelsX = ScanProcessor.GetPaddedQuotient(this.Width, pass.IntervalX);
-            var pixelsY = ScanProcessor.GetPaddedQuotient(this.Height, pass.IntervalY);
+            var pixelsX = ScanProcessor.GetPaddedQuotient(this.Width - pass.OffsetX, pass.IntervalX);
+            var pixelsY = ScanProcessor.GetPaddedQuotient(this.Height - pass.OffsetY, pass.IntervalY);
             var stride = ScanProcessor.GetPaddedQuotient(pixelsX * this.BitsPerPixel, 8);
             return new InterlacePassInformation() { PixelsX = pixelsX, PixelsY = pixelsY, Stride = stride };
         }
