@@ -224,11 +224,6 @@ namespace Giselle.Imaging.Codec.Png
             var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
             var scanData = new ScanData(width, height, bitsPerPixel) { Stride = this.Stride, ColorTable = colorTable };
 
-            if (this.BitDepth == 2)
-            {
-
-            }
-
             if (this.Interlace == 1)
             {
                 scanData.InterlaceBlockWidth = 8;
@@ -368,11 +363,6 @@ namespace Giselle.Imaging.Codec.Png
 
             (this.RgbTable, this.AlphaTable) = ColorTableUtils.SplitColorTable(colorTable);
             var stride = this.Stride;
-
-            if (this.BitDepth == 2)
-            {
-
-            }
 
             var bitPerPixel = image.PixelFormat.GetBitsPerPixel();
             var samples = bitPerPixel / this.BitDepth;
