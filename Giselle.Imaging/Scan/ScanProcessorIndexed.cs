@@ -45,7 +45,7 @@ namespace Giselle.Imaging.Scan
                         {
                             (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
 
-                            if (x >= input.Width || y >= input.Height)
+                            if (x >= input.Width)
                             {
                                 break;
                             }
@@ -97,7 +97,7 @@ namespace Giselle.Imaging.Scan
                         {
                             (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
 
-                            if (x >= output.Width || y >= output.Height)
+                            if (x >= output.Width)
                             {
                                 break;
                             }

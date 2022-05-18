@@ -124,12 +124,11 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(this.BitsPerPixel.ToPixelFormat());
             }
 
-            var image = new ImageArgb32(this.Width, this.Height)
+            var image = new ImageArgb32(scanData, scanProcessor)
             {
                 WidthResoulution = new PhysicalDensity(this.WidthPixelsPerMeter, PhysicalUnit.Meter),
                 HeightResoulution = new PhysicalDensity(this.HeightPixelsPerMeter, PhysicalUnit.Meter),
             };
-            scanProcessor.Read(scanData, image.Scan);
             return image;
         }
 
@@ -148,9 +147,9 @@ namespace Giselle.Imaging.Codec.Bmp
             else
             {
                 var usedColors = image.Colors.Distinct().ToArray();
-                var useAlpha = usedColors.Any(c => c.A < 255);
+                var noAlpha = usedColors.All(c => c.A == 255);
 
-                if (useAlpha == true)
+                if (noAlpha == false)
                 {
                     this.BitsPerPixel = BmpBitsPerPixel.Bpp32Argb;
                 }

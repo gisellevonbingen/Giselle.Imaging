@@ -47,11 +47,6 @@ namespace Giselle.Imaging.Scan
                     {
                         (var x, var y) = passProcessor.GetPosition(xi, yi);
 
-                        if (y >= scan.Height)
-                        {
-                            break;
-                        }
-
                         var formatOffset = (y * formatStirde) + (x * fbpp);
                         action(scan.Scan, scanOffset, formatScan, formatOffset);
                         scanOffset += sbpp;

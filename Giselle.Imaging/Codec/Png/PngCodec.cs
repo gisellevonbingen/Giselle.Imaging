@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
-using Giselle.Imaging.Scan;
-using Ionic.Zlib;
 
 namespace Giselle.Imaging.Codec.Png
 {
@@ -30,10 +28,9 @@ namespace Giselle.Imaging.Codec.Png
         public override ImageArgb32 Read(Stream input)
         {
             var processor = CreatePngProcessor(input);
-            var signature = Signature;
-            var read = processor.ReadBytes(signature.Count);
+            var signature = processor.ReadBytes(BytesForTest);
 
-            if (signature.SequenceEqual(read) == false)
+            if (this.Test(signature) == false)
             {
                 throw new IOException();
             }

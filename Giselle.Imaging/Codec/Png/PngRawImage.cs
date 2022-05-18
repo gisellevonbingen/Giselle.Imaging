@@ -229,13 +229,6 @@ namespace Giselle.Imaging.Codec.Png
 
                     for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
-                        var y = passProcessor.GetPosition(0, yi).Y;
-
-                        if (y >= height)
-                        {
-                            break;
-                        }
-
                         var filter = dataProcessor.ReadByte();
                         var strideBytes = dataProcessor.ReadBytes(passInfo.Stride);
                         var currLineSamples1 = new byte[samples];
@@ -359,13 +352,6 @@ namespace Giselle.Imaging.Codec.Png
 
                     for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
-                        var y = passProcessor.GetPosition(0, yi).Y;
-
-                        if (y >= image.Height)
-                        {
-                            break;
-                        }
-
                         byte filter = 0;
                         var currLineSamples1 = new byte[samples];
                         var lastLineSamples2 = new byte[samples];
