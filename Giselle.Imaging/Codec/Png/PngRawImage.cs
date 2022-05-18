@@ -42,45 +42,13 @@ namespace Giselle.Imaging.Codec.Png
             set => (this.ColorType, this.BitDepth) = value.ToPngPixelFormat();
         }
 
-        public int StridePadding
-        {
-            get
-            {
-                if (this.BitDepth == 8)
-                {
-                    return 1;
-                }
-                else
-                {
-                    var bpp = this.PixelFormat.GetBitsPerPixel();
-                    var mod = bpp == 1 ? 8 : bpp;
-                    return this.Width % mod == 0 ? 1 : 2;
-                }
-
-            }
-
-        }
-
-        public static int GetStride(int width, PngColorType colorType, byte bitDepth, int stridePadding)
+        public static int GetStride(int width, PngColorType colorType, byte bitDepth)
         {
             var bitsPerPixel = PngColorTypeExtensions.ToPixelFormat(colorType, bitDepth).GetBitsPerPixel();
-
-            if (colorType == PngColorType.IndexedColor)
-            {
-                return ScanProcessor.GetStride(width, bitsPerPixel, stridePadding);
-            }
-            else if (colorType == PngColorType.Truecolor || colorType == PngColorType.TruecolorWithAlpha)
-            {
-                return ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
-            }
-            else
-            {
-                throw new NotImplementedException($"ColorType({colorType}) is Not Supported");
-            }
-
+            return ScanProcessor.GetStride(width, bitsPerPixel, 1);
         }
 
-        public int Stride => GetStride(this.Width, this.ColorType, this.BitDepth, this.StridePadding);
+        public int Stride => GetStride(this.Width, this.ColorType, this.BitDepth);
 
         public void Read(DataProcessor input)
         {

@@ -33,11 +33,11 @@ namespace Giselle.Imaging.Scan
 
                 for (var yi = 0; yi < passInfo.PixelsY; yi++)
                 {
-                    for (var xi = 0; xi < passInfo.Stride; xi++)
+                    for (var xi = 0; xi < passInfo.PixelsX; xi++)
                     {
                         (var x, var y) = passProcessor.GetPosition(xi, yi);
 
-                        if (x >= input.Width || y >= input.Height)
+                        if (y >= input.Height)
                         {
                             break;
                         }
@@ -47,6 +47,7 @@ namespace Giselle.Imaging.Scan
                         index += ibpp;
                     }
 
+                    index += passInfo.Stride - (passInfo.PixelsX * ibpp);
                 }
 
             }

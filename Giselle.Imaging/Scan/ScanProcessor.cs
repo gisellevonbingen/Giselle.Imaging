@@ -72,18 +72,27 @@ namespace Giselle.Imaging.Scan
 
         public static int GetBytesPerWidth(int width, int bitsPerPixel)
         {
-            var w1 = bitsPerPixel < 8 ? 1 : (bitsPerPixel / 8);
-            var w2 = bitsPerPixel < 8 ? (8 / bitsPerPixel) : 1;
-            return (width * w1) / w2;
-        }
+            if (bitsPerPixel < 8)
+            {
+                var w = 8 / bitsPerPixel;
+                var bytes = width / w;
+                return (width % w) == 0 ? bytes : bytes + 1;
+            }
+            else
+            {
+                var w = bitsPerPixel / 8;
+                return width * w;
+            }
 
-        public static int GetStride4(int width, int bitsPerPixel) => GetStride(width, bitsPerPixel, 4);
+        }
 
         public static int GetStride(int width, int bitsPerPixel, int padding)
         {
             var bytePerWidth = GetBytesPerWidth(width, bitsPerPixel);
             return ApplyPadding(bytePerWidth, padding);
         }
+
+        public static int GetStride4(int width, int bitsPerPixel) => GetStride(width, bitsPerPixel, 4);
 
         public static int ApplyPadding(int bytePerWidth, int padding)
         {
