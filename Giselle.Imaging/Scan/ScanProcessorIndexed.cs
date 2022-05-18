@@ -80,25 +80,43 @@ namespace Giselle.Imaging.Scan
                 maskBase |= 1 << i;
             }
 
-            for (var y = 0; y < output.Height; y++)
-            {
-                for (var x = 0; x < output.Width; x++)
-                {
-                    var color = this.GetFormatColor(formatScan, formatStride, x, y);
-                    var tableIndex = Array.IndexOf(output.ColorTable, color);
+            var passProcessor = new InterlacePassProcessor(output);
+            var index = 0;
 
-                    if (tableIndex == -1)
+            while (passProcessor.NextPass() == true)
+            {
+                var passInfo = passProcessor.PassInfo;
+
+                for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                {
+                    for (var xi = 0; xi < passInfo.Stride; xi++)
                     {
-                        throw new IndexOutOfRangeException($"x:{x}, y:{y}'s color #{color} is not contains in ColorTable");
+                        var value = output.Scan[index];
+
+                        for (var bi = 0; bi < ppb; bi++)
+                        {
+                            (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
+
+                            if (x >= output.Width || y >= output.Height)
+                            {
+                                break;
+                            }
+
+                            var color = this.GetFormatColor(formatScan, formatStride, x, y);
+                            var tableIndex = Array.IndexOf(output.ColorTable, color);
+
+                            if (tableIndex == -1)
+                            {
+                                throw new IndexOutOfRangeException($"x:{x}, y:{y}'s color #{color} is not contains in ColorTable");
+                            }
+
+                            var shift = bpp * (ppb - 1 - bi);
+                            value |= (byte)((tableIndex & maskBase) << shift);
+                        }
+
+                        output.Scan[index++] = value;
                     }
 
-                    var index = (output.Stride * y) + (x / ppb);
-                    var bi = x % ppb;
-                    var shift = bpp * (ppb - 1 - bi);
-
-                    var value = output.Scan[index];
-                    value |= (byte)((tableIndex & maskBase) << shift);
-                    output.Scan[index] = value;
                 }
 
             }

@@ -12,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
 using Giselle.Imaging.Codec.Bmp;
+using Giselle.Imaging.Codec.Png;
+using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
 
@@ -28,11 +30,19 @@ namespace Giselle.Imaging.Test
 
         public static void TestPadding()
         {
-            Console.WriteLine(ScanProcessor.GetStride(17, 1, 1) == 3);
-            Console.WriteLine(ScanProcessor.GetStride(17, 1, 2) == 4);
-            Console.WriteLine(ScanProcessor.GetStride(17, 4, 4) == 12);
-            Console.WriteLine(ScanProcessor.GetStride(335, 1, 4) == 44);
-            Console.WriteLine(ScanProcessor.GetStride(335, 1, 2) == 42);
+            Action<int, int, int, int> function = (int width, int bitsPerPixel, int padding, int require) =>
+            {
+                var result = ScanProcessor.GetStride(width, bitsPerPixel, padding);
+                Console.WriteLine($"ScanProcessor.GetStride({width}, {bitsPerPixel}, {padding}) = {result}, {result == require}");
+            };
+
+            function(17, 1, 1, 3);
+            function(17, 1, 2, 4);
+            function(17, 4, 4, 12);
+            function(335, 1, 4, 44);
+            function(335, 2, 4, 84);
+            function(335, 4, 4, 168);
+            function(335, 8, 4, 336);
         }
 
         public static void TestPipe()
@@ -86,7 +96,8 @@ namespace Giselle.Imaging.Test
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
                     {
-                        SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });
+                        SaveImageAsReadCodec(outputStream, image, codec, new PngEncodeOptions() { Interlace = false });
+                        //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });
                         //SaveImageAsBitmap(outputStream, image);
                     }
 

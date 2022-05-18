@@ -50,6 +50,30 @@ namespace Giselle.Imaging.Codec.Png
 
         public int Stride => GetStride(this.Width, this.ColorType, this.BitDepth);
 
+        public static ScanData CreateScanData(int width, int height, int bitsPerPixel, int stride, int interlace, Argb32[] colorTable)
+        {
+            var scanData = new ScanData(width, height, bitsPerPixel) { Stride = stride, ColorTable = colorTable };
+
+            if (interlace == 1)
+            {
+                scanData.InterlaceBlockWidth = 8;
+                scanData.InterlaceBlockHeight = 8;
+                scanData.InterlacePasses = new[]
+                {
+                    new InterlacePass(0, 0, 8, 8),
+                    new InterlacePass(4, 0, 8, 8),
+                    new InterlacePass(0, 4, 4, 8),
+                    new InterlacePass(2, 0, 4, 4),
+                    new InterlacePass(0, 2, 2, 4),
+                    new InterlacePass(1, 0, 2, 2),
+                    new InterlacePass(0, 1, 1, 2)
+                };
+            }
+
+            scanData.Scan = new byte[scanData.PreferredScanSize];
+            return scanData;
+        }
+
         public void Read(DataProcessor input)
         {
             this.CompressedScanData.Position = 0L;
@@ -187,32 +211,14 @@ namespace Giselle.Imaging.Codec.Png
             var height = this.Height;
             var bitsPerPixel = this.PixelFormat.GetBitsPerPixel();
             var samples = bitsPerPixel / this.BitDepth;
-            this.CompressedScanData.Position = 0L;
-
             var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
-            var scanData = new ScanData(width, height, bitsPerPixel) { Stride = this.Stride, ColorTable = colorTable };
+            var scanData = CreateScanData(width, height, bitsPerPixel, this.Stride, this.Interlace, colorTable);
 
-            if (this.Interlace == 1)
-            {
-                scanData.InterlaceBlockWidth = 8;
-                scanData.InterlaceBlockHeight = 8;
-                scanData.InterlacePasses = new[]
-                {
-                    new InterlacePass(0, 0, 8, 8),
-                    new InterlacePass(4, 0, 8, 8),
-                    new InterlacePass(0, 4, 4, 8),
-                    new InterlacePass(2, 0, 4, 4),
-                    new InterlacePass(0, 2, 2, 4),
-                    new InterlacePass(1, 0, 2, 2),
-                    new InterlacePass(0, 1, 1, 2)
-                };
-            }
-
-            var passProcessor = new InterlacePassProcessor(scanData);
-            scanData.Scan = new byte[scanData.PreferredScanSize];
+            this.CompressedScanData.Position = 0L;
 
             using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Decompress, true))
             {
+                var passProcessor = new InterlacePassProcessor(scanData);
                 var dataProcessor = PngCodec.CreatePngProcessor(ds);
                 var scanOffset = 0;
 
@@ -297,6 +303,7 @@ namespace Giselle.Imaging.Codec.Png
             this.Width = image.Width;
             this.Height = image.Height;
             this.PixelFormat = image.PixelFormat;
+            this.Interlace = options.Interlace ? (byte)1 : (byte)0;
 
             var physicalUnit = image.Resolution.Unit;
             this.PhysicalPixelDimensionsUnit = physicalUnit.ToPngPhysicalPixelDimensionsUnit();
@@ -330,64 +337,77 @@ namespace Giselle.Imaging.Codec.Png
             }
 
             (this.RgbTable, this.AlphaTable) = ColorTableUtils.SplitColorTable(colorTable);
-            var stride = this.Stride;
 
-            var bitPerPixel = image.PixelFormat.GetBitsPerPixel();
+            var bitPerPixel = this.PixelFormat.GetBitsPerPixel();
             var samples = bitPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;
 
-            var scan = new byte[image.Height * stride];
-            var scanData = new ScanData(image.Width, image.Height, this.PixelFormat.GetBitsPerPixel()) { Stride = stride, Scan = scan, ColorTable = colorTable };
+            var scanData = CreateScanData(image.Width, image.Height, this.PixelFormat.GetBitsPerPixel(), this.Stride, this.Interlace, colorTable);
             var scanProcessor = this.CreateScanProcessor();
             scanProcessor.Write(scanData, image.Scan);
 
             using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
             {
+                var passProcessor = new InterlacePassProcessor(scanData);
                 var dataProcessor = PngCodec.CreatePngProcessor(ds);
-                var scanline = new byte[stride];
+                var scanOffset = 0;
 
-                for (var yi = 0; yi < this.Height; yi++)
+                while (passProcessor.NextPass() == true)
                 {
-                    byte filter = 0;
-                    var currLineSamples1 = new byte[samples];
-                    var lastLineSamples2 = new byte[samples];
+                    var passInfo = passProcessor.PassInfo;
+                    var scanline = new byte[passInfo.Stride];
 
-                    for (var xi = 0; xi < stride; xi++)
+                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
-                        var x = scan[yi * stride + xi];
-                        var a = currLineSamples1[xi % samples];
-                        var b = scanline[xi];
-                        var c = lastLineSamples2[xi % samples];
-                        byte result = 0;
+                        var y = passProcessor.GetPosition(0, yi).Y;
 
-                        if (filter == 0)
+                        if (y >= image.Height)
                         {
-                            result = x;
-                        }
-                        else if (filter == 1)
-                        {
-                            result = (byte)(x - a);
-                        }
-                        else if (filter == 2)
-                        {
-                            result = (byte)(x - b);
-                        }
-                        else if (filter == 3)
-                        {
-                            result = (byte)(x - (a + b) / 2);
-                        }
-                        else
-                        {
-                            throw new NotImplementedException($"Filter is {filter}");
+                            break;
                         }
 
-                        scanline[xi] = result;
-                        currLineSamples1[xi % samples] = result;
-                        lastLineSamples2[xi % samples] = a;
+                        byte filter = 0;
+                        var currLineSamples1 = new byte[samples];
+                        var lastLineSamples2 = new byte[samples];
+
+                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        {
+                            var x = scanData.Scan[scanOffset++];
+                            var a = currLineSamples1[xi % samples];
+                            var b = scanline[xi];
+                            var c = lastLineSamples2[xi % samples];
+                            byte result = 0;
+
+                            if (filter == 0)
+                            {
+                                result = x;
+                            }
+                            else if (filter == 1)
+                            {
+                                result = (byte)(x - a);
+                            }
+                            else if (filter == 2)
+                            {
+                                result = (byte)(x - b);
+                            }
+                            else if (filter == 3)
+                            {
+                                result = (byte)(x - (a + b) / 2);
+                            }
+                            else
+                            {
+                                throw new NotImplementedException($"Filter is {filter}");
+                            }
+
+                            scanline[xi] = result;
+                            currLineSamples1[xi % samples] = result;
+                            lastLineSamples2[xi % samples] = a;
+                        }
+
+                        dataProcessor.WriteByte(filter);
+                        dataProcessor.WriteBytes(scanline);
                     }
 
-                    dataProcessor.WriteByte(filter);
-                    dataProcessor.WriteBytes(scanline);
                 }
 
             }
