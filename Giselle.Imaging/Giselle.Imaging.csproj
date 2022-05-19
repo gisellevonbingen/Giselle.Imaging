@@ -47,6 +47,12 @@
     <Compile Include="Codec\Bmp\BmpRawImage.cs" />
     <Compile Include="Codec\CommonCompressionLevel.cs" />
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
+    <Compile Include="Codec\Jpeg\JpegChunkStream.cs" />
+    <Compile Include="Codec\Jpeg\JpegCodec.cs" />
+    <Compile Include="Codec\Jpeg\JpegEncodeOptions.cs" />
+    <Compile Include="Codec\Jpeg\JpegMarker.cs" />
+    <Compile Include="Codec\Jpeg\JpegRawChunk.cs" />
+    <Compile Include="Codec\Png\PngChunkNameExtensions.cs" />
     <Compile Include="ColorTableUtils.cs" />
     <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="Physical\IPhysicalValue.cs" />
@@ -79,7 +85,7 @@
     <Compile Include="Codec\Png\PngColorTypeExtensions.cs" />
     <Compile Include="Codec\Png\PngEncodeOptions.cs" />
     <Compile Include="Codec\Png\PngRawImage.cs" />
-    <Compile Include="Codec\Png\PngKnownChunkNames.cs" />
+    <Compile Include="Codec\Png\PngChunkName.cs" />
     <Compile Include="Codec\Png\PngRawChunk.cs" />
     <Compile Include="Scan\InterlacePassInformation.cs" />
     <Compile Include="Scan\InterlacePassProcessor.cs" />
@@ -99,9 +105,9 @@
     <Compile Include="Codec\Tiff\TiffEntryTypeExtensions.cs" />
     <Compile Include="Codec\Tiff\TiffResolutionUnit.cs" />
     <Compile Include="Codec\Tiff\TiffTagId.cs" />
-    <Compile Include="Utils\EnumerableUtils.cs" />
     <Compile Include="Codec\ImageCodec.cs" />
     <Compile Include="IO\DataProcessor.cs" />
+    <Compile Include="Utils\BitConverter2.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\ObjectUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

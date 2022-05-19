@@ -11,7 +11,7 @@ namespace Giselle.Imaging.Codec.Png
 {
     public class PngChunkStream : Stream
     {
-        public enum PNGChunkStreamMode : byte
+        public enum PngChunkStreamMode : byte
         {
             Read = 0,
             Write = 1,
@@ -19,21 +19,23 @@ namespace Giselle.Imaging.Codec.Png
 
         public const int TypeLength = 4;
 
-        public override bool CanRead => this.Mode == PNGChunkStreamMode.Read;
+        public override bool CanRead => this.Mode == PngChunkStreamMode.Read;
 
         public override bool CanSeek => false;
 
-        public override bool CanWrite => this.Mode == PNGChunkStreamMode.Write;
+        public override bool CanWrite => this.Mode == PngChunkStreamMode.Write;
 
-        public string Type { get; }
+        public PngChunkName Name { get; }
+        public string DisplayName => this.Name.ToDisplayString();
         public override long Length { get; }
         private long _Position = 0;
         public override long Position { get => this._Position; set => throw new NotImplementedException(); }
         public uint AccumulatingCRC { get; private set; }
 
-        public PNGChunkStreamMode Mode { get; private set; }
+        public PngChunkStreamMode Mode { get; private set; }
         public DataProcessor BaseProcessor { get; private set; }
         public bool IgnoreCRC { get; set; }
+        protected bool InternalReading { get; set; }
 
         protected PngChunkStream()
         {
@@ -44,41 +46,40 @@ namespace Giselle.Imaging.Codec.Png
 
         public PngChunkStream(DataProcessor input) : this()
         {
-            this.Mode = PNGChunkStreamMode.Read;
+            this.Mode = PngChunkStreamMode.Read;
             this.BaseProcessor = input;
             this.Length = input.ReadInt();
 
-            var typeBytes = input.ReadBytes(TypeLength);
-            this.Type = Encoding.ASCII.GetString(typeBytes);
-            this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, typeBytes);
+            try
+            {
+                this.InternalReading = true;
+                var processor = PngCodec.CreatePngProcessor(this);
+                this.Name = (PngChunkName)processor.ReadInt();
+            }
+            finally
+            {
+                this.InternalReading = false;
+            }
+
         }
 
-        public PngChunkStream(DataProcessor output, string type, int length) : this()
+        public PngChunkStream(DataProcessor output, PngChunkName name, int length) : this()
         {
-            this.Mode = PNGChunkStreamMode.Write;
+            this.Mode = PngChunkStreamMode.Write;
             this.BaseProcessor = output;
             this.Length = length;
             output.WriteInt(length);
 
-            var typeBytes = this.FixType(Encoding.ASCII.GetBytes(type));
-            this.Type = Encoding.ASCII.GetString(typeBytes);
-            this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, typeBytes);
-            output.WriteBytes(typeBytes);
-        }
-
-        protected byte[] FixType(byte[] value)
-        {
-            if (value is null)
+            try
             {
-                return new byte[TypeLength];
+                this.InternalReading = true;
+                var processor = PngCodec.CreatePngProcessor(this);
+                this.Name = name;
+                processor.WriteInt((int)name);
             }
-            else if (value.Length == TypeLength)
+            finally
             {
-                return value.ToArray();
-            }
-            else
-            {
-                return value.TakeElse(TypeLength).ToArray();
+                this.InternalReading = false;
             }
 
         }
@@ -100,9 +101,18 @@ namespace Giselle.Imaging.Codec.Png
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            count = Math.Min(count, (int)(this.Length - this.Position));
+            if (this.InternalReading == false)
+            {
+                count = Math.Min(count, (int)(this.Length - this.Position));
+            }
+
             var length = this.BaseProcessor.Read(buffer, offset, count);
-            this._Position += length;
+
+            if (this.InternalReading == false)
+            {
+                this._Position += length;
+            }
+
             this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, buffer, offset, length);
 
             return length;
@@ -112,7 +122,11 @@ namespace Giselle.Imaging.Codec.Png
         {
             this.BaseProcessor.Write(buffer, offset, count);
 
-            this._Position += count;
+            if (this.InternalReading == false)
+            {
+                this._Position += count;
+            }
+
             this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, buffer, offset, count);
         }
 
@@ -122,7 +136,7 @@ namespace Giselle.Imaging.Codec.Png
 
             var ccrc = CRCUtils.FinalizeCalculateCRC32(this.AccumulatingCRC);
 
-            if (this.Mode == PNGChunkStreamMode.Read)
+            if (this.Mode == PngChunkStreamMode.Read)
             {
                 var rcrc = this.BaseProcessor.ReadUInt();
 
@@ -132,7 +146,7 @@ namespace Giselle.Imaging.Codec.Png
                 }
 
             }
-            else if (this.Mode == PNGChunkStreamMode.Write)
+            else if (this.Mode == PngChunkStreamMode.Write)
             {
                 this.BaseProcessor.WriteUInt(ccrc);
             }

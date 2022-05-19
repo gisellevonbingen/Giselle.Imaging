@@ -207,7 +207,7 @@ namespace Giselle.Imaging.IO
 
         }
 
-        public virtual byte[] ReadBytes(int length)
+        public virtual byte[] ReadBytes(long length)
         {
             var bytes = new byte[length];
             this.ReadBytes(bytes);
@@ -292,7 +292,7 @@ namespace Giselle.Imaging.IO
             return new Guid(bytes);
         }
 
-        public virtual void FlipCheck(byte[] bytes)
+        protected virtual void FlipCheck(byte[] bytes)
         {
             if (this.IsLittleEndian != BitConverter.IsLittleEndian)
             {

@@ -92,7 +92,7 @@ namespace Giselle.Imaging.Codec.Png
                         throw;
                     }
 
-                    if (chunkStream.Type.Equals(PngKnownChunkNames.IEND) == true)
+                    if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
                     {
                         break;
                     }
@@ -106,9 +106,9 @@ namespace Giselle.Imaging.Codec.Png
         private void ReadChunk(PngChunkStream chunkStream)
         {
             var chunkProcessor = PngCodec.CreatePngProcessor(chunkStream);
-            var type = chunkStream.Type;
+            var type = chunkStream.Name;
 
-            if (type.Equals(PngKnownChunkNames.IHDR) == true)
+            if (type.Equals(PngChunkName.IHDR) == true)
             {
                 this.Width = chunkProcessor.ReadInt();
                 this.Height = chunkProcessor.ReadInt();
@@ -118,7 +118,7 @@ namespace Giselle.Imaging.Codec.Png
                 this.Filter = chunkProcessor.ReadByte();
                 this.Interlace = chunkProcessor.ReadByte();
             }
-            else if (type.Equals(PngKnownChunkNames.PLTE) == true)
+            else if (type.Equals(PngChunkName.PLTE) == true)
             {
                 var colorTable = new List<Argb32>();
 
@@ -133,11 +133,11 @@ namespace Giselle.Imaging.Codec.Png
 
                 this.RgbTable = colorTable.ToArray();
             }
-            else if (type.Equals(PngKnownChunkNames.gAMA) == true)
+            else if (type.Equals(PngChunkName.gAMA) == true)
             {
                 var gamma = chunkProcessor.ReadInt();
             }
-            else if (type.Equals(PngKnownChunkNames.cHRM) == true)
+            else if (type.Equals(PngChunkName.cHRM) == true)
             {
                 var whiteX = chunkProcessor.ReadInt();
                 var whiteY = chunkProcessor.ReadInt();
@@ -148,24 +148,24 @@ namespace Giselle.Imaging.Codec.Png
                 var bX = chunkProcessor.ReadInt();
                 var bY = chunkProcessor.ReadInt();
             }
-            else if (type.Equals(PngKnownChunkNames.IDAT) == true)
+            else if (type.Equals(PngChunkName.IDAT) == true)
             {
                 var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length));
                 this.CompressedScanData.Write(block, 0, block.Length);
             }
-            else if (type.Equals(PngKnownChunkNames.iCCP) == true)
+            else if (type.Equals(PngChunkName.iCCP) == true)
             {
                 var name = chunkProcessor.ReadBytesWhile0();
                 var compressionMethod = chunkProcessor.ReadByte();
                 var compressionBytes = chunkProcessor.ReadBytes((int)chunkProcessor.Remain);
             }
-            else if (type.Equals(PngKnownChunkNames.pHYs) == true)
+            else if (type.Equals(PngChunkName.pHYs) == true)
             {
                 this.XPixelsPerUnit = chunkProcessor.ReadInt();
                 this.YPixelsPerUnit = chunkProcessor.ReadInt();
                 this.PhysicalPixelDimensionsUnit = (PngPhysicalPixelDimensionsUnit)chunkProcessor.ReadByte();
             }
-            else if (type.Equals(PngKnownChunkNames.tRNS) == true)
+            else if (type.Equals(PngChunkName.tRNS) == true)
             {
                 if (this.ColorType == PngColorType.Greyscale)
                 {
@@ -191,16 +191,17 @@ namespace Giselle.Imaging.Codec.Png
                 }
 
             }
-            else if (type.Equals(PngKnownChunkNames.IEND) == true)
+            else if (type.Equals(PngChunkName.IEND) == true)
             {
 
             }
             else
             {
-                var rawChunk = new PNGRawChunk();
-                rawChunk.Type = chunkStream.Type;
-                rawChunk.Data = chunkProcessor.ReadBytes((byte)chunkProcessor.Length);
-                this.ExtraChunks.Add(rawChunk);
+                this.ExtraChunks.Add(new PNGRawChunk
+                {
+                    Name = chunkStream.Name,
+                    Payload = chunkProcessor.ReadBytes((byte)chunkProcessor.Length)
+                });
             }
 
         }
@@ -402,7 +403,7 @@ namespace Giselle.Imaging.Codec.Png
 
         public void Write(DataProcessor output)
         {
-            this.WriteChunk(output, PngKnownChunkNames.IHDR, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.IHDR, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.Width);
                 chunkProcessor.WriteInt(this.Height);
@@ -413,7 +414,7 @@ namespace Giselle.Imaging.Codec.Png
                 chunkProcessor.WriteByte(this.Interlace);
             });
 
-            this.WriteChunk(output, PngKnownChunkNames.pHYs, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.XPixelsPerUnit);
                 chunkProcessor.WriteInt(this.YPixelsPerUnit);
@@ -422,7 +423,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ColorType == PngColorType.IndexedColor)
             {
-                this.WriteChunk(output, PngKnownChunkNames.PLTE, chunkProcessor =>
+                this.WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
                 {
                     foreach (var color in this.RgbTable)
                     {
@@ -434,7 +435,7 @@ namespace Giselle.Imaging.Codec.Png
 
                 if (ColorTableUtils.RequireWriteAlphaTable(this.AlphaTable) == true)
                 {
-                    this.WriteChunk(output, PngKnownChunkNames.tRNS, chunkProcessor =>
+                    this.WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
                     {
                         foreach (var alpha in this.AlphaTable)
                         {
@@ -447,9 +448,9 @@ namespace Giselle.Imaging.Codec.Png
 
             foreach (var chunk in this.ExtraChunks)
             {
-                this.WriteChunk(output, chunk.Type, chunkProcessor =>
+                this.WriteChunk(output, chunk.Name, chunkProcessor =>
                 {
-                    chunkProcessor.WriteBytes(chunk.Data);
+                    chunkProcessor.WriteBytes(chunk.Payload);
                 });
             }
 
@@ -459,23 +460,23 @@ namespace Giselle.Imaging.Codec.Png
 
             for (var len = 0; (len = this.CompressedScanData.Read(buffer, 0, buffer.Length)) > 0;)
             {
-                this.WriteChunk(output, PngKnownChunkNames.IDAT, chunkProcessor =>
+                this.WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(buffer);
                 });
             }
 
-            this.WriteChunk(output, PngKnownChunkNames.IEND, chunkProcessor => { });
+            this.WriteChunk(output, PngChunkName.IEND, chunkProcessor => { });
         }
 
-        private void WriteChunk(DataProcessor output, string type, Action<DataProcessor> action)
+        private void WriteChunk(DataProcessor output, PngChunkName name, Action<DataProcessor> action)
         {
             using (var ms = new MemoryStream())
             {
                 var chunkProcessor = PngCodec.CreatePngProcessor(ms);
                 action(chunkProcessor);
 
-                using (var chunkStream = new PngChunkStream(output, type, (int)ms.Length))
+                using (var chunkStream = new PngChunkStream(output, name, (int)ms.Length))
                 {
                     ms.Position = 0L;
                     ms.CopyTo(chunkStream);

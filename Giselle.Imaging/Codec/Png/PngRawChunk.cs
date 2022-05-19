@@ -12,42 +12,14 @@ namespace Giselle.Imaging.Codec.Png
 {
     public class PNGRawChunk
     {
-        public const int TypeLength = 4;
+        public PngChunkName Name { get; set; }
+        public string DisplayName => this.Name.ToDisplayString();
 
-        private byte[] _TypeRaw = new byte[TypeLength];
-        public byte[] TypeRaw
+        private byte[] _Payload = new byte[0];
+        public byte[] Payload
         {
-            get => this._TypeRaw;
-            set
-            {
-                if (value is null)
-                {
-                    this._TypeRaw = new byte[TypeLength];
-                }
-                else if (value.Length == TypeLength)
-                {
-                    this._TypeRaw = value.ToArray();
-                }
-                else
-                {
-                    this._TypeRaw = value.TakeElse(TypeLength).ToArray();
-                }
-
-            }
-
-        }
-
-        public string Type
-        {
-            get => Encoding.ASCII.GetString(this.TypeRaw);
-            set => this.TypeRaw = value is null ? null : Encoding.ASCII.GetBytes(value);
-        }
-
-        private byte[] _Data = new byte[0];
-        public byte[] Data
-        {
-            get => this._Data;
-            set => this._Data = value ?? new byte[0];
+            get => this._Payload;
+            set => this._Payload = value ?? new byte[0];
         }
 
         public PNGRawChunk()
