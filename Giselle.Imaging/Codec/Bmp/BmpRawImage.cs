@@ -9,7 +9,7 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Bmp
 {
-    public class BmpRawImage
+    public class BmpRawImage : RawImage<BmpEncodeOptions>
     {
         public short Reserved1 { get; set; }
         public short Reserved2 { get; set; }
@@ -109,7 +109,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         }
 
-        public ImageArgb32 Decode()
+        public override ImageArgb32 Decode()
         {
             var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
 
@@ -132,7 +132,7 @@ namespace Giselle.Imaging.Codec.Bmp
             return image;
         }
 
-        public void Encode(ImageArgb32 image, BmpEncodeOptions options)
+        public override void Encode(ImageArgb32 image, BmpEncodeOptions options)
         {
             this.Width = image.Width;
             this.Height = image.Height;

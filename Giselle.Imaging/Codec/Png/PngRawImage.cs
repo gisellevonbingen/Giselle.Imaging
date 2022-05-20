@@ -13,7 +13,7 @@ using Ionic.Zlib;
 
 namespace Giselle.Imaging.Codec.Png
 {
-    public class PngRawImage
+    public class PngRawImage : RawImage<PngEncodeOptions>
     {
         public int Width { get; set; }
         public int Height { get; set; }
@@ -206,7 +206,7 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public ImageArgb32 Decode()
+        public override ImageArgb32 Decode()
         {
             var width = this.Width;
             var height = this.Height;
@@ -292,7 +292,7 @@ namespace Giselle.Imaging.Codec.Png
             };
         }
 
-        public void Encode(ImageArgb32 image, PngEncodeOptions options)
+        public override void Encode(ImageArgb32 image, PngEncodeOptions options)
         {
             this.Width = image.Width;
             this.Height = image.Height;

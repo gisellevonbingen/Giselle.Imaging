@@ -11,7 +11,7 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Bmp
 {
-    public class BmpCodec : ImageCodec<BmpEncodeOptions>
+    public class BmpCodec : ImageCodec<BmpRawImage>
     {
         public static BmpCodec Instance { get; } = new BmpCodec();
         public static IList<byte> SignatureBM { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x4D });
@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
-        public override ImageArgb32 Read(Stream input)
+        public override BmpRawImage Read(Stream input)
         {
             var processor = CreateBmpProcessor(input);
 
@@ -46,20 +46,17 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             // File Header
-            var raw = new BmpRawImage();
-            raw.Read(processor);
-            var image = raw.Decode();
+            var image = new BmpRawImage();
+            image.Read(processor);
             return image;
         }
 
-        public override void Write(Stream output, ImageArgb32 image, BmpEncodeOptions options)
+        public override void Write(Stream output, BmpRawImage image)
         {
             var processor = CreateBmpProcessor(output);
             processor.WriteBytes(SignatureBM);
 
-            var raw = new BmpRawImage();
-            raw.Encode(image, options);
-            raw.Write(processor);
+            image.Write(processor);
         }
 
     }

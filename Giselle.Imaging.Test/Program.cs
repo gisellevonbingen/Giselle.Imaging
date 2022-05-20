@@ -90,8 +90,10 @@ namespace Giselle.Imaging.Test
                 {
                     Console.WriteLine("===================================");
                     Console.WriteLine(relatedPath);
-                    var codec = ImageCodec.FindCodec(inputBytes);
-                    var image = ImageCodec.FromBytes(inputBytes);
+                    var codec = ImageCodecs.FindCodec(inputBytes);
+                    var raw = ImageCodecs.FromBytes(inputBytes);
+
+                    var image = raw.Decode();
                     Console.WriteLine("unique colors = " + image.Colors.Distinct().Count());
 
                     using (var outputStream = new FileStream(output, FileMode.Create))
@@ -119,7 +121,10 @@ namespace Giselle.Imaging.Test
 
         public static void SaveImageAsReadCodec(Stream output, ImageArgb32 image, IImageCodec codec, EncodeOptions options)
         {
-            codec.Write(output, image, options);
+            var raw = codec.CreateEmpty();
+            raw.Encode(image, options);
+
+            codec.Write(output, raw);
         }
 
     }

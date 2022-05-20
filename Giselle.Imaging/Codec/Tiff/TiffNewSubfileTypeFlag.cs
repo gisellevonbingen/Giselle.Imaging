@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Giselle.Imaging.Codec.Tiff
 {
     [Flags]
-    public enum TiffNewSubfileTypeFlag
+    public enum TiffNewSubfileTypeFlag : byte
     {
         None = 0,
         ReducedResolution = 1,

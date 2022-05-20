@@ -9,10 +9,10 @@ namespace Giselle.Imaging.Codec.Tiff
 {
     public struct TiffRational : IEquatable<TiffRational>
     {
-        public int Numerator { get; set; }
-        public int Denominator { get; set; }
+        public uint Numerator { get; set; }
+        public uint Denominator { get; set; }
 
-        public TiffRational(int numerator, int denominator) : this()
+        public TiffRational(uint numerator, uint denominator) : this()
         {
             this.Numerator = numerator;
             this.Denominator = denominator;
@@ -27,14 +27,14 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public void Read(DataProcessor processor)
         {
-            this.Numerator = processor.ReadInt();
-            this.Denominator = processor.ReadInt();
+            this.Numerator = processor.ReadUInt();
+            this.Denominator = processor.ReadUInt();
         }
 
         public void Write(DataProcessor processor)
         {
-            processor.WriteInt(this.Numerator);
-            processor.WriteInt(this.Denominator);
+            processor.WriteUInt(this.Numerator);
+            processor.WriteUInt(this.Denominator);
         }
 
         public override string ToString() => $"{this.Numerator} / {this.Denominator} => {this.Ratio}";

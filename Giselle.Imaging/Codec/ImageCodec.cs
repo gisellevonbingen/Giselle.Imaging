@@ -4,10 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Codec.Bmp;
-using Giselle.Imaging.Codec.Jpeg;
-using Giselle.Imaging.Codec.Png;
-using Giselle.Imaging.Codec.Tiff;
 
 namespace Giselle.Imaging.Codec
 {
@@ -19,89 +15,25 @@ namespace Giselle.Imaging.Codec
 
         bool Test(Stream stream);
 
-        ImageArgb32 Read(byte[] input);
+        IRawImage CreateEmpty();
 
-        ImageArgb32 Read(Stream input);
+        IRawImage Read(Stream input);
 
-        void Write(Stream output, ImageArgb32 data);
-
-        void Write(Stream output, ImageArgb32 image, EncodeOptions options);
+        void Write(Stream output, IRawImage image);
 
     }
 
-    public interface IImageCodec<in T> : IImageCodec where T : EncodeOptions, new()
+    public interface IImageCodec<T> : IImageCodec where T : IRawImage, new()
     {
-        void Write(Stream output, ImageArgb32 image, T options);
+        new T CreateEmpty();
+
+        new T Read(Stream output);
+
+        void Write(Stream output, T image);
     }
 
-    public abstract class ImageCodec : IImageCodec
+    public abstract class ImageCodec<T> : IImageCodec<T> where T : IRawImage, new()
     {
-        private static readonly List<IImageCodec> Codecs = new List<IImageCodec>();
-
-        public static IEnumerable<IImageCodec> GetCodecs() => Codecs;
-
-        public static C Register<C>(C codec) where C : IImageCodec
-        {
-            Codecs.Add(codec);
-            return codec;
-        }
-
-        public static IImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
-
-        static ImageCodec()
-        {
-            Register(BmpCodec.Instance);
-            Register(TiffCodec.Instance);
-            Register(PngCodec.Instance);
-            Register(JpegCodec.Instance);
-        }
-
-        public static IImageCodec FindCodec(Stream input)
-        {
-            if (input.CanSeek == false)
-            {
-                throw new ArithmeticException("Input require CanSeek");
-            }
-
-            using (var ms = new MemoryStream())
-            {
-                foreach (var codec in GetCodecs())
-                {
-                    var num = codec.BytesForTest;
-
-                    if (num > ms.Length)
-                    {
-                        var buffer = new byte[num - ms.Length];
-                        var prev = input.Position;
-                        var readLength = input.Read(buffer, 0, buffer.Length);
-                        input.Position = prev;
-                        ms.Position = ms.Length;
-                        ms.Write(buffer, 0, readLength);
-
-                        if (buffer.Length != readLength)
-                        {
-                            continue;
-                        }
-
-                    }
-
-                    ms.Position = 0;
-
-                    if (codec.Test(ms) == false)
-                    {
-                        continue;
-                    }
-
-                    return codec;
-                }
-
-            }
-
-            return null;
-        }
-
-        public static ImageArgb32 FromBytes(byte[] bytes) => FindCodec(bytes)?.Read(bytes);
-
         public abstract int BytesForTest { get; }
 
         public virtual bool Test(Stream stream)
@@ -136,29 +68,17 @@ namespace Giselle.Imaging.Codec
 
         public abstract bool Test(byte[] bytes);
 
-        public ImageArgb32 Read(byte[] bytes)
-        {
-            using (var ms = new MemoryStream(bytes))
-            {
-                return this.Read(ms);
-            }
+        public T CreateEmpty() => new T();
 
-        }
+        IRawImage IImageCodec.CreateEmpty() => this.CreateEmpty();
 
-        public abstract ImageArgb32 Read(Stream input);
+        public abstract T Read(Stream input);
 
-        public abstract void Write(Stream output, ImageArgb32 image);
+        IRawImage IImageCodec.Read(Stream input) => this.Read(input);
 
-        public abstract void Write(Stream output, ImageArgb32 image, EncodeOptions options);
-    }
+        public abstract void Write(Stream output, T image);
 
-    public abstract class ImageCodec<T> : ImageCodec, IImageCodec<T> where T : EncodeOptions, new()
-    {
-        public override void Write(Stream output, ImageArgb32 image) => this.Write(output, image, new T());
-
-        public abstract void Write(Stream output, ImageArgb32 image, T options);
-
-        public override void Write(Stream output, ImageArgb32 image, EncodeOptions options) => this.Write(output, image, (options as T) ?? new T());
+        void IImageCodec.Write(Stream output, IRawImage image) => this.Write(output, (T)image);
     }
 
 }

@@ -4,12 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {
-    public class JpegCodec : ImageCodec<JpegEncodeOptions>
+    public class JpegCodec : ImageCodec<JpgRawImage>
     {
         public static JpegCodec Instance { get; } = new JpegCodec();
 
@@ -32,7 +33,7 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         public override bool Test(byte[] bytes) => bytes.StartsWith(GetBytes((ushort)JpegMarker.SOI));
 
-        public override ImageArgb32 Read(Stream input)
+        public override JpgRawImage Read(Stream input)
         {
             var processor = CreateJpegProcessor(input);
             var signature = processor.ReadBytes(BytesForTest);
@@ -52,6 +53,35 @@ namespace Giselle.Imaging.Codec.Jpeg
 
                     if (JpegMarker.APP_0 <= marker && marker <= JpegMarker.APP_F)
                     {
+                        var identifierBuilder = new List<byte>();
+
+                        while (chunkStream.Position < chunkStream.Length)
+                        {
+                            identifierBuilder.Add(chunkProcessor.ReadByte());
+
+                            var identifier = Encoding.ASCII.GetString(identifierBuilder.ToArray(), 0, identifierBuilder.Count - 1);
+
+                            if (identifier.Equals("JFIF") == true)
+                            {
+                                var versionUpper = chunkProcessor.ReadByte();
+                                var versionLower = chunkProcessor.ReadByte();
+                                var versionToString = $"{versionUpper}.{versionLower}";
+                                var densityUnit = (JpegDensityUnit)chunkProcessor.ReadByte();
+                                var densityWidth = chunkProcessor.ReadUShort();
+                                var densityHeight = chunkProcessor.ReadUShort();
+                                var thumbnailWidth = chunkProcessor.ReadByte();
+                                var thumbnailHeight = chunkProcessor.ReadByte();
+                            }
+                            else if (identifier.Equals("Exif\0") == true)
+                            {
+                                var raw = TiffCodec.Instance.Read(chunkStream);
+                            }
+                            else
+                            {
+
+                            }
+
+                        }
 
                     }
                     else if (marker == JpegMarker.SOF_0 || marker == JpegMarker.SOF_1 || marker == JpegMarker.SOF_2 || marker == JpegMarker.SOF_3 ||
@@ -120,10 +150,10 @@ namespace Giselle.Imaging.Codec.Jpeg
 
             }
 
-            return null;
+            throw new NotImplementedException();
         }
 
-        public override void Write(Stream output, ImageArgb32 image, JpegEncodeOptions options)
+        public override void Write(Stream output, JpgRawImage image)
         {
             throw new NotImplementedException();
         }

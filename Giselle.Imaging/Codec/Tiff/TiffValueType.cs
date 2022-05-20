@@ -16,18 +16,18 @@ namespace Giselle.Imaging.Codec.Tiff
         private readonly static List<TiffValueType> _Values = new List<TiffValueType>();
         private readonly static Dictionary<short, TiffValueType> Lookups = new Dictionary<short, TiffValueType>();
 
-        public static TiffValueType Byte = Register(new TiffValueTypeInteter("Byte", 1, dp => dp.ReadByte(), (dp, v) => dp.WriteByte((byte)v)));
-        public static TiffValueType ASCII = Register(new TiffValueTypeASCII("ASCII", 2));
-        public static TiffValueType Short = Register(new TiffValueTypeInteter("Short", 3, dp => dp.ReadUShort(), (dp, v) => dp.WriteUShort((ushort)v)));
-        public static TiffValueType Long = Register(new TiffValueTypeInteter("Long", 4, dp => (int)dp.ReadUInt(), (dp, v) => dp.WriteUInt((uint)v)));
-        public static TiffValueType Rational = Register(new TiffValueTypeRational("Rational", 5));
-        public static TiffValueType SByte = Register(new TiffValueTypeInteter("SByte", 6, dp => dp.ReadSByte(), (dp, v) => dp.WriteSByte((sbyte)v)));
-        public static TiffValueType Undefined = Register(new TiffValueType("Undefined", 7, false));
-        public static TiffValueType SShort = Register(new TiffValueTypeInteter("SShort", 8, dp => dp.ReadShort(), (dp, v) => dp.WriteShort((short)v)));
-        public static TiffValueType SLong = Register(new TiffValueTypeInteter("SLong", 9, dp => dp.ReadInt(), (dp, v) => dp.WriteInt(v)));
-        public static TiffValueType SRational = Register(new TiffValueType("SRational", 10, true));
-        public static TiffValueType Float = Register(new TiffValueType("Float", 11, false));
-        public static TiffValueType Double = Register(new TiffValueType("Double", 12, false));
+        public static TiffValueType Byte = Register(new TiffValueType("Byte", 1, false, () => new TiffValueBytes()));
+        public static TiffValueType ASCII = Register(new TiffValueType("ASCII", 2, true, () => new TiffValueASCII()));
+        public static TiffValueType Short = Register(new TiffValueType("Short", 3, false, () => new TiffValueShorts()));
+        public static TiffValueType Long = Register(new TiffValueType("Long", 4, false, () => new TiffValueLongs()));
+        public static TiffValueType Rational = Register(new TiffValueType("Rational", 5, true, () => new TiffValueRationals()));
+        public static TiffValueType SByte = Register(new TiffValueType("SByte", 6, false, () => new TiffValueSBytes()));
+        public static TiffValueType Undefined = Register(new TiffValueType("Undefined", 7, false, null));
+        public static TiffValueType SShort = Register(new TiffValueType("SShort", 8, false, () => new TiffValueSShorts()));
+        public static TiffValueType SLong = Register(new TiffValueType("SLong", 9, false, () => new TiffValueSLongs()));
+        public static TiffValueType SRational = Register(new TiffValueType("SRational", 10, true, null));
+        public static TiffValueType Float = Register(new TiffValueType("Float", 11, false, null));
+        public static TiffValueType Double = Register(new TiffValueType("Double", 12, false, null));
 
         public static TiffValueType FromId(short id, TiffValueType fallback = default) => Lookups.TryGetValue(id, out var value) ? value : fallback;
 
@@ -42,11 +42,14 @@ namespace Giselle.Imaging.Codec.Tiff
         public short Id { get; }
         public bool DefaultOffset { get; }
 
-        public TiffValueType(string name, short id, bool defaultOffset)
+        public Func<TiffValue> ValueGenerator { get; }
+
+        public TiffValueType(string name, short id, bool defaultOffset, Func<TiffValue> valueGenerator)
         {
             this.Name = name;
             this.Id = id;
             this.DefaultOffset = defaultOffset;
+            this.ValueGenerator = valueGenerator;
         }
 
         public override string ToString() => this.Name;
@@ -57,71 +60,11 @@ namespace Giselle.Imaging.Codec.Tiff
 
     }
 
-    public class TiffValueTypeInteter : TiffValueType
+    public class TiffValueType<H, V> : TiffValueType where H : TiffValue
     {
-        private Func<DataProcessor, int> Reader { get; }
-        private Action<DataProcessor, int> Writer { get; }
-
-        public TiffValueTypeInteter(string name, short id, Func<DataProcessor, int> reader, Action<DataProcessor, int> writer) : base(name, id, false)
-        {
-            this.Reader = reader;
-            this.Writer = writer;
-        }
-
-        public int ReadAsSigned(DataProcessor processor) => this.Reader(processor);
-
-        public void WriteAsSigned(DataProcessor processor, int value) => this.Writer(processor, value);
-
-        public uint ReadAsUnsigned(DataProcessor processor) => (uint)this.ReadAsSigned(processor);
-
-        public void WriteAsUnsigned(DataProcessor processor, uint value) => this.WriteAsSigned(processor, (int)value);
-    }
-
-    public class TiffValueTypeRational : TiffValueType
-    {
-        public TiffValueTypeRational(string name, short id) : base(name, id, true)
+        public TiffValueType(string name, short id, bool defaultOffset, Func<H> valueGenerator) : base(name, id, defaultOffset, valueGenerator)
         {
 
-        }
-
-        public TiffRational Read(DataProcessor processor) => new TiffRational()
-        {
-            Numerator = processor.ReadInt(),
-            Denominator = processor.ReadInt(),
-        };
-
-        public void Write(DataProcessor processor, TiffRational value)
-        {
-            processor.WriteInt(value.Numerator);
-            processor.WriteInt(value.Denominator);
-        }
-
-    }
-
-    public class TiffValueTypeASCII : TiffValueType
-    {
-        public TiffValueTypeASCII(string name, short id) : base(name, id, true)
-        {
-
-        }
-
-        public string Read(DataProcessor processor, int lengthWithNull)
-        {
-            var bytes = processor.ReadBytes(lengthWithNull);
-
-            if (bytes[lengthWithNull - 1] != '\0')
-            {
-                throw new IOException("ASCII fianl bytes is not '\\0'");
-            }
-
-            return Encoding.ASCII.GetString(bytes, 0, bytes.Length - 1);
-        }
-
-        public int Write(DataProcessor processor, string value)
-        {
-            var bytes = Encoding.ASCII.GetBytes(value + '\0');
-            processor.WriteBytes(bytes);
-            return bytes.Length;
         }
 
     }

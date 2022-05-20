@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
-    public static class TiffEntryTypeExtensions
+    public abstract class TiffValueNumbers<T> : TiffValueArray<T> where T : IConvertible
     {
-        public static TiffValueType ToTiffEntryType(this short value) => TiffValueType.FromId(value);
+
     }
 
 }

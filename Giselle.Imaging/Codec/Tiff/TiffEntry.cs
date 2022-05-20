@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
@@ -12,41 +11,51 @@ namespace Giselle.Imaging.Codec.Tiff
     public class TiffEntry
     {
         public TiffTagId TagId { get; set; }
-        public TiffValueType ValueType { get; set; }
-        public int ValueCount { get; set; }
-        public int ValueOrOffset { get; set; }
+        public TiffValue Value { get; set; }
 
         public TiffEntry()
         {
 
         }
 
-        public bool IsOffset => this.ValueType.DefaultOffset == true || this.ValueCount > 1;
-
-        public void Read(DataProcessor processor)
+        public TiffEntry(TiffRawEntry raw, DataProcessor processor)
         {
-            this.TagId = (TiffTagId)processor.ReadUShort();
-            this.ValueType = processor.ReadShort().ToTiffEntryType();
-            this.ValueCount = processor.ReadInt();
+            this.TagId = raw.TagId;
+            this.Value = raw.ValueType.ValueGenerator();
 
-            if (this.IsOffset == true)
+            if (raw.IsOffset == true)
             {
-                this.ValueOrOffset = processor.ReadInt();
+                var skipping = raw.ValueOrOffset - processor.ReadLength;
+
+                if (skipping < 0)
+                {
+                    throw new IOException($"Entry Value Offset Matched : Require={raw.ValueOrOffset:X8}, Reading={processor.ReadLength:X8}");
+                }
+                else
+                {
+                    processor.SkipByRead(skipping);
+                }
+
+                this.Value.Read(raw, processor);
             }
             else
             {
-                var type = this.CastValueTypeInteger();
-                var o1 = processor.ReadLength;
-                this.ValueOrOffset = type.ReadAsSigned(processor);
-                var o2 = processor.ReadLength;
-                processor.SkipByRead(4 - (o2 - o1));
+                using (var ms = new MemoryStream())
+                {
+                    var entryProcessor = TiffCodec.CreateTiffProcessor(ms, processor);
+                    entryProcessor.WriteInt(raw.ValueOrOffset);
+
+                    ms.Position = 0L;
+                    this.Value.Read(raw, entryProcessor);
+                }
+
             }
 
         }
 
         public override string ToString()
         {
-            return $"id:{this.TagId}, ValueType:{this.ValueType}, ValueCount:{this.ValueCount:D4}, ValueOrOffset:{this.ValueOrOffset:X8}";
+            return $"id:{this.TagId}, Value:{this.Value}";
         }
 
     }
