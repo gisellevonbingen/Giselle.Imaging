@@ -38,12 +38,12 @@ namespace Giselle.Imaging.Codec.ICC
 
         public bool Equals(ICCDateTime other)
         {
-            return this.ToDateTime().Equals(other.ToDateTime());
+            return this.DateTime.Equals(other.DateTime);
         }
 
         public override int GetHashCode()
         {
-            return this.ToDateTime().GetHashCode();
+            return this.DateTime.GetHashCode();
         }
 
         public override string ToString()
@@ -51,15 +51,7 @@ namespace Giselle.Imaging.Codec.ICC
             return $"{this.Year:D4}-{this.Month:D2}-{this.Day:D2} {this.Hours:D2}:{this.Minutes:D2}:{this.Seconds:D2}";
         }
 
-        public DateTime ToDateTime()
-        {
-            return new DateTime(this.Year, this.Month, this.Day, this.Hours, this.Minutes, this.Seconds);
-        }
-
-        public DateTime ToDateTime(DateTimeKind kind)
-        {
-            return new DateTime(this.Year, this.Month, this.Day, this.Hours, this.Minutes, this.Seconds, kind);
-        }
+        public DateTime DateTime => new DateTime(this.Year, this.Month, this.Day, this.Hours, this.Minutes, this.Seconds, DateTimeKind.Utc);
 
         public void Read(DataProcessor processor)
         {

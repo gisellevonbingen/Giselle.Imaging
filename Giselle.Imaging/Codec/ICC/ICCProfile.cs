@@ -22,8 +22,6 @@ namespace Giselle.Imaging.Codec.ICC
 
         public static DataProcessor CreateProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 
-        public static FixLengthStringSerializer CreateFixLengthStringSerializer() => new FixLengthStringSerializer() { Suffix = ASCIISuffix, IsLittleEndian = IsLittleEndian };
-
         public string PreferredCMMType { get; set; } = string.Empty;
         public Version Version { get; set; } = default;
         public ICCProfileClass Class { get; set; } = default;
@@ -58,13 +56,13 @@ namespace Giselle.Imaging.Codec.ICC
         public void Read(Stream stream)
         {
             var processor = CreateProcessor(stream);
-            var ascii = CreateFixLengthStringSerializer();
+            var isLittleEndian = processor.IsLittleEndian;
             var lengthWidthSelf = processor.ReadInt();
-            this.PreferredCMMType = ascii.ToString(processor.ReadInt());
+            this.PreferredCMMType = processor.ReadInt().ToASCIIString(isLittleEndian);
             this.Version = processor.ReadVersion();
             this.Class = (ICCProfileClass)processor.ReadInt();
             this.ColorSpace = (ICCColorSpaceType)processor.ReadInt();
-            this.PSC = ascii.ToString(processor.ReadInt());
+            this.PSC = processor.ReadInt().ToASCIIString(isLittleEndian);
             this.FirstCreated = new ICCDateTime(processor);
 
             var fileSignature = processor.ReadInt();
@@ -74,14 +72,14 @@ namespace Giselle.Imaging.Codec.ICC
                 throw new IOException($"File Signature Mismatched : Reading={fileSignature:X8}, Require={FileSignature:X8}");
             }
 
-            this.PrimaryPlatform = ascii.ToString(processor.ReadInt());
+            this.PrimaryPlatform = processor.ReadInt().ToASCIIString(isLittleEndian);
             this.Flags = (ICCProfileFlags)processor.ReadInt();
-            this.DeviceManufacturer = ascii.ToString(processor.ReadInt());
-            this.DeviceModel = ascii.ToString(processor.ReadInt());
+            this.DeviceManufacturer = processor.ReadInt().ToASCIIString(isLittleEndian);
+            this.DeviceModel = processor.ReadInt().ToASCIIString(isLittleEndian);
             this.DeviceAttributes = (ICCDeviceAttributes)processor.ReadLong();
             this.RenderingIntent = (ICCRenderingIndent)processor.ReadInt();
             this.PSCIlluminant = new ICCXYZ(processor);
-            this.Creator = ascii.ToString(processor.ReadInt());
+            this.Creator = processor.ReadInt().ToASCIIString(isLittleEndian);
             this.ID = processor.ReadBytes(IDLength);
             this.Reserveds = processor.ReadBytes(ReservedsLength);
 
@@ -130,7 +128,7 @@ namespace Giselle.Imaging.Codec.ICC
         public void Write(Stream stream, ICCProfileWriteOptions options)
         {
             var processor = CreateProcessor(stream);
-            var ascii = CreateFixLengthStringSerializer();
+            var isLittleEndian = processor.IsLittleEndian;
             var tagInfoLength = (12 * this.Tags.Count);
 
             var rawTags = new List<ICCRawTag>();
@@ -161,21 +159,21 @@ namespace Giselle.Imaging.Codec.ICC
             }
 
             processor.WriteInt(tagValuesCursor);
-            processor.WriteInt(ascii.ToInt32(this.PreferredCMMType));
+            processor.WriteInt(this.PreferredCMMType.ToASCIIInt32(isLittleEndian));
             processor.WriteVersion(this.Version);
             processor.WriteInt((int)this.Class);
             processor.WriteInt((int)this.ColorSpace);
-            processor.WriteInt(ascii.ToInt32(this.PSC));
+            processor.WriteInt(this.PSC.ToASCIIInt32(isLittleEndian));
             this.FirstCreated.Write(processor);
             processor.WriteInt(FileSignature);
-            processor.WriteInt(ascii.ToInt32(this.PrimaryPlatform));
+            processor.WriteInt(this.PrimaryPlatform.ToASCIIInt32(isLittleEndian));
             processor.WriteInt((int)this.Flags);
-            processor.WriteInt(ascii.ToInt32(this.DeviceManufacturer));
-            processor.WriteInt(ascii.ToInt32(this.DeviceModel));
+            processor.WriteInt(this.DeviceManufacturer.ToASCIIInt32(isLittleEndian));
+            processor.WriteInt(this.DeviceModel.ToASCIIInt32(isLittleEndian));
             processor.WriteLong((long)this.DeviceAttributes);
             processor.WriteInt((int)this.RenderingIntent);
             this.PSCIlluminant.Write(processor);
-            processor.WriteInt(ascii.ToInt32(this.Creator));
+            processor.WriteInt(this.Creator.ToASCIIInt32(isLittleEndian));
             processor.WriteBytes(this.ID.TakeFixSize(0, IDLength));
             processor.WriteBytes(this.Reserveds.TakeFixSize(0, ReservedsLength));
 

@@ -10,7 +10,7 @@ namespace Giselle.Imaging.Codec.Png
 {
     public static class PngChunkNameExtensions
     {
-        public static string ToDisplayString(this PngChunkName value) => BitConverter2.ASCIIBigEndian.ToString((int)value);
+        public static string ToDisplayString(this PngChunkName value) => BitConverter2.ToASCIIString((int)value, PngCodec.IsLittleEndian);
 
     }
 

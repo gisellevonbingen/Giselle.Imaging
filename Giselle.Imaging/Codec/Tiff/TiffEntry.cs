@@ -55,7 +55,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override string ToString()
         {
-            return $"id:{this.TagId}, Value:{this.Value}";
+            return $"id: \"{this.TagId}\", Value: {this.Value}";
         }
 
     }

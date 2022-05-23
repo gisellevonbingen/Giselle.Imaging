@@ -11,10 +11,11 @@ namespace Giselle.Imaging.Codec.Png
 {
     public class PngCodec : ImageCodec<PngRawImage>
     {
+        public const bool IsLittleEndian = false;
         public static PngCodec Instance { get; } = new PngCodec();
         public static IList<byte> Signature { get; } = Array.AsReadOnly(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
 
-        public static DataProcessor CreatePngProcessor(Stream stream) => new DataProcessor(stream) { IsBigEndian = true };
+        public static DataProcessor CreatePngProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 
         public PngCodec()
         {

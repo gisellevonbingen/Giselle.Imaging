@@ -13,9 +13,10 @@ namespace Giselle.Imaging.Codec.Jpeg
 {
     public class JpegCodec : ImageCodec<JpgRawImage>
     {
+        public const bool IsLittleEndian = false;
         public static JpegCodec Instance { get; } = new JpegCodec();
 
-        public static DataProcessor CreateJpegProcessor(Stream stream) => new DataProcessor(stream) { IsBigEndian = true };
+        public static DataProcessor CreateJpegProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 
         public static byte[] GetBytes(ushort marker)
         {

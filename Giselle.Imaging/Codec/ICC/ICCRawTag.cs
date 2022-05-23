@@ -40,8 +40,7 @@ namespace Giselle.Imaging.Codec.ICC
 
         public override string ToString()
         {
-            var ascii = ICCProfile.CreateFixLengthStringSerializer();
-            return $"Signature:{ascii.ToString(this.Signature)}, DataElementOffset:{this.DataElementOffset:X8}, DataElementSize:{this.DataElementSize:X8}";
+            return $"Signature: \"{this.Signature.ToASCIIString(ICCProfile.IsLittleEndian)}\", DataElementOffset: {this.DataElementOffset:X8}, DataElementSize: {this.DataElementSize:X8}";
         }
 
     }

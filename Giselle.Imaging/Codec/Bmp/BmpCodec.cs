@@ -13,6 +13,7 @@ namespace Giselle.Imaging.Codec.Bmp
 {
     public class BmpCodec : ImageCodec<BmpRawImage>
     {
+        public const bool IsLittleEndian = true;
         public static BmpCodec Instance { get; } = new BmpCodec();
         public static IList<byte> SignatureBM { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x4D });
         public static IList<byte> SignatureBA { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x41 });
@@ -22,7 +23,7 @@ namespace Giselle.Imaging.Codec.Bmp
         public static IList<byte> SignaturePT { get; } = Array.AsReadOnly(new byte[] { 0x50, 0x54 });
         public static IList<IList<byte>> Signatures { get; } = Array.AsReadOnly(new IList<byte>[] { SignatureBM, SignatureBA, SignatureCI, SignatureCP, SignatureIC, SignaturePT });
 
-        public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = true };
+        public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 
         public BmpCodec()
         {

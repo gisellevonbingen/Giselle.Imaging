@@ -82,7 +82,7 @@ namespace Giselle.Imaging.Scan
             return mergedValue | raw << this.Offset;
         }
 
-        public override string ToString() => $"[Offset={this.Offset}, Length={this.Length}]";
+        public override string ToString() => $"[Offset: {this.Offset}, Length: {this.Length}]";
 
         public override int GetHashCode()
         {

@@ -139,7 +139,6 @@
     <Compile Include="IO\DataProcessor.cs" />
     <Compile Include="Utils\BitConverter2.cs" />
     <Compile Include="Utils\EnumerableUtils.cs" />
-    <Compile Include="Utils\FixLengthStringSerializer.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\ObjectUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
