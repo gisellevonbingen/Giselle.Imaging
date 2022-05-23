@@ -122,7 +122,7 @@ namespace Giselle.Imaging.Codec.ICC
                 this.Tags.Add(new ICCTag() { Signature = rawTag.Signature, Data = data });
             }
 
-            processor.SkipByRead(processor.Remain);
+            processor.SkipByRead(lengthWidthSelf - processor.ReadLength);
         }
 
         public void Write(Stream stream) => this.Write(stream, DefaultOptions);

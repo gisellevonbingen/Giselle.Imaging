@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 
@@ -27,6 +28,7 @@ namespace Giselle.Imaging
 
         private readonly Lazy<IEnumerable<ColorWithPosition>> _ColorWithPositions;
         public IEnumerable<ColorWithPosition> ColorWithPositions => this._ColorWithPositions.Value;
+        public ICCProfile ICCProfile { get; set; }
 
 
         public ImageArgb32()

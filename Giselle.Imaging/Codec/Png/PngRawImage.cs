@@ -30,6 +30,7 @@ namespace Giselle.Imaging.Codec.Png
         public PngPhysicalPixelDimensionsUnit PhysicalPixelDimensionsUnit { get; set; }
         public int XPixelsPerUnit { get; set; }
         public int YPixelsPerUnit { get; set; }
+        public ICCProfile ICCProfile { get; set; }
         public List<PNGRawChunk> ExtraChunks { get; set; } = new List<PNGRawChunk>();
 
         public PngRawImage()
@@ -158,15 +159,10 @@ namespace Giselle.Imaging.Codec.Png
             {
                 var name = chunkProcessor.ReadBytesWhile0();
                 var compressionMethod = chunkProcessor.ReadByte();
-                var compressionBytes = chunkProcessor.ReadBytes((int)chunkProcessor.Remain);
 
-                using (var iccpSream = new MemoryStream(compressionBytes))
+                using (var zlibStream = new ZlibStream(chunkStream, CompressionMode.Decompress, true))
                 {
-                    using (var zs = new ZlibStream(iccpSream, CompressionMode.Decompress))
-                    {
-                        var profile = new ICCProfile(zs);
-                    }
-
+                    this.ICCProfile = new ICCProfile(zlibStream);
                 }
 
             }
@@ -300,6 +296,7 @@ namespace Giselle.Imaging.Codec.Png
             {
                 WidthResoulution = new PhysicalDensity(this.XPixelsPerUnit, densityUnit),
                 HeightResoulution = new PhysicalDensity(this.YPixelsPerUnit, densityUnit),
+                ICCProfile = this.ICCProfile,
             };
         }
 
@@ -314,6 +311,7 @@ namespace Giselle.Imaging.Codec.Png
             this.PhysicalPixelDimensionsUnit = physicalUnit.ToPngPhysicalPixelDimensionsUnit();
             this.XPixelsPerUnit = (int)image.WidthResoulution.GetConvertValue(physicalUnit);
             this.YPixelsPerUnit = (int)image.HeightResoulution.GetConvertValue(physicalUnit);
+            this.ICCProfile = image.ICCProfile;
 
             var colorTable = new Argb32[0];
 
@@ -424,6 +422,22 @@ namespace Giselle.Imaging.Codec.Png
                 chunkProcessor.WriteByte(this.Filter);
                 chunkProcessor.WriteByte(this.Interlace);
             });
+
+            if (this.ICCProfile != null)
+            {
+                this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
+                {
+                    chunkProcessor.WriteBytesWith0(Encoding.ASCII.GetBytes("ICC Profile"));
+                    chunkProcessor.WriteByte(0);
+
+                    using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, CompressionMode.Compress, true))
+                    {
+                        this.ICCProfile.Write(zlibStream);
+                    }
+
+                });
+
+            }
 
             this.WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
             {
