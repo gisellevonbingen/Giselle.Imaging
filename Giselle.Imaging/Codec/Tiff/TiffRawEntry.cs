@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override string ToString()
         {
-            return $"id:{this.TagId}, ValueType:{this.ValueType}, ValueCount:{this.ValueCount:D4}, ValueOrOffset:{this.ValueOrOffset:X8}";
+            return $"Id:{this.TagId}, ValueType:{this.ValueType}, ValueCount:{this.ValueCount:D4}, ValueOrOffset:{this.ValueOrOffset:X8}";
         }
 
     }

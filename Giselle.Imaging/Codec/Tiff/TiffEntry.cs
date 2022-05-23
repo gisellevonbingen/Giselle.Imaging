@@ -29,7 +29,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
                 if (skipping < 0)
                 {
-                    throw new IOException($"Entry Value Offset Matched : Require={raw.ValueOrOffset:X8}, Reading={processor.ReadLength:X8}");
+                    throw new IOException($"Invalid Entry Offset : Reading={processor.ReadLength:X8}, Require={raw.ValueOrOffset:X8}");
                 }
                 else
                 {

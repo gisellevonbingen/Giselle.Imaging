@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Utils;
@@ -59,9 +60,9 @@ namespace Giselle.Imaging.Codec.Jpeg
                         {
                             identifierBuilder.Add(chunkProcessor.ReadByte());
 
-                            var identifier = Encoding.ASCII.GetString(identifierBuilder.ToArray(), 0, identifierBuilder.Count - 1);
+                            var identifier = Encoding.ASCII.GetString(identifierBuilder.ToArray(), 0, identifierBuilder.Count);
 
-                            if (identifier.Equals("JFIF") == true)
+                            if (identifier.Equals("JFIF\0") == true)
                             {
                                 var versionUpper = chunkProcessor.ReadByte();
                                 var versionLower = chunkProcessor.ReadByte();
@@ -72,9 +73,14 @@ namespace Giselle.Imaging.Codec.Jpeg
                                 var thumbnailWidth = chunkProcessor.ReadByte();
                                 var thumbnailHeight = chunkProcessor.ReadByte();
                             }
-                            else if (identifier.Equals("Exif\0") == true)
+                            else if (identifier.Equals("Exif\0\0") == true)
                             {
                                 var raw = TiffCodec.Instance.Read(chunkStream);
+                            }
+                            else if (identifier.Equals("ICC_PROFILE\0") == true)
+                            {
+                                chunkProcessor.ReadShort();
+                                var profile = new ICCProfile(chunkStream);
                             }
                             else
                             {

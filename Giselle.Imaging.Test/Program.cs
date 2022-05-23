@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
 using Giselle.Imaging.Codec.Bmp;
+using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.IO;
@@ -24,6 +25,7 @@ namespace Giselle.Imaging.Test
         public static void Main()
         {
             TestPadding();
+            TestICCProfile();
             //TestPipe();
             TestCodec();
         }
@@ -43,6 +45,63 @@ namespace Giselle.Imaging.Test
             function(335, 2, 4, 84);
             function(335, 4, 4, 168);
             function(335, 8, 4, 336);
+        }
+
+        public static void TestICCProfile()
+        {
+            var rootDir = @"C:\Users\Seil\Desktop\Test\ICCProfile\";
+            var inputDir = $@"{rootDir}Input\";
+            var outputDir = $@"{rootDir}Output\";
+
+            Directory.CreateDirectory(rootDir);
+            Directory.CreateDirectory(inputDir);
+            Directory.CreateDirectory(outputDir);
+
+            var inputPaths = Directory.GetFiles(inputDir, "*", SearchOption.AllDirectories);
+
+            foreach (var inputPath in inputPaths)
+            {
+                var relatedPath = inputPath.Substring(inputDir.Length);
+                var inputBytes = File.ReadAllBytes(inputPath);
+                var outputPath = outputDir + relatedPath;
+                new FileInfo(outputPath).Directory.Create();
+
+                Console.WriteLine("===================================");
+                Console.WriteLine(relatedPath);
+
+                try
+                {
+                    using (var inputStream = new MemoryStream(inputBytes))
+                    {
+                        var profile = new ICCProfile(inputStream);
+                        Console.WriteLine($"Input Bytes : {inputBytes.Length}");
+
+                        using (var compactOutputStream = new MemoryStream())
+                        {
+                            profile.Write(compactOutputStream, new ICCProfileWriteOptions { Compact = true });
+                            var outputBytes = compactOutputStream.ToArray();
+                            Console.WriteLine($"Compact Output Bytes : {outputBytes.Length}");
+                            Console.WriteLine($"Compact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
+                        }
+
+                        using (var nonCompactOutputStream = new MemoryStream())
+                        {
+                            profile.Write(nonCompactOutputStream, new ICCProfileWriteOptions { Compact = false });
+                            var outputBytes = nonCompactOutputStream.ToArray();
+                            Console.WriteLine($"NonCompact Output Bytes : {outputBytes.Length}");
+                            Console.WriteLine($"NonCompact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
+                        }
+
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
+            }
+
         }
 
         public static void TestPipe()
@@ -69,7 +128,7 @@ namespace Giselle.Imaging.Test
 
         public static void TestCodec()
         {
-            var rootDir = @"C:\Users\Seil\Desktop\Test\";
+            var rootDir = @"C:\Users\Seil\Desktop\Test\Codec\";
             var inputDir = $@"{rootDir}Input\";
             var outputDir = $@"{rootDir}Output\";
 
@@ -82,8 +141,8 @@ namespace Giselle.Imaging.Test
             foreach (var inputPath in inputPaths)
             {
                 var relatedPath = inputPath.Substring(inputDir.Length);
-                var output = outputDir + relatedPath;
-                new FileInfo(output).Directory.Create();
+                var outputPath = outputDir + relatedPath;
+                new FileInfo(outputPath).Directory.Create();
                 var inputBytes = File.ReadAllBytes(inputPath);
 
                 try
@@ -96,7 +155,7 @@ namespace Giselle.Imaging.Test
                     var image = raw.Decode();
                     Console.WriteLine("unique colors = " + image.Colors.Distinct().Count());
 
-                    using (var outputStream = new FileStream(output, FileMode.Create))
+                    using (var outputStream = new FileStream(outputPath, FileMode.Create))
                     {
                         SaveImageAsReadCodec(outputStream, image, codec, new PngEncodeOptions() { Interlace = false });
                         //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });

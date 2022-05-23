@@ -47,7 +47,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
             if (endianChecker != EndianChecker)
             {
-                throw new IOException($"Endian Check Failed : Read={endianChecker:X4}, Require={EndianChecker:X4}");
+                throw new IOException($"Endian Check Failed : Reading={endianChecker:X4}, Require={EndianChecker:X4}");
             }
 
             var image = new TiffRawImage();

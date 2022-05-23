@@ -48,11 +48,11 @@ namespace Giselle.Imaging.Codec
 
                     if (num > ms.Length)
                     {
-                        var buffer = new byte[num - ms.Length];
+                        var buffer = new byte[num];
                         var prev = input.Position;
                         var readLength = input.Read(buffer, 0, buffer.Length);
                         input.Position = prev;
-                        ms.Position = ms.Length;
+                        ms.Position = 0L;
                         ms.Write(buffer, 0, readLength);
 
                         if (buffer.Length != readLength)

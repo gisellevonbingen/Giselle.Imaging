@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
@@ -158,6 +159,16 @@ namespace Giselle.Imaging.Codec.Png
                 var name = chunkProcessor.ReadBytesWhile0();
                 var compressionMethod = chunkProcessor.ReadByte();
                 var compressionBytes = chunkProcessor.ReadBytes((int)chunkProcessor.Remain);
+
+                using (var iccpSream = new MemoryStream(compressionBytes))
+                {
+                    using (var zs = new ZlibStream(iccpSream, CompressionMode.Decompress))
+                    {
+                        var profile = new ICCProfile(zs);
+                    }
+
+                }
+
             }
             else if (type.Equals(PngChunkName.pHYs) == true)
             {

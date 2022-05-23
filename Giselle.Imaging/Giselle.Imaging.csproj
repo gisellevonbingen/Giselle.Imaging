@@ -47,6 +47,18 @@
     <Compile Include="Codec\Bmp\BmpRawImage.cs" />
     <Compile Include="Codec\CommonCompressionLevel.cs" />
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
+    <Compile Include="Codec\ICC\ICCColorSpaceType.cs" />
+    <Compile Include="Codec\ICC\ICCDataProcessorExtensions.cs" />
+    <Compile Include="Codec\ICC\ICCDateTime.cs" />
+    <Compile Include="Codec\ICC\ICCDeviceAttributes.cs" />
+    <Compile Include="Codec\ICC\ICCProfile.cs" />
+    <Compile Include="Codec\ICC\ICCProfileClass.cs" />
+    <Compile Include="Codec\ICC\ICCProfileFlags.cs" />
+    <Compile Include="Codec\ICC\ICCRenderingIndent.cs" />
+    <Compile Include="Codec\ICC\ICCRawTag.cs" />
+    <Compile Include="Codec\ICC\ICCProfileWriteOptions.cs" />
+    <Compile Include="Codec\ICC\ICCTag.cs" />
+    <Compile Include="Codec\ICC\ICCXYZ.cs" />
     <Compile Include="Codec\ImageCodecs.cs" />
     <Compile Include="Codec\Jpeg\JpegChunkStream.cs" />
     <Compile Include="Codec\Jpeg\JpegCodec.cs" />
@@ -126,6 +138,8 @@
     <Compile Include="Codec\ImageCodec.cs" />
     <Compile Include="IO\DataProcessor.cs" />
     <Compile Include="Utils\BitConverter2.cs" />
+    <Compile Include="Utils\EnumerableUtils.cs" />
+    <Compile Include="Utils\FixLengthStringSerializer.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\ObjectUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
