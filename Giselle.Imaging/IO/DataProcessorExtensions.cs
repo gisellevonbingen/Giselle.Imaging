@@ -44,7 +44,7 @@ namespace Giselle.Imaging.IO
 
         }
 
-        public static void ReadArray<T>(this DataProcessor processor, T[] values, int offset, int count, Func<DataProcessor, T> func) where T:IConvertible
+        public static void ReadArray<T>(this DataProcessor processor, T[] values, int offset, int count, Func<DataProcessor, T> func)
         {
             for (var i = 0; i < count; i++)
             {
@@ -53,7 +53,7 @@ namespace Giselle.Imaging.IO
 
         }
 
-        public static T[] ReadArray<T>(this DataProcessor processor, int count, Func<DataProcessor, T> func) where T : IConvertible
+        public static T[] ReadArray<T>(this DataProcessor processor, int count, Func<DataProcessor, T> func)
         {
             var array = new T[count];
             ReadArray(processor, array, 0, count, func);
