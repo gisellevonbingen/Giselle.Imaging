@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Tiff;
+using Giselle.Imaging.Huffman;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Scan;
 using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Jpeg
@@ -14,6 +16,8 @@ namespace Giselle.Imaging.Codec.Jpeg
     public class JpegCodec : ImageCodec<JpgRawImage>
     {
         public const bool IsLittleEndian = false;
+        public const int mcuWidth = 8;
+        public const int mcuHeight = 8;
         public static JpegCodec Instance { get; } = new JpegCodec();
 
         public static DataProcessor CreateJpegProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
@@ -35,6 +39,17 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         public override bool Test(byte[] bytes) => bytes.StartsWith(GetBytes((ushort)JpegMarker.SOI));
 
+        public static int[][] ZigZagOrder = new int[mcuWidth][]{
+            new int[mcuHeight]{  0,  1,  5,  6, 14, 15, 27, 28 },
+            new int[mcuHeight]{  2,  4,  7, 13, 16, 26, 29, 42 },
+            new int[mcuHeight]{  3,  8, 12, 17, 25, 30, 41, 43 },
+            new int[mcuHeight]{  9, 11, 18, 24, 31, 40, 44, 53 },
+            new int[mcuHeight]{ 10, 19, 23, 32, 39, 45, 52, 54 },
+            new int[mcuHeight]{ 20, 22, 33, 38, 46, 51, 55, 60 },
+            new int[mcuHeight]{ 21, 34, 37, 47, 50, 56, 59, 61 },
+            new int[mcuHeight]{ 35, 36, 48, 49, 57, 58, 62, 63 },
+        };
+
         public override JpgRawImage Read(Stream input)
         {
             var processor = CreateJpegProcessor(input);
@@ -44,6 +59,17 @@ namespace Giselle.Imaging.Codec.Jpeg
             {
                 throw new IOException();
             }
+
+            ushort width = 0;
+            ushort height = 0;
+            var quantizationTables = new ushort[4][];
+            var huffmanDCTables = new Dictionary<byte, HuffmanCode>[4];
+            var huffmanACTables = new Dictionary<byte, HuffmanCode>[4];
+            var rows = new int[4];
+            var cols = new int[4];
+            var maxRows = 0;
+            var maxCols = 0;
+            var currentQuantizationTableSelector = 0;
 
             while (true)
             {
@@ -97,8 +123,8 @@ namespace Giselle.Imaging.Codec.Jpeg
                         marker == JpegMarker.SOF_D || marker == JpegMarker.SOF_E || marker == JpegMarker.SOF_F)
                     {
                         var bitsPerSample = chunkProcessor.ReadByte();
-                        var height = chunkProcessor.ReadUShort();
-                        var samplesPerLine = chunkProcessor.ReadUShort();
+                        height = chunkProcessor.ReadUShort();
+                        width = chunkProcessor.ReadUShort();
                         var components = chunkProcessor.ReadByte();
 
                         for (var i = 0; i < components; i++)
@@ -107,46 +133,153 @@ namespace Giselle.Imaging.Codec.Jpeg
                             var samplingFactors = chunkProcessor.ReadByte();
                             var (horizontalsamplingFactor, verticalSamplingFactor) = BitConverter2.SplitNibbles(samplingFactors);
                             var quantizationTableSelector = chunkProcessor.ReadByte();
+
+                            rows[componentId - 1] = horizontalsamplingFactor;
+                            cols[componentId - 1] = verticalSamplingFactor;
+                            maxRows = Math.Max(maxRows, horizontalsamplingFactor);
+                            maxCols = Math.Max(maxCols, verticalSamplingFactor);
+                            currentQuantizationTableSelector = quantizationTableSelector;
+                            Console.WriteLine($"{componentId:X2}, {horizontalsamplingFactor}, {verticalSamplingFactor}, {quantizationTableSelector}");
                         }
 
                     }
                     else if (marker == JpegMarker.SOS)
                     {
+                        int widthFactor = maxCols * mcuWidth;
+                        int heightFactor = maxRows * mcuHeight;
+                        int mcuInWidth = (width + widthFactor - 1) / widthFactor;
+                        int mcuInHeight = (height + heightFactor - 1) / heightFactor;
+
                         var components = chunkProcessor.ReadByte();
+                        var dcSelectors = new byte[components];
+                        var acSelectors = new byte[components];
 
                         for (var i = 0; i < components; i++)
                         {
-                            var componentSelector = chunkProcessor.ReadByte();
-                            var codingTableSelector = chunkProcessor.ReadByte();
-                            var (dcCodingTableSelector, acCodingTableSelector) = BitConverter2.SplitNibbles(codingTableSelector);
+                            var componentId = chunkProcessor.ReadByte();
+                            var huffmanTableSelector = chunkProcessor.ReadByte();
+                            var (dcSelector, acSelector) = BitConverter2.SplitNibbles(huffmanTableSelector);
+                            dcSelectors[componentId - 1] = dcSelector;
+                            acSelectors[componentId - 1] = acSelector;
+                            Console.WriteLine($"{componentId:X2}, {dcSelector}, {acSelector}");
                         }
 
                         var startOfSpectral = chunkProcessor.ReadByte();
                         var endOfSpectral = chunkProcessor.ReadByte();
                         var successiveApproximationBitPositions = chunkProcessor.ReadByte();
                         var (sabUpper, saLower) = BitConverter2.SplitNibbles(successiveApproximationBitPositions);
+
+                        // Decode Scan
+
+                        using (var entropyStream = new JpegEntropyStream(input, true))
+                        {
+                            var quantizationTable = quantizationTables[currentQuantizationTableSelector];
+                            var prev = new int[components];
+
+                            // Decode MCU
+
+                            for (var my = 0; my < mcuInHeight; my++)
+                            {
+                                for (var mx = 0; mx < mcuInWidth; mx++)
+                                {
+                                    // Decode MCU Component
+
+                                    for (var c = 0; c < components; c++)
+                                    {
+                                        var dcTable = huffmanDCTables[dcSelectors[c]];
+                                        var acTable = huffmanACTables[acSelectors[c]];
+
+                                        for (var row = 0; row < rows[c]; row++)
+                                        {
+                                            for (var col = 0; col < cols[c]; col++)
+                                            {
+                                                // Read Entropy
+                                                var entropy = new int[mcuWidth * mcuHeight];
+
+                                                entropyStream.SetCodeTable(dcTable);
+                                                entropy[0] = entropyStream.ReadDC() + prev[c];
+
+                                                entropyStream.SetCodeTable(acTable);
+                                                entropyStream.ReadACTable(entropy, 1, entropy.Length - 1);
+
+                                                prev[c] = entropy[0];
+                                                Console.WriteLine($"{entropy[0]:X8}");
+
+                                                // Dequantize
+                                                var quantized = new int[entropy.Length];
+
+                                                for (var i = 0; i < entropy.Length; i++)
+                                                {
+                                                    quantized[i] = entropy[i] * quantizationTable[i];
+                                                }
+
+                                                // Reorder ZigZag
+                                                var ordereds = new int[quantized.Length];
+
+                                                for (var y = 0; y < mcuHeight; y++)
+                                                {
+                                                    for (var x = 0; x < mcuWidth; x++)
+                                                    {
+                                                        var index = y * mcuWidth + x;
+                                                        var zig_zag = ZigZagOrder[x][y];
+                                                        ordereds[index] = quantized[zig_zag] * quantizationTable[zig_zag];
+                                                    }
+
+                                                }
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
                     }
                     else if (marker == JpegMarker.DQT)
                     {
                         var b = chunkProcessor.ReadByte();
                         var (elementType, tableId) = BitConverter2.SplitNibbles(b);
+                        var table = new ushort[mcuWidth * mcuHeight];
 
                         if (elementType == 0)
                         {
-                            var elements = chunkProcessor.ReadArray(64, p => p.ReadByte());
+                            chunkProcessor.ReadArray(table, 0, table.Length, p => p.ReadByte());
                         }
                         else
                         {
-                            var elements = chunkProcessor.ReadArray(64, p => p.ReadUShort());
+                            chunkProcessor.ReadArray(table, 0, table.Length, p => p.ReadUShort());
                         }
 
+                        quantizationTables[tableId] = table;
                     }
                     else if (marker == JpegMarker.DHT)
                     {
                         var b1 = chunkProcessor.ReadByte();
+                        // Class
+                        // 0 : DC
+                        // 1 : AC
                         var (tableClass, tableId) = BitConverter2.SplitNibbles(b1);
-                        var codeLengths = chunkProcessor.ReadByte();
-                        var unknownYet = chunkProcessor.ReadBytes(chunkProcessor.Remain);
+                        var tableLengths = chunkProcessor.ReadBytes(16);
+                        var simbolTable = new byte[tableLengths.Length][];
+
+                        // depth + 1 : length of Huffman Code
+                        for (var depth = 0; depth < tableLengths.Length; depth++)
+                        {
+                            simbolTable[depth] = chunkProcessor.ReadBytes(tableLengths[depth]);
+                        }
+
+                        var rootNode = HuffmanNode<byte>.FromSimbolTable(simbolTable);
+                        var codeTable = rootNode.ToCodeTable();
+                        (tableClass == 0 ? huffmanDCTables : huffmanACTables)[tableId] = codeTable;
+                    }
+                    else if (marker == JpegMarker.EOI)
+                    {
+                        break;
                     }
                     else
                     {

@@ -129,7 +129,7 @@ namespace Giselle.Imaging.Codec.ICC
         {
             var processor = CreateProcessor(stream);
             var isLittleEndian = processor.IsLittleEndian;
-            var tagInfoLength = (12 * this.Tags.Count);
+            var tagInfoLength = 12 * this.Tags.Count;
 
             var rawTags = new List<ICCRawTag>();
             var tagValuesCursor = 128 + 4 + tagInfoLength;

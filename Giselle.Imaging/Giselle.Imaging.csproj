@@ -60,10 +60,12 @@
     <Compile Include="Codec\ICC\ICCTag.cs" />
     <Compile Include="Codec\ICC\ICCXYZ.cs" />
     <Compile Include="Codec\ImageCodecs.cs" />
+    <Compile Include="Codec\Jpeg\JpegDataProcessorExtensions.cs" />
     <Compile Include="Codec\Jpeg\JpegChunkStream.cs" />
     <Compile Include="Codec\Jpeg\JpegCodec.cs" />
     <Compile Include="Codec\Jpeg\JpegDensityUnit.cs" />
     <Compile Include="Codec\Jpeg\JpegEncodeOptions.cs" />
+    <Compile Include="Codec\Jpeg\JpegEntropyStream.cs" />
     <Compile Include="Codec\Jpeg\JpegMarker.cs" />
     <Compile Include="Codec\Jpeg\JpegRawChunk.cs" />
     <Compile Include="Codec\Jpeg\JpgRawImage.cs" />
@@ -85,6 +87,10 @@
     <Compile Include="Codec\Tiff\TiffValueBytes.cs" />
     <Compile Include="Codec\Tiff\TiffValueExtensions.cs" />
     <Compile Include="ColorTableUtils.cs" />
+    <Compile Include="Huffman\AbstractHuffmanStream.cs" />
+    <Compile Include="Huffman\HuffmanCode.cs" />
+    <Compile Include="Huffman\HuffmanNode.cs" />
+    <Compile Include="Huffman\HuffmanStream.cs" />
     <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="Physical\IPhysicalValue.cs" />
     <Compile Include="Physical\PhysicalDensity.cs" />

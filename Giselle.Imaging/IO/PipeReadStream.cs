@@ -29,13 +29,13 @@ namespace Giselle.Imaging.IO
 
         public override bool CanWrite => false;
 
-        public override long Length => throw new NotImplementedException();
+        public override long Length => throw new NotSupportedException();
 
-        public override long Position { get => this._Position; set => throw new NotImplementedException(); }
+        public override long Position { get => this._Position; set => throw new NotSupportedException(); }
 
         public override void Flush()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         private int Read0(byte[] buffer, int offset, int count)
@@ -83,17 +83,17 @@ namespace Giselle.Imaging.IO
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 

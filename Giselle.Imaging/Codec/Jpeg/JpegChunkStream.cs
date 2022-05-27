@@ -25,7 +25,7 @@ namespace Giselle.Imaging.Codec.Jpeg
         public JpegMarker Marker { get; }
         public override long Length { get; }
         private long _Position = 0;
-        public override long Position { get => this._Position; set => throw new NotImplementedException(); }
+        public override long Position { get => this._Position; set => throw new NotSupportedException(); }
 
         public JpegChunkStreamMode Mode { get; private set; }
         public DataProcessor BaseProcessor { get; private set; }
@@ -75,17 +75,17 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         public override void Flush()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)

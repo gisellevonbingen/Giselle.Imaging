@@ -16,11 +16,11 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override TiffValueType Type => TiffValueType.Rational;
 
-        public override TiffRational ReadElement(int raw) => throw new NotImplementedException();
+        public override TiffRational ReadElement(int raw) => throw new NotSupportedException();
 
         public override TiffRational ReadElement(DataProcessor processor) => new TiffRational(processor);
 
-        public override int WriteElement(TiffRational element) => throw new NotImplementedException();
+        public override int WriteElement(TiffRational element) => throw new NotSupportedException();
 
         public override void WriteElement(TiffRational element, DataProcessor processor) => element.Write(processor);
     }
