@@ -23,7 +23,7 @@ namespace Giselle.Imaging.Codec.Jpeg
 
             for (var i = 0; i < length; i++)
             {
-                value = (value << 1) + stream.ReadEncodedBit();
+                value = (value << 1) + stream.ReadBit();
             }
 
             var range = 1 << (length - 1);

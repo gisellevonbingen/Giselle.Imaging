@@ -26,7 +26,7 @@ namespace Giselle.Imaging.Codec.Tiff
         {
             var tagId = entry.TagId;
             var value = entry.Value;
-            Console.WriteLine($"{entry} = {value}");
+            Console.WriteLine($"{entry}");
 
             if (tagId == TiffTagId.NewSubfileType)
             {

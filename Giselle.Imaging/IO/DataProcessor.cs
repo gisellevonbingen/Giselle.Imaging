@@ -192,7 +192,7 @@ namespace Giselle.Imaging.IO
             }
 
         }
-        
+
         public virtual void SkipByRead(long length)
         {
             if (length < 0)

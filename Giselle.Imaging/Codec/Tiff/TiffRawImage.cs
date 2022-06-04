@@ -29,7 +29,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 }
 
                 var o = processor.ReadLength;
-                processor.SkipByRead(ifdOffset - o);
+                var payload = processor.ReadBytes(ifdOffset - o);
 
                 var entryCount = processor.ReadShort();
                 var rawEntries = new List<TiffRawEntry>();
@@ -58,6 +58,11 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override ImageArgb32 Decode()
         {
+            foreach (var directory in this.Directories)
+            {
+                directory.Decode();
+            }
+
             throw new NotImplementedException();
         }
 

@@ -33,19 +33,26 @@ namespace Giselle.Imaging.Codec.Jpeg
             if (b == 0xFF)
             {
                 // Must be zero
-                base.ReadEncodedByte();
+                this.BaseStream.ReadByte();
             }
 
             return b;
         }
 
-        protected override void WriteEncodedByte(byte value)
+        protected override bool TryWriteEncodedByte(byte value, int position, bool disposing)
         {
-            base.WriteEncodedByte(value);
-
-            if (value == 0xFF)
+            if (base.TryWriteEncodedByte(value, position, disposing) == true)
             {
-                base.WriteEncodedByte(0);
+                if (value == 0xFF)
+                {
+                    this.BaseStream.WriteByte(0);
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
 
         }

@@ -10,10 +10,13 @@ namespace Giselle.Imaging.Codec.Tiff
     {
         Undefined = 0,
         NoCompression = 1,
-        CCITT = 2,
+        HuffmanRLE = 2,
         T4Encoding = 3,
         T6Encoding = 4,
-        Jpeg = 5,
+        LZW = 5,
+        JPEG_Old = 6,
+        JPEG_NEW = 7,
+        Deflate = 8,
         PackBits = 32773,
     }
 

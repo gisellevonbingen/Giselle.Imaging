@@ -88,6 +88,7 @@
     <Compile Include="Codec\Tiff\TiffValueExtensions.cs" />
     <Compile Include="ColorTableUtils.cs" />
     <Compile Include="Huffman\AbstractHuffmanStream.cs" />
+    <Compile Include="IO\BitStream.cs" />
     <Compile Include="Huffman\HuffmanCode.cs" />
     <Compile Include="Huffman\HuffmanNode.cs" />
     <Compile Include="Huffman\HuffmanStream.cs" />
