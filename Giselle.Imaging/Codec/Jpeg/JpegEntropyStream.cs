@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Huffman;
+using Giselle.Imaging.Algorithms.Huffman;
+using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {
@@ -17,7 +18,7 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         }
 
-        public JpegEntropyStream(Stream baseStream, bool leaveOpen) : base(baseStream, leaveOpen)
+        public JpegEntropyStream(Stream baseStream, bool leaveOpen) : base(new JpegEntropyUnaryStream(baseStream, leaveOpen), leaveOpen)
         {
             this.CodeTable = new Dictionary<byte, HuffmanCode>();
         }
@@ -26,40 +27,51 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         protected override Dictionary<byte, HuffmanCode> NextWritingCodes() => this.CodeTable;
 
-        protected override int ReadEncodedByte()
+        public int ReadBit() => this.BitBaseStream.ReadBit();
+
+        public void WriteBit(int bit) => this.BitBaseStream.WriteBit(bit);
+
+        public void SetCodeTable(Dictionary<byte, HuffmanCode> codeTable)
         {
-            var b = base.ReadEncodedByte();
-
-            if (b == 0xFF)
-            {
-                // Must be zero
-                this.BaseStream.ReadByte();
-            }
-
-            return b;
+            this.CodeTable = codeTable;
         }
 
-        protected override bool TryWriteEncodedByte(byte value, int position, bool disposing)
+        private class JpegEntropyUnaryStream : WrappedByteStream
         {
-            if (base.TryWriteEncodedByte(value, position, disposing) == true)
+            public JpegEntropyUnaryStream(Stream baseStream) : base(baseStream)
             {
+
+            }
+
+            public JpegEntropyUnaryStream(Stream baseStream, bool leaveOpen) : base(baseStream, leaveOpen)
+            {
+
+            }
+
+            public override int ReadByte()
+            {
+                var b = this.BaseStream.ReadByte();
+
+                if (b == 0xFF)
+                {
+                    // Must be zero
+                    this.BaseStream.ReadByte();
+                }
+
+                return b;
+            }
+
+            public override void WriteByte(byte value)
+            {
+                this.BaseStream.WriteByte(value);
+
                 if (value == 0xFF)
                 {
                     this.BaseStream.WriteByte(0);
                 }
 
-                return true;
-            }
-            else
-            {
-                return false;
             }
 
-        }
-
-        public void SetCodeTable(Dictionary<byte, HuffmanCode> codeTable)
-        {
-            this.CodeTable = codeTable;
         }
 
     }

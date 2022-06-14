@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Huffman
+namespace Giselle.Imaging.Algorithms.Huffman
 {
     public struct HuffmanCode : IEquatable<HuffmanCode>, IComparable<HuffmanCode>
     {

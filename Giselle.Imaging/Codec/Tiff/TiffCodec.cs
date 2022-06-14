@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Tiff

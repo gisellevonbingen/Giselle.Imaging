@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
 

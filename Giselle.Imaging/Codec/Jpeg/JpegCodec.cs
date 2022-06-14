@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Algorithms.Huffman;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Tiff;
-using Giselle.Imaging.Huffman;
+using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
-using Giselle.Imaging.Scan;
 using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Jpeg
@@ -203,7 +203,6 @@ namespace Giselle.Imaging.Codec.Jpeg
                                                 entropyStream.ReadACTable(entropy, 1, entropy.Length - 1);
 
                                                 prev[c] = entropy[0];
-                                                Console.WriteLine($"{entropy[0]:X8}");
 
                                                 // Dequantize
                                                 var quantized = new int[entropy.Length];

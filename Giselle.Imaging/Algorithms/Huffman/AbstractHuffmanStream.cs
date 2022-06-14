@@ -6,18 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Huffman
+namespace Giselle.Imaging.Algorithms.Huffman
 {
-    public abstract class AbstractHuffmanStream : BitStream
+    public abstract class AbstractHuffmanStream : WrappedByteStream
     {
-        protected AbstractHuffmanStream(Stream baseStream) : base(baseStream)
+        protected virtual BitStream BitBaseStream { get; }
+        protected override Stream BaseStream => this.BitBaseStream;
+
+        protected AbstractHuffmanStream(Stream baseStream) : this(baseStream, false)
         {
 
         }
 
-        protected AbstractHuffmanStream(Stream baseStream, bool leaveOpen) : base(baseStream, leaveOpen)
+        protected AbstractHuffmanStream(Stream baseStream, bool leaveOpen) : base(null, leaveOpen)
         {
-
+            this.BitBaseStream = new BitStream(baseStream, leaveOpen);
         }
 
         protected abstract Dictionary<byte, HuffmanCode> NextReadingCodes();
@@ -31,7 +34,7 @@ namespace Giselle.Imaging.Huffman
 
             for (var i = 0; ; i++)
             {
-                var bit = this.ReadBit();
+                var bit = this.BitBaseStream.ReadBit();
 
                 if (bit == -1)
                 {
@@ -48,7 +51,6 @@ namespace Giselle.Imaging.Huffman
 
                     if (code.Raw == rawCode && code.Length == length)
                     {
-                        this.InBytes++;
                         return pair.Key;
                     }
                     else if (code.Length > looksMaxLength)
@@ -67,23 +69,6 @@ namespace Giselle.Imaging.Huffman
 
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                var b = this.ReadByte();
-
-                if (b == -1)
-                {
-                    return i;
-                }
-
-                buffer[offset + i] = (byte)b;
-            }
-
-            return count;
-        }
-
         public override void WriteByte(byte value)
         {
             var codes = this.NextWritingCodes();
@@ -98,44 +83,16 @@ namespace Giselle.Imaging.Huffman
                 var shift = code.Length - 1 - i;
                 var bitMask = 1 << shift;
                 var bit = (code.Raw & bitMask) >> shift;
-                this.WriteBit(bit);
-            }
-
-            this.OutBytes++;
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                this.WriteByte(buffer[offset + i]);
+                this.BitBaseStream.WriteBit(bit);
             }
 
         }
 
-        public override bool CanRead => this.BaseStream.CanRead;
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => this.BaseStream.CanWrite;
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-
-        public override void Flush()
+        protected override void Dispose(bool disposing)
         {
+            this.BitBaseStream.Dispose();
 
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
+            base.Dispose(disposing);
         }
 
     }

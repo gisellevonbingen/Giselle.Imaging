@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.IO
 {
-    public class BitStream : Stream
+    public class BitStream : WrappedByteStream
     {
-        protected readonly Stream BaseStream;
-        protected readonly bool LeaveOpen;
-
         private int ReadingByte = 0;
         private int ReadingPosition = -1;
         private int ReadingLength = 0;
@@ -28,10 +25,9 @@ namespace Giselle.Imaging.IO
 
         }
 
-        public BitStream(Stream baseStream, bool leaveOpen)
+        public BitStream(Stream baseStream, bool leaveOpen) : base(baseStream, leaveOpen)
         {
-            this.BaseStream = baseStream;
-            this.LeaveOpen = leaveOpen;
+
         }
 
         protected virtual int ReadEncodedByte(out int length)
@@ -161,18 +157,13 @@ namespace Giselle.Imaging.IO
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             if (this.WritingPosition > 0)
             {
                 this.TryWriteEncodedByte((byte)this.WritingByte, this.WritingPosition, true);
                 this.WritingPosition = 0;
             }
 
-            if (this.LeaveOpen == false)
-            {
-                this.BaseStream.Dispose();
-            }
+            base.Dispose(disposing);
 
         }
 

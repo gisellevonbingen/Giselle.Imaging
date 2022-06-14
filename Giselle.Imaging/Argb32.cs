@@ -8,10 +8,10 @@ namespace Giselle.Imaging
 {
     public struct Argb32 : IEquatable<Argb32>
     {
-        public byte A { get; }
-        public byte R { get; }
-        public byte G { get; }
-        public byte B { get; }
+        public byte A { get; set; }
+        public byte R { get; set; }
+        public byte G { get; set; }
+        public byte B { get; set; }
 
         public Argb32(byte r, byte g, byte b)
         {

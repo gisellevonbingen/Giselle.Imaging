@@ -157,9 +157,9 @@ namespace Giselle.Imaging.Test
 
                     using (var outputStream = new FileStream(outputPath, FileMode.Create))
                     {
-                        SaveImageAsReadCodec(outputStream, image, codec, new PngEncodeOptions() { Interlace = false });
+                        //SaveImageAsReadCodec(outputStream, image, codec, new PngEncodeOptions() { Interlace = false });
                         //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });
-                        //SaveImageAsBitmap(outputStream, image);
+                        SaveImageAsBitmap(outputStream, image);
                     }
 
                 }
