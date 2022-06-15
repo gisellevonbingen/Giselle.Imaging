@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
-using Giselle.Imaging.Codec.Bmp;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Png;
-using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
 
@@ -150,17 +145,20 @@ namespace Giselle.Imaging.Test
                     Console.WriteLine("===================================");
                     Console.WriteLine(relatedPath);
                     var codec = ImageCodecs.FindCodec(inputBytes);
-                    var raw = ImageCodecs.FromBytes(inputBytes);
+                    var container = ImageCodecs.FromBytes(inputBytes);
 
-                    var image = raw.Decode();
-                    Console.WriteLine("unique colors = " + image.Colors.Distinct().Count());
-
-                    using (var outputStream = new FileStream(outputPath, FileMode.Create))
+                    foreach (var frame in container)
                     {
-                        //SaveImageAsReadCodec(outputStream, image, codec, new PngEncodeOptions() { Interlace = false });
-                        //SaveImageAsReadCodec(outputStream, image, codec, new BmpEncodeOptions() { });
-                        SaveImageAsBitmap(outputStream, image);
+                        Console.WriteLine("unique colors = " + frame.Colors.Distinct().Count());
+
+                        using (var outputStream = new FileStream(outputPath, FileMode.Create))
+                        {
+                            //codec.Write(outputStream, container, new PngSaveOptions() { Interlace = true });
+                            SaveImageAsBitmap(outputStream, frame);
+                        }
+
                     }
+
 
                 }
                 catch (Exception ex)
@@ -173,17 +171,9 @@ namespace Giselle.Imaging.Test
 
         }
 
-        public static void SaveImageAsBitmap(FileStream outputStream, ImageArgb32 image)
+        public static void SaveImageAsBitmap(FileStream outputStream, ImageArgb32Frame frame)
         {
-            image.ToBitmap().Save(outputStream, ImageFormat.Png);
-        }
-
-        public static void SaveImageAsReadCodec(Stream output, ImageArgb32 image, IImageCodec codec, EncodeOptions options)
-        {
-            var raw = codec.CreateEmpty();
-            raw.Encode(image, options);
-
-            codec.Write(output, raw);
+            frame.ToBitmap().Save(outputStream, ImageFormat.Png);
         }
 
     }

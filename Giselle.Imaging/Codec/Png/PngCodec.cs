@@ -7,10 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Physical;
+using Giselle.Imaging.Scan;
+using Ionic.Zlib;
 
 namespace Giselle.Imaging.Codec.Png
 {
-    public class PngCodec : ImageCodec<PngRawImage>
+    public class PngCodec : ImageCodec
     {
         public const bool IsLittleEndian = false;
         public static PngCodec Instance { get; } = new PngCodec();
@@ -27,7 +30,7 @@ namespace Giselle.Imaging.Codec.Png
 
         public override bool Test(byte[] bytes) => bytes.StartsWith(Signature);
 
-        public override PngRawImage Read(Stream input)
+        public override ImageArgb32Container Read(Stream input)
         {
             var processor = CreatePngProcessor(input);
             var signature = processor.ReadBytes(BytesForTest);
@@ -37,17 +40,170 @@ namespace Giselle.Imaging.Codec.Png
                 throw new IOException();
             }
 
-            var image = new PngRawImage();
-            image.Read(processor);
-            return image;
+            var raw = new PngRawImage(processor);
+            var width = raw.Width;
+            var height = raw.Height;
+            var bitsPerPixel = raw.PixelFormat.GetBitsPerPixel();
+            var samples = bitsPerPixel / raw.BitDepth;
+            var colorTable = ColorTableUtils.MergeColorTable(raw.RgbTable, raw.AlphaTable);
+            var scanData = PngRawImage.CreateScanData(width, height, bitsPerPixel, raw.Stride, raw.Interlace, colorTable);
+
+            raw.CompressedScanData.Position = 0L;
+
+            using (var ds = new ZlibStream(raw.CompressedScanData, CompressionMode.Decompress, true))
+            {
+                var passProcessor = new InterlacePassProcessor(scanData);
+                var dataProcessor = CreatePngProcessor(ds);
+                var scanOffset = 0;
+
+                while (passProcessor.NextPass() == true)
+                {
+                    var passInfo = passProcessor.PassInfo;
+                    var scanline = new byte[passInfo.Stride];
+
+                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                    {
+                        var filter = dataProcessor.ReadByte();
+                        var strideBytes = dataProcessor.ReadBytes(passInfo.Stride);
+                        var currLineSamples1 = new byte[samples];
+                        var lastLineSamples2 = new byte[samples];
+
+                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        {
+                            var x = strideBytes[xi];
+                            var a = currLineSamples1[xi % samples];
+                            var b = scanline[xi];
+                            var c = lastLineSamples2[xi % samples];
+                            byte result = 0;
+
+                            if (filter == 0)
+                            {
+                                result = x;
+                            }
+                            else if (filter == 1)
+                            {
+                                result = (byte)(x + a);
+                            }
+                            else if (filter == 2)
+                            {
+                                result = (byte)(x + b);
+                            }
+                            else if (filter == 3)
+                            {
+                                result = (byte)(x + (a + b) / 2);
+                            }
+                            else if (filter == 4)
+                            {
+                                var p = a + b - c;
+                                var pa = Math.Abs(p - a);
+                                var pb = Math.Abs(p - b);
+                                var pc = Math.Abs(p - c);
+                                if (pa <= pb && pa <= pc) result = a;
+                                else if (pb <= pc) result = b;
+                                else result = c;
+                            }
+
+                            scanline[xi] = result;
+                            currLineSamples1[xi % samples] = result;
+                            lastLineSamples2[xi % samples] = a;
+
+                            scanData.Scan[scanOffset++] = result;
+                        }
+
+                    }
+
+                }
+
+            }
+
+            var scanProcessor = raw.CreateScanProcessor();
+            var densityUnit = raw.PhysicalPixelDimensionsUnit.ToDensityUnit();
+            return new ImageArgb32Container() { new ImageArgb32Frame(scanData, scanProcessor)
+            {
+                WidthResoulution = new PhysicalDensity(raw.XPixelsPerUnit, densityUnit),
+                HeightResoulution = new PhysicalDensity(raw.YPixelsPerUnit, densityUnit),
+                ICCProfile = raw.ICCProfile,
+            }};
         }
 
-        public override void Write(Stream output, PngRawImage image)
+        public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
+            var frame = container.FirstOrDefault();
+            var options = _options.CastOrDefault<PngSaveOptions>();
+            var raw = new PngRawImage(frame, options);
+
             var processor = CreatePngProcessor(output);
             processor.WriteBytes(Signature);
 
-            image.Write(processor);
+            var bitPerPixel = raw.PixelFormat.GetBitsPerPixel();
+            var samples = bitPerPixel / raw.BitDepth;
+            raw.CompressedScanData.Position = 0L;
+
+            var colorTable = ColorTableUtils.MergeColorTable(raw.RgbTable, raw.AlphaTable);
+            var scanData = PngRawImage.CreateScanData(frame.Width, frame.Height, raw.PixelFormat.GetBitsPerPixel(), raw.Stride, raw.Interlace, colorTable);
+            var scanProcessor = raw.CreateScanProcessor();
+            scanProcessor.Write(scanData, frame.Scan);
+
+            using (var ds = new ZlibStream(raw.CompressedScanData, CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
+            {
+                var passProcessor = new InterlacePassProcessor(scanData);
+                var dataProcessor = CreatePngProcessor(ds);
+                var scanOffset = 0;
+
+                while (passProcessor.NextPass() == true)
+                {
+                    var passInfo = passProcessor.PassInfo;
+                    var scanline = new byte[passInfo.Stride];
+
+                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                    {
+                        byte filter = 0;
+                        var currLineSamples1 = new byte[samples];
+                        var lastLineSamples2 = new byte[samples];
+
+                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        {
+                            var x = scanData.Scan[scanOffset++];
+                            var a = currLineSamples1[xi % samples];
+                            var b = scanline[xi];
+                            var c = lastLineSamples2[xi % samples];
+                            byte result = 0;
+
+                            if (filter == 0)
+                            {
+                                result = x;
+                            }
+                            else if (filter == 1)
+                            {
+                                result = (byte)(x - a);
+                            }
+                            else if (filter == 2)
+                            {
+                                result = (byte)(x - b);
+                            }
+                            else if (filter == 3)
+                            {
+                                result = (byte)(x - (a + b) / 2);
+                            }
+                            else
+                            {
+                                throw new NotImplementedException($"Filter is {filter}");
+                            }
+
+                            scanline[xi] = result;
+                            currLineSamples1[xi % samples] = result;
+                            lastLineSamples2[xi % samples] = a;
+                        }
+
+                        dataProcessor.WriteByte(filter);
+                        dataProcessor.WriteBytes(scanline);
+                    }
+
+                }
+
+            }
+
+            raw.Write(processor);
         }
 
     }

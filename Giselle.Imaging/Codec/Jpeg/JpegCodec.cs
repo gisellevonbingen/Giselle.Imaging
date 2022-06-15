@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Algorithms.Huffman;
+using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.Collections;
@@ -13,7 +14,7 @@ using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {
-    public class JpegCodec : ImageCodec<JpgRawImage>
+    public class JpegCodec : ImageCodec
     {
         public const bool IsLittleEndian = false;
         public const int mcuWidth = 8;
@@ -50,7 +51,7 @@ namespace Giselle.Imaging.Codec.Jpeg
             new int[mcuHeight]{ 35, 36, 48, 49, 57, 58, 62, 63 },
         };
 
-        public override JpgRawImage Read(Stream input)
+        public override ImageArgb32Container Read(Stream input)
         {
             var processor = CreateJpegProcessor(input);
             var signature = processor.ReadBytes(BytesForTest);
@@ -99,15 +100,25 @@ namespace Giselle.Imaging.Codec.Jpeg
                                 var densityHeight = chunkProcessor.ReadUShort();
                                 var thumbnailWidth = chunkProcessor.ReadByte();
                                 var thumbnailHeight = chunkProcessor.ReadByte();
+                                break;
                             }
                             else if (identifier.Equals("Exif\0\0") == true)
                             {
-                                var raw = TiffCodec.Instance.Read(chunkStream);
+                                using (var ms = new MemoryStream())
+                                {
+                                    chunkStream.CopyTo(ms);
+                                    ms.Position = 0L;
+                                    var exif = new ExifContainer();
+                                    exif.Read(ms);
+                                }
+
+                                break;
                             }
                             else if (identifier.Equals("ICC_PROFILE\0") == true)
                             {
                                 chunkProcessor.ReadShort();
                                 var profile = new ICCProfile(chunkStream);
+                                break;
                             }
                             else
                             {
@@ -292,7 +303,7 @@ namespace Giselle.Imaging.Codec.Jpeg
             throw new NotImplementedException();
         }
 
-        public override void Write(Stream output, JpgRawImage image)
+        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
         {
             throw new NotImplementedException();
         }

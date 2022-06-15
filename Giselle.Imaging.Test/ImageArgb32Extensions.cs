@@ -9,13 +9,13 @@ namespace Giselle.Imaging.Test
 {
     public static class ImageArgb32Extensions
     {
-        public static Bitmap ToBitmap(this ImageArgb32 image)
+        public static Bitmap ToBitmap(this ImageArgb32Frame frame)
         {
             unsafe
             {
-                fixed (byte* scan0 = image.Scan)
+                fixed (byte* scan0 = frame.Scan)
                 {
-                    return new Bitmap(image.Width, image.Height, image.Stride, System.Drawing.Imaging.PixelFormat.Format32bppArgb, (IntPtr)scan0);
+                    return new Bitmap(frame.Width, frame.Height, frame.Stride, System.Drawing.Imaging.PixelFormat.Format32bppArgb, (IntPtr)scan0);
                 }
 
             }

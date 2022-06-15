@@ -7,32 +7,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec
 {
-    public interface IImageCodec
-    {
-        int BytesForTest { get; }
-
-        bool Test(byte[] bytes);
-
-        bool Test(Stream stream);
-
-        IRawImage CreateEmpty();
-
-        IRawImage Read(Stream input);
-
-        void Write(Stream output, IRawImage image);
-
-    }
-
-    public interface IImageCodec<T> : IImageCodec where T : IRawImage, new()
-    {
-        new T CreateEmpty();
-
-        new T Read(Stream output);
-
-        void Write(Stream output, T image);
-    }
-
-    public abstract class ImageCodec<T> : IImageCodec<T> where T : IRawImage, new()
+    public abstract class ImageCodec
     {
         public abstract int BytesForTest { get; }
 
@@ -68,17 +43,11 @@ namespace Giselle.Imaging.Codec
 
         public abstract bool Test(byte[] bytes);
 
-        public T CreateEmpty() => new T();
+        public abstract ImageArgb32Container Read(Stream input);
 
-        IRawImage IImageCodec.CreateEmpty() => this.CreateEmpty();
+        public void Write(Stream output, ImageArgb32Frame frame, SaveOptions options) => this.Write(output, new ImageArgb32Container() { frame }, options);
 
-        public abstract T Read(Stream input);
-
-        IRawImage IImageCodec.Read(Stream input) => this.Read(input);
-
-        public abstract void Write(Stream output, T image);
-
-        void IImageCodec.Write(Stream output, IRawImage image) => this.Write(output, (T)image);
+        public abstract void Write(Stream output, ImageArgb32Container container, SaveOptions options);
     }
 
 }

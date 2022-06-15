@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Codec.Tiff
+namespace Giselle.Imaging.Codec
 {
-    class TiffValueType
+    public class SaveOptions
     {
+
     }
+
 }

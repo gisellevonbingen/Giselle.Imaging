@@ -4,65 +4,132 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
-    public class TiffCodec : ImageCodec<TiffRawImage>
+    public class TiffCodec : ImageCodec
     {
         public static TiffCodec Instance { get; } = new TiffCodec();
-
-        public static IList<byte> SignatureLittleEndian { get; } = Array.AsReadOnly(new byte[] { 0x49, 0x49 });
-        public static IList<byte> SignatureBigEndian { get; } = Array.AsReadOnly(new byte[] { 0x4D, 0x4D });
-        public static IList<IList<byte>> Signatures { get; } = Array.AsReadOnly(new IList<byte>[] { SignatureLittleEndian, SignatureBigEndian });
-
-        public const short EndianChecker = 0x002A;
-
-        public static DataProcessor CreateTiffProcessor(Stream stream) => new DataProcessor(stream) { };
-
-        public static DataProcessor CreateTiffProcessor(Stream stream, DataProcessor processor) => new DataProcessor(stream) { IsLittleEndian = processor.IsLittleEndian };
 
         public TiffCodec()
         {
 
         }
 
-        public override int BytesForTest => 2;
+        public override int BytesForTest => ExifContainer.SignatureLength;
 
-        public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
+        public override bool Test(byte[] bytes) => ExifContainer.Signatures.Any(s => bytes.StartsWith(s));
 
-        public override TiffRawImage Read(Stream input)
+        public override ImageArgb32Container Read(Stream input)
         {
-            var processor = CreateTiffProcessor(input);
-            // Signature
-            var signature = processor.ReadBytes(BytesForTest);
-
-            if (this.Test(signature) == false)
+            if (input.CanSeek == false)
             {
-                throw new IOException();
+                throw new ArgumentException("Tiff input stream required be seekable");
             }
 
-            processor.IsLittleEndian = this.IsLittleEndian(signature);
-            var endianChecker = processor.ReadShort();
+            var origin = input.Position;
+            var exif = new ExifContainer(input, origin);
+            var container = new ImageArgb32Container();
 
-            if (endianChecker != EndianChecker)
+            foreach (var directory in exif.Directories)
             {
-                throw new IOException($"Endian Check Failed : Reading={endianChecker:X4}, Require={EndianChecker:X4}");
+                var frame = this.Decode(input, directory, origin);
+
+                if (frame != null)
+                {
+                    container.Add(frame);
+                }
+
             }
 
-            var image = new TiffRawImage();
-            image.Read(processor);
-
-            return image;
+            return container;
         }
 
-        public override void Write(Stream output, TiffRawImage image)
+        private ImageArgb32Frame Decode(Stream input, ExifImageFileDirectory directory, long origin)
+        {
+            var newSubfileType = directory.Entries.FirstOrDefault(e => e.TagId == ExifTagId.NewSubfileType);
+
+            if (newSubfileType == null)
+            {
+                return null;
+            }
+
+            var subFile = new TiffSubfile(directory.Entries);
+            var sampleCount = subFile.SamplesPerPixel;
+            var stride = subFile.Width * sampleCount;
+            var scan = new ScanData(subFile.Width, subFile.Height, subFile.BitsPerPixel) { Stride = stride, Scan = new byte[stride * subFile.Height], ColorTable = subFile.ColorMap };
+
+            var offsets = subFile.StripOffsets;
+            var counts = subFile.StripByteCounts;
+            var predictor = subFile.Predictor;
+            var rows = subFile.RowsPerStrip;
+            var photometricInterpretation = subFile.PhotometricInterpretation;
+
+            for (var i = 0; i < offsets.Length; i++)
+            {
+                var offset = offsets[i];
+                var count = counts[i];
+                input.Position = offset + origin;
+
+                if (subFile.Compression == ExifCompressionMethod.LZW)
+                {
+                    using (var lzw = new ExifLZWStream(input, ExifLZWCompressionMode.Decompress, true))
+                    {
+                        for (var j = 0; j < rows; j++)
+                        {
+                            var samples = new byte[sampleCount];
+
+                            for (var k = 0; k < stride; k++)
+                            {
+                                var sampleIndex = k % subFile.SamplesPerPixel;
+                                var sample = lzw.ReadByte();
+
+                                if (sample == -1)
+                                {
+                                    break;
+                                }
+                                else if (predictor == ExifPredictor.NoPrediction)
+                                {
+                                    samples[sampleIndex] = (byte)sample;
+                                }
+                                else if (predictor == ExifPredictor.HorizontalDifferencing)
+                                {
+                                    samples[sampleIndex] = (byte)(samples[sampleIndex] + sample);
+                                }
+                                else
+                                {
+
+                                }
+
+                                var scanIndex = (rows * scan.Stride * i) + (scan.Stride * j) + k;
+                                scan.Scan[scanIndex] = samples[sampleIndex];
+                                //Console.WriteLine(scanIndex);
+                            }
+
+                        }
+
+                    }
+
+                }
+                else
+                {
+
+                }
+
+            }
+
+            var processor = subFile.GetScanProcessor();
+            return new ImageArgb32Frame(scan, processor);
+        }
+
+        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
         {
             throw new NotImplementedException();
         }
-
-        public bool IsLittleEndian(byte[] signature) => SignatureLittleEndian.StartsWith(signature);
 
     }
 

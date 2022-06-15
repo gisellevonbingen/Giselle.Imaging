@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Codec.Tiff
+namespace Giselle.Imaging.Codec.Exif
 {
-    class TiffValueType
+    public enum ExifLZWCompressionMode : byte
     {
+        Compress = 0,
+        Decompress = 1,
     }
+
 }

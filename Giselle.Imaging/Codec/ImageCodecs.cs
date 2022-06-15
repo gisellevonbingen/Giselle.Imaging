@@ -5,35 +5,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.Bmp;
-using Giselle.Imaging.Codec.Jpeg;
 using Giselle.Imaging.Codec.Png;
+using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.Tiff;
+using Giselle.Imaging.Codec.Jpeg;
 
 namespace Giselle.Imaging.Codec
 {
     public static class ImageCodecs
     {
-        private static readonly List<IImageCodec> Codecs = new List<IImageCodec>();
+        private static readonly List<ImageCodec> Codecs = new List<ImageCodec>();
 
-        public static IEnumerable<IImageCodec> GetCodecs() => Codecs;
+        public static IEnumerable<ImageCodec> GetCodecs() => Codecs;
 
-        public static C Register<C>(C codec) where C : IImageCodec
+        public static C Register<C>(C codec) where C : ImageCodec
         {
             Codecs.Add(codec);
             return codec;
         }
 
-        public static IImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
+        public static ImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
 
         static ImageCodecs()
         {
             Register(BmpCodec.Instance);
-            Register(TiffCodec.Instance);
             Register(PngCodec.Instance);
+            Register(TiffCodec.Instance);
             Register(JpegCodec.Instance);
         }
 
-        public static IImageCodec FindCodec(Stream input)
+        public static ImageCodec FindCodec(Stream input)
         {
             if (input.CanSeek == false)
             {
@@ -77,9 +78,9 @@ namespace Giselle.Imaging.Codec
             return null;
         }
 
-        public static IRawImage FromStream(Stream input) => FindCodec(input).Read(input);
+        public static ImageArgb32Container FromStream(Stream input) => FindCodec(input).Read(input);
 
-        public static IRawImage FromBytes(byte[] bytes)
+        public static ImageArgb32Container FromBytes(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
             {

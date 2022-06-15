@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {
-    public class JpegEncodeOptions : EncodeOptions
+    public class JpegEncodeOptions : SaveOptions
     {
 
     }

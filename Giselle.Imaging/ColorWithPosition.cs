@@ -8,21 +8,21 @@ namespace Giselle.Imaging
 {
     public struct ColorWithPosition
     {
-        public ImageArgb32 Image { get; }
+        public ImageArgb32Frame Frame { get; }
         public int X { get; }
         public int Y { get; }
 
-        public ColorWithPosition(ImageArgb32 image, int x, int y) : this()
+        public ColorWithPosition(ImageArgb32Frame frame, int x, int y) : this()
         {
-            this.Image = image;
+            this.Frame = frame;
             this.X = x;
             this.Y = y;
         }
 
         public Argb32 Color
         {
-            get => this.Image[this.X, this.Y];
-            set => this.Image[this.X, this.Y] = value;
+            get => this.Frame[this.X, this.Y];
+            set => this.Frame[this.X, this.Y] = value;
         }
 
     }
