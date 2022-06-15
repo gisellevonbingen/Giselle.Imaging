@@ -125,20 +125,22 @@ namespace Giselle.Imaging.Test
         {
             var rootDir = @"C:\Users\Seil\Desktop\Test\Codec\";
             var inputDir = $@"{rootDir}Input\";
-            var outputDir = $@"{rootDir}Output\";
+            var outputBaseDir = $@"{rootDir}Output\";
 
             Directory.CreateDirectory(rootDir);
             Directory.CreateDirectory(inputDir);
-            Directory.CreateDirectory(outputDir);
+            Directory.CreateDirectory(outputBaseDir);
 
             var inputPaths = Directory.GetFiles(inputDir, "*", SearchOption.AllDirectories);
 
             foreach (var inputPath in inputPaths)
             {
                 var relatedPath = inputPath.Substring(inputDir.Length);
-                var outputPath = outputDir + relatedPath;
-                new FileInfo(outputPath).Directory.Create();
+                var tempPath = outputBaseDir + relatedPath;
                 var inputBytes = File.ReadAllBytes(inputPath);
+                var fileName = Path.GetFileNameWithoutExtension(tempPath);
+                var outputDir = Path.GetDirectoryName(tempPath);
+                new DirectoryInfo(outputDir).Create();
 
                 try
                 {
@@ -147,18 +149,17 @@ namespace Giselle.Imaging.Test
                     var codec = ImageCodecs.FindCodec(inputBytes);
                     var container = ImageCodecs.FromBytes(inputBytes);
 
-                    foreach (var frame in container)
+                    for (int i = 0; i < container.Count; i++)
                     {
-                        Console.WriteLine("unique colors = " + frame.Colors.Distinct().Count());
+                        var frame = container[i];
+                        var logPrefix = container.Count > 1 ? $"[{i}/{container.Count}] " : string.Empty;
+                        var fileSuffix = container.Count > 1 ? $"_{i}" : string.Empty;
+                        Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
 
-                        using (var outputStream = new FileStream(outputPath, FileMode.Create))
-                        {
-                            //codec.Write(outputStream, container, new PngSaveOptions() { Interlace = true });
-                            SaveImageAsBitmap(outputStream, frame);
-                        }
-
+                        var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
+                        //SaveImageAsPng(outputPath, frame);
+                        SaveImageAsPrimary(outputPath, frame);
                     }
-
 
                 }
                 catch (Exception ex)
@@ -171,9 +172,22 @@ namespace Giselle.Imaging.Test
 
         }
 
-        public static void SaveImageAsBitmap(FileStream outputStream, ImageArgb32Frame frame)
+        public static void SaveImageAsPrimary(string path, ImageArgb32Frame frame)
         {
-            frame.ToBitmap().Save(outputStream, ImageFormat.Png);
+            using (var outputStream = new FileStream(Path.ChangeExtension(path, frame.PrimaryCodec.PrimaryExtension), FileMode.Create))
+            {
+                frame.Save(outputStream);
+            }
+
+        }
+
+        public static void SaveImageAsPng(string path, ImageArgb32Frame frame)
+        {
+            using (var outputStream = new FileStream(path + ".png", FileMode.Create))
+            {
+                frame.ToBitmap().Save(outputStream, ImageFormat.Png);
+            }
+
         }
 
     }

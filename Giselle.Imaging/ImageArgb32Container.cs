@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec;
 
 namespace Giselle.Imaging
 {
@@ -11,9 +13,28 @@ namespace Giselle.Imaging
     {
         private readonly List<ImageArgb32Frame> _Frames;
 
+        public ImageCodec PrimaryCodec { get; set; }
+        public SaveOptions PrimaryOptions { get; set; }
+
         public ImageArgb32Container()
         {
             this._Frames = new List<ImageArgb32Frame>();
+        }
+
+        public ImageArgb32Container(ImageArgb32Frame singleFrame) : this()
+        {
+            this.Add(singleFrame);
+            this.PrimaryCodec = singleFrame.PrimaryCodec;
+            this.PrimaryOptions = singleFrame.PrimaryOptions;
+        }
+
+        public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);
+
+        public void Save(Stream output, ImageCodec codec) => this.Save(output, codec, null);
+
+        public void Save(Stream output, ImageCodec codec, SaveOptions options)
+        {
+            codec.Write(output, this, options);
         }
 
         public int Count => this._Frames.Count;
@@ -23,6 +44,8 @@ namespace Giselle.Imaging
         public ImageArgb32Frame this[int index] { get => this._Frames[index]; set => this._Frames[index] = value; }
 
         public void Add(ImageArgb32Frame frame) => this._Frames.Add(frame);
+
+        public void AddRange(IEnumerable<ImageArgb32Frame> frames) => this._Frames.AddRange(frames);
 
         public void Clear() => this._Frames.Clear();
 

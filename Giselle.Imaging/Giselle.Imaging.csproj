@@ -73,6 +73,11 @@
     <Compile Include="Codec\Exif\ExifValueLongs.cs" />
     <Compile Include="Codec\Exif\ExifValueNumbers.cs" />
     <Compile Include="Codec\Exif\ExifValueRationals.cs" />
+    <Compile Include="Codec\Ico\IcoCodec.cs" />
+    <Compile Include="Codec\Ico\IcoImageContainer.cs" />
+    <Compile Include="Codec\Ico\IcoImageType.cs" />
+    <Compile Include="Codec\Ico\IcoImageInfo.cs" />
+    <Compile Include="Codec\Ico\IcoSaveOptions.cs" />
     <Compile Include="Codec\Tiff\ExifValueSBytes.cs" />
     <Compile Include="Codec\Exif\ExifValueShorts.cs" />
     <Compile Include="Codec\Tiff\ExifValueSLongs.cs" />

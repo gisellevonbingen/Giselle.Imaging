@@ -67,7 +67,7 @@ namespace Giselle.Imaging.Codec.Png
             this.Width = frame.Width;
             this.Height = frame.Height;
             this.PixelFormat = frame.PixelFormat;
-            this.Interlace = options.Interlace ? (byte)1 : (byte)0;
+            this.Interlace = options.Interlace;
 
             var physicalUnit = frame.Resolution.Unit;
             this.PhysicalPixelDimensionsUnit = physicalUnit.ToPngPhysicalPixelDimensionsUnit();

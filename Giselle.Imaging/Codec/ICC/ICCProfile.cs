@@ -13,6 +13,7 @@ namespace Giselle.Imaging.Codec.ICC
 {
     public class ICCProfile
     {
+        public const string Extension = "icc";
         public const int FileSignature = 0x61637370;
         public const bool IsLittleEndian = false;
         public const byte ASCIISuffix = 0x20;

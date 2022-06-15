@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.Exif;
+using Giselle.Imaging.Codec.TIff;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
@@ -22,6 +24,16 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override int BytesForTest => ExifContainer.SignatureLength;
 
+        public override bool SupportMultiFrame => false;
+
+        public override string PrimaryExtension => "tiff";
+
+        public override IEnumerable<string> GetExtensions()
+        {
+            yield return PrimaryExtension;
+            yield return "tif";
+        }
+
         public override bool Test(byte[] bytes) => ExifContainer.Signatures.Any(s => bytes.StartsWith(s));
 
         public override ImageArgb32Container Read(Stream input)
@@ -33,7 +45,11 @@ namespace Giselle.Imaging.Codec.Tiff
 
             var origin = input.Position;
             var exif = new ExifContainer(input, origin);
-            var container = new ImageArgb32Container();
+            var container = new ImageArgb32Container()
+            {
+                PrimaryCodec = this,
+                PrimaryOptions = new TiffSaveOptions(),
+            };
 
             foreach (var directory in exif.Directories)
             {
@@ -123,7 +139,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
 
             var processor = subFile.GetScanProcessor();
-            return new ImageArgb32Frame(scan, processor);
+            return new ImageArgb32Frame(scan, processor) { PrimaryCodec = this, PrimaryOptions = new TiffSaveOptions() { } };
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)

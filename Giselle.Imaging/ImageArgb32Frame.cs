@@ -30,6 +30,9 @@ namespace Giselle.Imaging
 
         private readonly Lazy<IEnumerable<ColorWithPosition>> _ColorWithPositions;
         public IEnumerable<ColorWithPosition> ColorWithPositions => this._ColorWithPositions.Value;
+
+        public ImageCodec PrimaryCodec { get; set; }
+        public SaveOptions PrimaryOptions { get; set; }
         public ICCProfile ICCProfile { get; set; }
 
 
@@ -123,6 +126,15 @@ namespace Giselle.Imaging
                 return new Argb32[0];
             }
 
+        }
+
+        public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);
+
+        public void Save(Stream output, ImageCodec codec) => this.Save(output, codec, null);
+
+        public void Save(Stream output, ImageCodec codec, SaveOptions options)
+        {
+            codec.Write(output, this, options);
         }
 
         public class ImageEnumerable<T> : IEnumerable<T>

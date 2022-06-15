@@ -28,6 +28,15 @@ namespace Giselle.Imaging.Codec.Png
 
         public override int BytesForTest => Signature.Count;
 
+        public override bool SupportMultiFrame => false;
+
+        public override string PrimaryExtension => "png";
+
+        public override IEnumerable<string> GetExtensions()
+        {
+            yield return PrimaryExtension;
+        }
+
         public override bool Test(byte[] bytes) => bytes.StartsWith(Signature);
 
         public override ImageArgb32Container Read(Stream input)
@@ -118,12 +127,14 @@ namespace Giselle.Imaging.Codec.Png
 
             var scanProcessor = raw.CreateScanProcessor();
             var densityUnit = raw.PhysicalPixelDimensionsUnit.ToDensityUnit();
-            return new ImageArgb32Container() { new ImageArgb32Frame(scanData, scanProcessor)
+            return new ImageArgb32Container(new ImageArgb32Frame(scanData, scanProcessor)
             {
+                PrimaryCodec = this,
+                PrimaryOptions = new PngSaveOptions() { Interlace = raw.Interlace, BitDepth = raw.BitDepth, ColorType = raw.ColorType, },
                 WidthResoulution = new PhysicalDensity(raw.XPixelsPerUnit, densityUnit),
                 HeightResoulution = new PhysicalDensity(raw.YPixelsPerUnit, densityUnit),
                 ICCProfile = raw.ICCProfile,
-            }};
+            });
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)

@@ -35,6 +35,19 @@ namespace Giselle.Imaging.Codec.Jpeg
             }
 
         }
+        
+        public override bool SupportMultiFrame => false;
+
+        public override string PrimaryExtension => "jpg";
+
+        public override IEnumerable<string> GetExtensions()
+        {
+            yield return PrimaryExtension;
+            yield return "jpeg";
+            yield return "jpe";
+            yield return "jfif";
+            yield return "exif";
+        }
 
         public override int BytesForTest => GetBytes((ushort)JpegMarker.SOI).Length;
 

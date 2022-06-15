@@ -9,6 +9,12 @@ namespace Giselle.Imaging.Codec
 {
     public abstract class ImageCodec
     {
+        public abstract bool SupportMultiFrame { get; }
+
+        public abstract string PrimaryExtension { get; }
+
+        public abstract IEnumerable<string> GetExtensions();
+
         public abstract int BytesForTest { get; }
 
         public virtual bool Test(Stream stream)
@@ -41,7 +47,19 @@ namespace Giselle.Imaging.Codec
 
         }
 
-        public abstract bool Test(byte[] bytes);
+        public virtual bool Test(byte[] bytes)
+        {
+            using (var ms = new MemoryStream(bytes))
+            {
+                return this.Test(ms);
+            }
+
+        }
+
+        public virtual bool Test(MemoryStream stream)
+        {
+            return false;
+        }
 
         public abstract ImageArgb32Container Read(Stream input);
 

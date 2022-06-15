@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Security;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
@@ -36,12 +34,22 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public override int BytesForTest => SignatureLength;
 
+        public override bool SupportMultiFrame => false;
+
+        public override string PrimaryExtension => "bmp";
+
+        public override IEnumerable<string> GetExtensions()
+        {
+            yield return PrimaryExtension;
+            yield return "dib";
+            yield return "rle";
+        }
+
         public override bool Test(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
         public override ImageArgb32Container Read(Stream input)
         {
             var processor = CreateBmpProcessor(input);
-            var originOffset = processor.ReadLength;
 
             // Signature
             var signature = processor.ReadBytes(BytesForTest);
@@ -61,6 +69,15 @@ namespace Giselle.Imaging.Codec.Bmp
             var headerSize = processor.ReadInt(); // 40 = Windows V3, 68 = AVI BMP structure?, 108 = Windows V4, 124 = Windows V5
             var width = processor.ReadInt();
             var height = processor.ReadInt();
+
+            var frame = this.Read(input, width, height, scanDataOffset);
+            return new ImageArgb32Container(frame);
+        }
+
+        public ImageArgb32Frame Read(Stream input, int width, int height, int scanDataOffset = -1)
+        {
+            var processor = CreateBmpProcessor(input);
+
             var planes = processor.ReadShort(); // Must be 1
             var bitsPerPixel = (BmpBitsPerPixel)processor.ReadShort();
             var compressionMethod = (BmpCompressionMethod)processor.ReadInt();
@@ -99,13 +116,17 @@ namespace Giselle.Imaging.Codec.Bmp
 
             }
 
-            var gap1Offset = processor.ReadLength;
-            var gap1Length = scanDataOffset - gap1Offset - originOffset;
-
-            // Read Gap1
-            if (gap1Length > 0)
+            if (scanDataOffset > -1)
             {
-                processor.SkipByRead(gap1Length);
+                var gap1Offset = processor.ReadLength;
+                var gap1Length = scanDataOffset - gap1Offset;
+
+                // Read Gap1
+                if (gap1Length > 0)
+                {
+                    processor.SkipByRead(gap1Length);
+                }
+
             }
 
             var stride = ScanProcessor.GetStride4(width, (short)bitsPerPixel);
@@ -118,15 +139,6 @@ namespace Giselle.Imaging.Codec.Bmp
                     scan[y * stride + x] = processor.ReadByte();
                 }
 
-            }
-
-            var gap2Offset = processor.ReadLength;
-            var gap2Length = fileSize - gap2Offset - originOffset;
-
-            // Read Gap2
-            if (gap2Length > 0)
-            {
-                processor.SkipByRead(gap2Length);
             }
 
             var scanData = new ScanData(width, height, (int)bitsPerPixel) { Stride = stride, Scan = scan, ColorTable = colorTable };
@@ -142,11 +154,13 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(bitsPerPixel.ToPixelFormat());
             }
 
-            return new ImageArgb32Container() { new ImageArgb32Frame(scanData, scanProcessor)
+            return new ImageArgb32Frame(scanData, scanProcessor)
             {
+                PrimaryCodec = this,
+                PrimaryOptions = new BmpSaveOptions() { BitsPerPixel = bitsPerPixel },
                 WidthResoulution = new PhysicalDensity(widthPixelsPerMeter, PhysicalUnit.Meter),
                 HeightResoulution = new PhysicalDensity(heightPixelsPerMeter, PhysicalUnit.Meter),
-            }};
+            };
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
