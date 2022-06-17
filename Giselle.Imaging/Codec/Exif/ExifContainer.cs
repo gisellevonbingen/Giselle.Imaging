@@ -20,6 +20,26 @@ namespace Giselle.Imaging.Codec.Exif
 
         public static IList<byte> GetSignature(bool isLittleEndian) => isLittleEndian ? SignatureLittleEndian : SignatureBigEndian;
 
+        public static bool TryGetEndian(byte[] signature, out bool isLittleEndian)
+        {
+            if (signature.SequenceEqual(SignatureLittleEndian) == true)
+            {
+                isLittleEndian = true;
+                return true;
+            }
+            else if (signature.SequenceEqual(SignatureBigEndian) == true)
+            {
+                isLittleEndian = false;
+                return true;
+            }
+            else
+            {
+                isLittleEndian = default;
+                return false;
+            }
+
+        }
+
         public static DataProcessor CreateExifProcessor(Stream stream) => new DataProcessor(stream) { };
 
         public static DataProcessor CreateExifProcessor(Stream stream, DataProcessor processor) => new DataProcessor(stream) { IsLittleEndian = processor.IsLittleEndian };
@@ -72,7 +92,13 @@ namespace Giselle.Imaging.Codec.Exif
         {
             var processor = CreateExifProcessor(input);
             var signature = processor.ReadBytes(SignatureLength);
-            processor.IsLittleEndian = SignatureLittleEndian.StartsWith(signature);
+
+            if (TryGetEndian(signature, out var isLittleEndian) == false)
+            {
+                throw new IOException($"Signature not found");
+            }
+
+            processor.IsLittleEndian = isLittleEndian;
             var endianChecker = processor.ReadShort();
 
             if (endianChecker != EndianChecker)

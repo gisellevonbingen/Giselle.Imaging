@@ -31,15 +31,35 @@ namespace Giselle.Imaging.Codec.Png
         public int XPixelsPerUnit { get; set; }
         public int YPixelsPerUnit { get; set; }
         public ICCProfile ICCProfile { get; set; }
+        public byte RenderingIntent { get; set; }
+        public byte[] ImageGamma { get; set; } = new byte[4];
         public List<PNGRawChunk> ExtraChunks { get; set; } = new List<PNGRawChunk>();
 
-        public PngRawImage(DataProcessor input)
+        public PngRawImage()
         {
+
+        }
+
+        public PngRawImage(Stream input) : this()
+        {
+            this.Read(input);
+        }
+
+        public void Read(Stream input)
+        {
+            var processor = PngCodec.CreatePngProcessor(input);
+            var signature = processor.ReadBytes(PngCodec.Instance.BytesForTest);
+
+            if (PngCodec.Instance.Test(signature) == false)
+            {
+                throw new IOException();
+            }
+
             this.CompressedScanData.Position = 0L;
 
             while (true)
             {
-                using (var chunkStream = new PngChunkStream(input))
+                using (var chunkStream = new PngChunkStream(processor))
                 {
                     try
                     {
@@ -62,7 +82,12 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public PngRawImage(ImageArgb32Frame frame, PngSaveOptions options)
+        public PngRawImage(ImageArgb32Frame frame, PngSaveOptions options) : this()
+        {
+            this.Encode(frame, options);
+        }
+
+        public void Encode(ImageArgb32Frame frame, PngSaveOptions options)
         {
             this.Width = frame.Width;
             this.Height = frame.Height;
@@ -102,6 +127,74 @@ namespace Giselle.Imaging.Codec.Png
             }
 
             (this.RgbTable, this.AlphaTable) = ColorTableUtils.SplitColorTable(colorTable);
+
+            var scanData = CreateScanData(frame.Width, frame.Height, this.PixelFormat.GetBitsPerPixel(), this.Stride, this.Interlace, colorTable);
+            var scanProcessor = this.CreateScanProcessor();
+            scanProcessor.Write(scanData, frame.Scan);
+
+            var bitPerPixel = this.PixelFormat.GetBitsPerPixel();
+            var samples = bitPerPixel / this.BitDepth;
+            this.CompressedScanData.Position = 0L;
+
+            using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
+            {
+                var passProcessor = new InterlacePassProcessor(scanData);
+                var dataProcessor = PngCodec.CreatePngProcessor(ds);
+                var scanOffset = 0;
+
+                while (passProcessor.NextPass() == true)
+                {
+                    var passInfo = passProcessor.PassInfo;
+                    var scanline = new byte[passInfo.Stride];
+
+                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                    {
+                        byte filter = 0;
+                        var currLineSamples1 = new byte[samples];
+                        var lastLineSamples2 = new byte[samples];
+
+                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        {
+                            var x = scanData.Scan[scanOffset++];
+                            var a = currLineSamples1[xi % samples];
+                            var b = scanline[xi];
+                            var c = lastLineSamples2[xi % samples];
+                            byte result = 0;
+
+                            if (filter == 0)
+                            {
+                                result = x;
+                            }
+                            else if (filter == 1)
+                            {
+                                result = (byte)(x - a);
+                            }
+                            else if (filter == 2)
+                            {
+                                result = (byte)(x - b);
+                            }
+                            else if (filter == 3)
+                            {
+                                result = (byte)(x - (a + b) / 2);
+                            }
+                            else
+                            {
+                                throw new NotImplementedException($"Filter is {filter}");
+                            }
+
+                            scanline[xi] = result;
+                            currLineSamples1[xi % samples] = result;
+                            lastLineSamples2[xi % samples] = a;
+                        }
+
+                        dataProcessor.WriteByte(filter);
+                        dataProcessor.WriteBytes(scanline);
+                    }
+
+                }
+
+            }
+
         }
 
         public PixelFormat PixelFormat
@@ -179,6 +272,14 @@ namespace Giselle.Imaging.Codec.Png
                 }
 
             }
+            else if (type.Equals(PngChunkName.sRGB) == true)
+            {
+                this.RenderingIntent = chunkProcessor.ReadByte();
+            }
+            else if (type.Equals(PngChunkName.gAMA) == true)
+            {
+                this.ImageGamma = chunkProcessor.ReadBytes(4);
+            }
             else if (type.Equals(PngChunkName.pHYs) == true)
             {
                 this.XPixelsPerUnit = chunkProcessor.ReadInt();
@@ -226,9 +327,101 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public void Write(DataProcessor output)
+        public ImageArgb32Frame Decode()
         {
-            this.WriteChunk(output, PngChunkName.IHDR, chunkProcessor =>
+            var width = this.Width;
+            var height = this.Height;
+            var bitsPerPixel = this.PixelFormat.GetBitsPerPixel();
+            var samples = bitsPerPixel / this.BitDepth;
+            var colorTable = ColorTableUtils.MergeColorTable(this.RgbTable, this.AlphaTable);
+            var scanData = PngRawImage.CreateScanData(width, height, bitsPerPixel, this.Stride, this.Interlace, colorTable);
+
+            this.CompressedScanData.Position = 0L;
+
+            using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Decompress, true))
+            {
+                var passProcessor = new InterlacePassProcessor(scanData);
+                var dataProcessor = PngCodec.CreatePngProcessor(ds);
+                var scanOffset = 0;
+
+                while (passProcessor.NextPass() == true)
+                {
+                    var passInfo = passProcessor.PassInfo;
+                    var scanline = new byte[passInfo.Stride];
+
+                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                    {
+                        var filter = dataProcessor.ReadByte();
+                        var strideBytes = dataProcessor.ReadBytes(passInfo.Stride);
+                        var currLineSamples1 = new byte[samples];
+                        var lastLineSamples2 = new byte[samples];
+
+                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        {
+                            var x = strideBytes[xi];
+                            var a = currLineSamples1[xi % samples];
+                            var b = scanline[xi];
+                            var c = lastLineSamples2[xi % samples];
+                            byte result = 0;
+
+                            if (filter == 0)
+                            {
+                                result = x;
+                            }
+                            else if (filter == 1)
+                            {
+                                result = (byte)(x + a);
+                            }
+                            else if (filter == 2)
+                            {
+                                result = (byte)(x + b);
+                            }
+                            else if (filter == 3)
+                            {
+                                result = (byte)(x + (a + b) / 2);
+                            }
+                            else if (filter == 4)
+                            {
+                                var p = a + b - c;
+                                var pa = Math.Abs(p - a);
+                                var pb = Math.Abs(p - b);
+                                var pc = Math.Abs(p - c);
+                                if (pa <= pb && pa <= pc) result = a;
+                                else if (pb <= pc) result = b;
+                                else result = c;
+                            }
+
+                            scanline[xi] = result;
+                            currLineSamples1[xi % samples] = result;
+                            lastLineSamples2[xi % samples] = a;
+
+                            scanData.Scan[scanOffset++] = result;
+                        }
+
+                    }
+
+                }
+
+            }
+
+            var scanProcessor = this.CreateScanProcessor();
+            var densityUnit = this.PhysicalPixelDimensionsUnit.ToDensityUnit();
+            return new ImageArgb32Frame(scanData, scanProcessor)
+            {
+                PrimaryCodec = PngCodec.Instance,
+                PrimaryOptions = new PngSaveOptions() { Interlace = this.Interlace, BitDepth = this.BitDepth, ColorType = this.ColorType, },
+                WidthResoulution = new PhysicalDensity(this.XPixelsPerUnit, densityUnit),
+                HeightResoulution = new PhysicalDensity(this.YPixelsPerUnit, densityUnit),
+                ICCProfile = this.ICCProfile,
+            };
+        }
+
+        public void Write(Stream output)
+        {
+            var processor = PngCodec.CreatePngProcessor(output);
+            processor.WriteBytes(PngCodec.Signature);
+
+            this.WriteChunk(processor, PngChunkName.IHDR, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.Width);
                 chunkProcessor.WriteInt(this.Height);
@@ -241,7 +434,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ICCProfile != null)
             {
-                this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
+                this.WriteChunk(processor, PngChunkName.iCCP, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytesWith0(Encoding.ASCII.GetBytes("ICC Profile"));
                     chunkProcessor.WriteByte(0);
@@ -255,7 +448,17 @@ namespace Giselle.Imaging.Codec.Png
 
             }
 
-            this.WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
+            this.WriteChunk(processor, PngChunkName.sRGB, chunkProcessor =>
+            {
+                chunkProcessor.WriteByte(this.RenderingIntent);
+            });
+
+            this.WriteChunk(processor, PngChunkName.gAMA, chunkProcessor =>
+            {
+                chunkProcessor.WriteBytes(this.ImageGamma);
+            });
+
+            this.WriteChunk(processor, PngChunkName.pHYs, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.XPixelsPerUnit);
                 chunkProcessor.WriteInt(this.YPixelsPerUnit);
@@ -264,7 +467,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ColorType == PngColorType.IndexedColor)
             {
-                this.WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
+                this.WriteChunk(processor, PngChunkName.PLTE, chunkProcessor =>
                 {
                     foreach (var color in this.RgbTable)
                     {
@@ -276,7 +479,7 @@ namespace Giselle.Imaging.Codec.Png
 
                 if (ColorTableUtils.RequireWriteAlphaTable(this.AlphaTable) == true)
                 {
-                    this.WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
+                    this.WriteChunk(processor, PngChunkName.tRNS, chunkProcessor =>
                     {
                         foreach (var alpha in this.AlphaTable)
                         {
@@ -289,7 +492,7 @@ namespace Giselle.Imaging.Codec.Png
 
             foreach (var chunk in this.ExtraChunks)
             {
-                this.WriteChunk(output, chunk.Name, chunkProcessor =>
+                this.WriteChunk(processor, chunk.Name, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(chunk.Payload);
                 });
@@ -301,13 +504,13 @@ namespace Giselle.Imaging.Codec.Png
 
             for (var len = 0; (len = this.CompressedScanData.Read(buffer, 0, buffer.Length)) > 0;)
             {
-                this.WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
+                this.WriteChunk(processor, PngChunkName.IDAT, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(buffer);
                 });
             }
 
-            this.WriteChunk(output, PngChunkName.IEND, chunkProcessor => { });
+            this.WriteChunk(processor, PngChunkName.IEND, chunkProcessor => { });
         }
 
         private void WriteChunk(DataProcessor output, PngChunkName name, Action<DataProcessor> action)

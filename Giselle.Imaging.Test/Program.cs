@@ -148,19 +148,8 @@ namespace Giselle.Imaging.Test
                     Console.WriteLine(relatedPath);
                     var codec = ImageCodecs.FindCodec(inputBytes);
                     var container = ImageCodecs.FromBytes(inputBytes);
-
-                    for (int i = 0; i < container.Count; i++)
-                    {
-                        var frame = container[i];
-                        var logPrefix = container.Count > 1 ? $"[{i}/{container.Count}] " : string.Empty;
-                        var fileSuffix = container.Count > 1 ? $"_{i}" : string.Empty;
-                        Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
-
-                        var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
-                        //SaveImageAsPng(outputPath, frame);
-                        SaveImageAsPrimary(outputPath, frame);
-                    }
-
+                    SaveContainerEachFrames(outputDir, fileName, container);
+                    SaveContainer(outputDir, fileName, container);
                 }
                 catch (Exception ex)
                 {
@@ -168,6 +157,36 @@ namespace Giselle.Imaging.Test
                     Console.WriteLine(ex);
                 }
 
+            }
+
+        }
+
+        public static void SaveContainer(string outputDir, string fileName, ImageArgb32Container container)
+        {
+            SaveImageAsPrimary($"{outputDir}/{fileName}", container);
+        }
+
+        public static void SaveContainerEachFrames(string outputDir, string fileName, ImageArgb32Container container)
+        {
+            for (int i = 0; i < container.Count; i++)
+            {
+                var frame = container[i];
+                var logPrefix = container.Count > 1 ? $"[{i}/{container.Count}] " : string.Empty;
+                var fileSuffix = container.Count > 1 ? $"_{i}" : string.Empty;
+                Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
+
+                var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
+                //SaveImageAsPng(outputPath, frame);
+                SaveImageAsPrimary(outputPath, frame);
+            }
+
+        }
+
+        public static void SaveImageAsPrimary(string path, ImageArgb32Container container)
+        {
+            using (var outputStream = new FileStream(Path.ChangeExtension(path, container.PrimaryCodec.PrimaryExtension), FileMode.Create))
+            {
+                container.Save(outputStream);
             }
 
         }

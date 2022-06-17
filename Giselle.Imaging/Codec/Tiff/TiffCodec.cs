@@ -22,7 +22,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        public override int BytesForTest => ExifContainer.SignatureLength;
+        public override int BytesForTest => ExifContainer.SignatureLength + 2;
 
         public override bool SupportMultiFrame => false;
 
@@ -34,7 +34,20 @@ namespace Giselle.Imaging.Codec.Tiff
             yield return "tif";
         }
 
-        public override bool Test(byte[] bytes) => ExifContainer.Signatures.Any(s => bytes.StartsWith(s));
+        protected override bool TestAsStream(Stream stream)
+        {
+            var processor = ExifContainer.CreateExifProcessor(stream);
+            var signature = processor.ReadBytes(ExifContainer.SignatureLength);
+
+            if (ExifContainer.TryGetEndian(signature, out var isLittleEndian) == false)
+            {
+                return false;
+            }
+
+            processor.IsLittleEndian = isLittleEndian;
+            var endianChecker = processor.ReadShort();
+            return endianChecker == ExifContainer.EndianChecker;
+        }
 
         public override ImageArgb32Container Read(Stream input)
         {

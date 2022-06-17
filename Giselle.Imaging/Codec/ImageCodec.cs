@@ -17,7 +17,7 @@ namespace Giselle.Imaging.Codec
 
         public abstract int BytesForTest { get; }
 
-        public virtual bool Test(Stream stream)
+        public bool Test(Stream stream)
         {
             if (stream.CanSeek == false)
             {
@@ -28,35 +28,47 @@ namespace Giselle.Imaging.Codec
 
             try
             {
-                var bytes = new byte[this.BytesForTest];
-                var prev = stream.Position;
-                var len = stream.Read(bytes, 0, bytes.Length);
-                stream.Position = prev;
-
-                if (len != bytes.Length)
-                {
-                    return false;
-                }
-
-                return this.Test(bytes);
+                return this.TestAsStream(stream);
             }
             finally
             {
-                stream.Seek(start, SeekOrigin.Begin);
+                stream.Position = start;
             }
 
         }
 
-        public virtual bool Test(byte[] bytes)
+        public bool Test(byte[] bytes)
         {
-            using (var ms = new MemoryStream(bytes))
+            if (bytes.Length < this.BytesForTest)
             {
-                return this.Test(ms);
+                return false;
+            }
+            else
+            {
+                return this.TestAsBytes(bytes);
             }
 
         }
 
-        public virtual bool Test(MemoryStream stream)
+        protected virtual bool TestAsStream(Stream stream)
+        {
+            var bytes = new byte[this.BytesForTest];
+            var prev = stream.Position;
+            var len = stream.Read(bytes, 0, bytes.Length);
+            stream.Position = prev;
+
+            if (len != bytes.Length)
+            {
+                return false;
+            }
+            else
+            {
+                return this.TestAsBytes(bytes);
+            }
+
+        }
+
+        protected virtual bool TestAsBytes(byte[] bytes)
         {
             return false;
         }

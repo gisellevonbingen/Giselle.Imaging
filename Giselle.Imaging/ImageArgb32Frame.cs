@@ -43,6 +43,12 @@ namespace Giselle.Imaging
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Frame, s.X, s.Y)));
         }
 
+        public ImageArgb32Frame(ImageArgb32Frame other, int width, int height) : this(width, height)
+        {
+            this.PrimaryCodec = other.PrimaryCodec;
+            this.PrimaryOptions = other.PrimaryOptions;
+        }
+
         public ImageArgb32Frame(int width, int height) : this()
         {
             this.Width = width;
