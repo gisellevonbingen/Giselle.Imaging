@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Codec.Ico
                 Width = width,
                 Height = height,
             };
-            and.ReadInfoBeforeGap1(processor, info.UsedColors);
+            and.ReadInfoBeforeGap1(processor, info.UsedColors > 0 ? new byte?(info.UsedColors) : null);
             and.ReadScanData(processor);
             this.And = and;
 
