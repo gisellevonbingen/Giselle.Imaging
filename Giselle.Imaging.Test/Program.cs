@@ -176,26 +176,42 @@ namespace Giselle.Imaging.Test
                 Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
 
                 var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
-                //SaveImageAsPng(outputPath, frame);
-                SaveImageAsPrimary(outputPath, frame);
+                SaveImageAsPng(outputPath, frame);
+                //SaveImageAsPrimary(outputPath, frame);
             }
 
         }
 
         public static void SaveImageAsPrimary(string path, ImageArgb32Container container)
         {
-            using (var outputStream = new FileStream(Path.ChangeExtension(path, container.PrimaryCodec.PrimaryExtension), FileMode.Create))
+            try
             {
-                container.Save(outputStream);
+                using (var outputStream = new FileStream(Path.ChangeExtension(path, container.PrimaryCodec.PrimaryExtension), FileMode.Create))
+                {
+                    container.Save(outputStream);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
 
         }
 
         public static void SaveImageAsPrimary(string path, ImageArgb32Frame frame)
         {
-            using (var outputStream = new FileStream(Path.ChangeExtension(path, frame.PrimaryCodec.PrimaryExtension), FileMode.Create))
+            try
             {
-                frame.Save(outputStream);
+                using (var outputStream = new FileStream(Path.ChangeExtension(path, frame.PrimaryCodec.PrimaryExtension), FileMode.Create))
+                {
+                    frame.Save(outputStream);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
 
         }

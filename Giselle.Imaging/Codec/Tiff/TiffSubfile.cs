@@ -47,7 +47,7 @@ namespace Giselle.Imaging.Codec.Tiff
         {
             var tagId = entry.TagId;
             var value = entry.Value;
-            Console.WriteLine($"{entry}");
+            //Console.WriteLine($"{entry}");
 
             if (tagId == ExifTagId.NewSubfileType)
             {

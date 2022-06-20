@@ -118,6 +118,7 @@ namespace Giselle.Imaging.Codec.Exif
             }
             else if (code == ClearCode)
             {
+                this.Processor.ClearTable();
                 var code2 = this.ReadCode();
                 var key = this.Processor.Decode(code2);
                 this.ReadingDataKey = key;

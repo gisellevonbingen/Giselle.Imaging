@@ -22,12 +22,12 @@ namespace Giselle.Imaging.Codec.Exif
         public static ExifValueType Long = Register(new ExifValueType("Long", 4, false, () => new ExifValueLongs()));
         public static ExifValueType Rational = Register(new ExifValueType("Rational", 5, true, () => new ExifValueRationals()));
         public static ExifValueType SByte = Register(new ExifValueType("SByte", 6, false, () => new ExifValueSBytes()));
-        public static ExifValueType Undefined = Register(new ExifValueType("Undefined", 7, false, null));
+        public static ExifValueType Undefined = Register(new ExifValueType("Undefined", 7, false, () => new ExifValueUndefineds()));
         public static ExifValueType SShort = Register(new ExifValueType("SShort", 8, false, () => new ExifValueSShorts()));
         public static ExifValueType SLong = Register(new ExifValueType("SLong", 9, false, () => new ExifValueSLongs()));
-        public static ExifValueType SRational = Register(new ExifValueType("SRational", 10, true, null));
-        public static ExifValueType Float = Register(new ExifValueType("Float", 11, false, null));
-        public static ExifValueType Double = Register(new ExifValueType("Double", 12, false, null));
+        public static ExifValueType SRational = Register(new ExifValueType("SRational", 10, true, () => new ExifValueSRationals()));
+        public static ExifValueType Float = Register(new ExifValueType("Float", 11, false, () => null));
+        public static ExifValueType Double = Register(new ExifValueType("Double", 12, false, () => null));
 
         public static ExifValueType FromId(short id, ExifValueType fallback = default) => Lookups.TryGetValue(id, out var value) ? value : fallback;
 

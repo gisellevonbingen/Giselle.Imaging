@@ -89,8 +89,9 @@ namespace Giselle.Imaging.Codec.Tiff
 
             var subFile = new TiffSubfile(directory.Entries);
             var sampleCount = subFile.SamplesPerPixel;
-            var stride = subFile.Width * sampleCount;
-            var scan = new ScanData(subFile.Width, subFile.Height, subFile.BitsPerPixel) { Stride = stride, Scan = new byte[stride * subFile.Height], ColorTable = subFile.ColorMap };
+            var bitsPerPixel = subFile.BitsPerPixel;
+            var stride = ScanProcessor.GetBytesPerWidth(subFile.Width, bitsPerPixel);
+            var scan = new ScanData(subFile.Width, subFile.Height, bitsPerPixel) { Stride = stride, Scan = new byte[stride * subFile.Height], ColorTable = subFile.ColorMap };
 
             var offsets = subFile.StripOffsets;
             var counts = subFile.StripByteCounts;
@@ -134,7 +135,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
                                 }
 
-                                var scanIndex = (rows * scan.Stride * i) + (scan.Stride * j) + k;
+                                var scanIndex = (rows * stride * i) + (stride * j) + k;
                                 scan.Scan[scanIndex] = samples[sampleIndex];
                                 //Console.WriteLine(scanIndex);
                             }

@@ -63,6 +63,7 @@
     <Compile Include="Codec\Exif\ExifRawEntry.cs" />
     <Compile Include="Codec\Exif\ExifResolutionUnit.cs" />
     <Compile Include="Codec\Exif\ExifSaveOptions.cs" />
+    <Compile Include="Codec\Exif\ExifSRational.cs" />
     <Compile Include="Codec\Exif\ExifSubfileTypeFlag.cs" />
     <Compile Include="Codec\Exif\ExifTagId.cs" />
     <Compile Include="Codec\Exif\ExifValue.cs" />
@@ -74,6 +75,8 @@
     <Compile Include="Codec\Exif\ExifValueLongs.cs" />
     <Compile Include="Codec\Exif\ExifValueNumbers.cs" />
     <Compile Include="Codec\Exif\ExifValueRationals.cs" />
+    <Compile Include="Codec\Exif\ExifValueSRationals.cs" />
+    <Compile Include="Codec\Exif\ExifValueUndefineds.cs" />
     <Compile Include="Codec\Ico\IcoRawContainer.cs" />
     <Compile Include="Codec\Ico\IcoRawFrame.cs" />
     <Compile Include="Codec\Ico\IcoRawFrameBmp.cs" />
