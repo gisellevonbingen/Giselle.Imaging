@@ -70,6 +70,10 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override bool CanWrite => base.CanWrite && this.Mode == ExifLZWCompressionMode.Compress;
 
+        public override bool CanSeek => false;
+
+        public override long Length => throw new NotSupportedException();
+
         protected int ReadCode()
         {
             var nextKey = this.Processor.NextKey;
@@ -183,6 +187,11 @@ namespace Giselle.Imaging.Codec.Exif
             this.BaseBitStream.Dispose();
 
             base.Dispose(disposing);
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
         }
 
     }

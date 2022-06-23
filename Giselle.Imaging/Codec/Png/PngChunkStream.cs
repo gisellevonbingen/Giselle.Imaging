@@ -9,52 +9,32 @@ using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Png
 {
-    public class PngChunkStream : Stream
+    public class PngChunkStream : InternalStream
     {
-        public enum PngChunkStreamMode : byte
-        {
-            Read = 0,
-            Write = 1,
-        }
-
         public const int TypeLength = 4;
-
-        public override bool CanRead => this.Mode == PngChunkStreamMode.Read;
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => this.Mode == PngChunkStreamMode.Write;
 
         public PngChunkName Name { get; }
         public string DisplayName => this.Name.ToDisplayString();
         public override long Length { get; }
-        private long _Position = 0;
-        public override long Position { get => this._Position; set => throw new NotSupportedException(); }
         public uint AccumulatingCRC { get; private set; }
 
-        public PngChunkStreamMode Mode { get; private set; }
-        public DataProcessor BaseProcessor { get; private set; }
         public bool IgnoreCRC { get; set; }
         protected bool InternalReading { get; set; }
 
-        protected PngChunkStream()
+        protected PngChunkStream(Stream baseStream, bool readingMode, bool leaveOpen) : base(baseStream, readingMode, leaveOpen)
         {
-            this._Position = 0;
             this.AccumulatingCRC = CRCUtils.CRC32Seed;
             this.IgnoreCRC = false;
         }
 
-        public PngChunkStream(DataProcessor input) : this()
+        public PngChunkStream(Stream input) : this(input, true, true)
         {
-            this.Mode = PngChunkStreamMode.Read;
-            this.BaseProcessor = input;
-            this.Length = input.ReadInt();
+            this.Length = PngCodec.CreatePngProcessor(input).ReadInt();
 
             try
             {
                 this.InternalReading = true;
-                var processor = PngCodec.CreatePngProcessor(this);
-                this.Name = (PngChunkName)processor.ReadInt();
+                this.Name = (PngChunkName)PngCodec.CreatePngProcessor(this).ReadInt();
             }
             finally
             {
@@ -63,35 +43,22 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public PngChunkStream(DataProcessor output, PngChunkName name, int length) : this()
+        public PngChunkStream(Stream output, PngChunkName name, int length) : this(output, false, true)
         {
-            this.Mode = PngChunkStreamMode.Write;
-            this.BaseProcessor = output;
             this.Length = length;
-            output.WriteInt(length);
+            PngCodec.CreatePngProcessor(output).WriteInt(length);
 
             try
             {
                 this.InternalReading = true;
-                var processor = PngCodec.CreatePngProcessor(this);
                 this.Name = name;
-                processor.WriteInt((int)name);
+                PngCodec.CreatePngProcessor(this).WriteInt((int)name);
             }
             finally
             {
                 this.InternalReading = false;
             }
 
-        }
-
-        public override void Flush()
-        {
-            throw new NotSupportedException();
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotSupportedException();
         }
 
         public override void SetLength(long value)
@@ -101,16 +68,15 @@ namespace Giselle.Imaging.Codec.Png
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (this.InternalReading == false)
+            int length;
+
+            if (this.InternalReading == true)
             {
-                count = Math.Min(count, (int)(this.Length - this.Position));
+                length = this.BaseStream.Read(buffer, offset, count);
             }
-
-            var length = this.BaseProcessor.Read(buffer, offset, count);
-
-            if (this.InternalReading == false)
+            else
             {
-                this._Position += length;
+                length = base.Read(buffer, offset, count);
             }
 
             this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, buffer, offset, length);
@@ -120,11 +86,14 @@ namespace Giselle.Imaging.Codec.Png
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            this.BaseProcessor.Write(buffer, offset, count);
-
-            if (this.InternalReading == false)
+            if (this.InternalReading == true)
             {
-                this._Position += count;
+                this.BaseStream.Write(buffer, offset, count);
+            }
+            else
+            {
+                base.Write(buffer, offset, count);
+
             }
 
             this.AccumulatingCRC = CRCUtils.AccumulateCRC32(this.AccumulatingCRC, buffer, offset, count);
@@ -132,13 +101,12 @@ namespace Giselle.Imaging.Codec.Png
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             var ccrc = CRCUtils.FinalizeCalculateCRC32(this.AccumulatingCRC);
+            var baseProcessor = PngCodec.CreatePngProcessor(this.BaseStream);
 
-            if (this.Mode == PngChunkStreamMode.Read)
+            if (this.ReadingMode == true)
             {
-                var rcrc = this.BaseProcessor.ReadUInt();
+                var rcrc = baseProcessor.ReadUInt();
 
                 if (this.IgnoreCRC == false && ccrc != rcrc)
                 {
@@ -146,11 +114,12 @@ namespace Giselle.Imaging.Codec.Png
                 }
 
             }
-            else if (this.Mode == PngChunkStreamMode.Write)
+            else
             {
-                this.BaseProcessor.WriteUInt(ccrc);
+                baseProcessor.WriteUInt(ccrc);
             }
 
+            base.Dispose(disposing);
         }
 
     }

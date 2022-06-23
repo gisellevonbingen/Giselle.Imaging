@@ -128,6 +128,8 @@
     <Compile Include="Algorithms\Huffman\HuffmanStream.cs" />
     <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="IO\WrappedByteStream.cs" />
+    <Compile Include="IO\InternalStream.cs" />
+    <Compile Include="IO\WrappedStream.cs" />
     <Compile Include="Physical\IPhysicalValue.cs" />
     <Compile Include="Physical\PhysicalDensity.cs" />
     <Compile Include="Argb32.cs" />

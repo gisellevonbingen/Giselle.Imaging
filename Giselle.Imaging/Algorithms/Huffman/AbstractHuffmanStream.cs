@@ -18,7 +18,7 @@ namespace Giselle.Imaging.Algorithms.Huffman
 
         }
 
-        protected AbstractHuffmanStream(Stream baseStream, bool leaveOpen) : base(null, leaveOpen)
+        protected AbstractHuffmanStream(Stream baseStream, bool leaveOpen) : base(baseStream, leaveOpen)
         {
             this.BitBaseStream = new BitStream(baseStream, leaveOpen);
         }
@@ -94,6 +94,10 @@ namespace Giselle.Imaging.Algorithms.Huffman
 
             base.Dispose(disposing);
         }
+
+        public override long Length => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
 
     }
 

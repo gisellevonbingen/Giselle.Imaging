@@ -59,7 +59,7 @@ namespace Giselle.Imaging.Codec.Png
 
             while (true)
             {
-                using (var chunkStream = new PngChunkStream(processor))
+                using (var chunkStream = new PngChunkStream(input))
                 {
                     try
                     {
@@ -421,7 +421,7 @@ namespace Giselle.Imaging.Codec.Png
             var processor = PngCodec.CreatePngProcessor(output);
             processor.WriteBytes(PngCodec.Signature);
 
-            this.WriteChunk(processor, PngChunkName.IHDR, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.IHDR, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.Width);
                 chunkProcessor.WriteInt(this.Height);
@@ -434,7 +434,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ICCProfile != null)
             {
-                this.WriteChunk(processor, PngChunkName.iCCP, chunkProcessor =>
+                this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytesWith0(Encoding.ASCII.GetBytes("ICC Profile"));
                     chunkProcessor.WriteByte(0);
@@ -448,17 +448,17 @@ namespace Giselle.Imaging.Codec.Png
 
             }
 
-            this.WriteChunk(processor, PngChunkName.sRGB, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.sRGB, chunkProcessor =>
             {
                 chunkProcessor.WriteByte(this.RenderingIntent);
             });
 
-            this.WriteChunk(processor, PngChunkName.gAMA, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.gAMA, chunkProcessor =>
             {
                 chunkProcessor.WriteBytes(this.ImageGamma);
             });
 
-            this.WriteChunk(processor, PngChunkName.pHYs, chunkProcessor =>
+            this.WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.XPixelsPerUnit);
                 chunkProcessor.WriteInt(this.YPixelsPerUnit);
@@ -467,7 +467,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ColorType == PngColorType.IndexedColor)
             {
-                this.WriteChunk(processor, PngChunkName.PLTE, chunkProcessor =>
+                this.WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
                 {
                     foreach (var color in this.RgbTable)
                     {
@@ -479,7 +479,7 @@ namespace Giselle.Imaging.Codec.Png
 
                 if (ColorTableUtils.RequireWriteAlphaTable(this.AlphaTable) == true)
                 {
-                    this.WriteChunk(processor, PngChunkName.tRNS, chunkProcessor =>
+                    this.WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
                     {
                         foreach (var alpha in this.AlphaTable)
                         {
@@ -492,7 +492,7 @@ namespace Giselle.Imaging.Codec.Png
 
             foreach (var chunk in this.ExtraChunks)
             {
-                this.WriteChunk(processor, chunk.Name, chunkProcessor =>
+                this.WriteChunk(output, chunk.Name, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(chunk.Payload);
                 });
@@ -504,16 +504,16 @@ namespace Giselle.Imaging.Codec.Png
 
             for (var len = 0; (len = this.CompressedScanData.Read(buffer, 0, buffer.Length)) > 0;)
             {
-                this.WriteChunk(processor, PngChunkName.IDAT, chunkProcessor =>
+                this.WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(buffer);
                 });
             }
 
-            this.WriteChunk(processor, PngChunkName.IEND, chunkProcessor => { });
+            this.WriteChunk(output, PngChunkName.IEND, chunkProcessor => { });
         }
 
-        private void WriteChunk(DataProcessor output, PngChunkName name, Action<DataProcessor> action)
+        private void WriteChunk(Stream output, PngChunkName name, Action<DataProcessor> action)
         {
             using (var ms = new MemoryStream())
             {

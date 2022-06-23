@@ -164,14 +164,9 @@ namespace Giselle.Imaging.IO
             }
 
             base.Dispose(disposing);
-
         }
 
-        public override bool CanRead => this.BaseStream.CanRead;
-
         public override bool CanSeek => false;
-
-        public override bool CanWrite => this.BaseStream.CanWrite;
 
         public override long Length => throw new NotSupportedException();
 
