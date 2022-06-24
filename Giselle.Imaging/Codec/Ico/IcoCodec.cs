@@ -39,7 +39,7 @@ namespace Giselle.Imaging.Codec.Ico
         public string GetExtension(IcoImageType type)
         {
             if (type == IcoImageType.Icon) return "ico";
-            else if (type == IcoImageType.Icon) return "cur";
+            else if (type == IcoImageType.Cursor) return "cur";
             else return string.Empty;
         }
 
@@ -58,14 +58,13 @@ namespace Giselle.Imaging.Codec.Ico
 
         public override ImageArgb32Container Read(Stream input)
         {
-            var rawContainer = new IcoRawContainer(input);
+            var rawContainer = new IcoContainer(input);
             return rawContainer.Decode();
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
         {
-            var rawContainer = new IcoRawContainer(container, options.CastOrDefault<IcoSaveOptions>());
-            rawContainer.Write(output);
+            throw new NotSupportedException();
         }
 
     }

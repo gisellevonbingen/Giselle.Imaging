@@ -506,7 +506,7 @@ namespace Giselle.Imaging.Codec.Png
             {
                 this.WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
                 {
-                    chunkProcessor.WriteBytes(buffer);
+                    chunkProcessor.Write(buffer, 0, len);
                 });
             }
 

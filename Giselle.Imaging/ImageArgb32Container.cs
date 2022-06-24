@@ -9,7 +9,7 @@ using Giselle.Imaging.Codec;
 
 namespace Giselle.Imaging
 {
-    public class ImageArgb32Container : IList<ImageArgb32Frame>
+    public class ImageArgb32Container : IImageArgb32, IList<ImageArgb32Frame>
     {
         private readonly List<ImageArgb32Frame> _Frames;
 
@@ -21,11 +21,11 @@ namespace Giselle.Imaging
             this._Frames = new List<ImageArgb32Frame>();
         }
 
-        public ImageArgb32Container(ImageArgb32Frame singleFrame) : this()
+        public ImageArgb32Container(ImageArgb32Frame primaryFrame) : this()
         {
-            this.Add(singleFrame);
-            this.PrimaryCodec = singleFrame.PrimaryCodec;
-            this.PrimaryOptions = singleFrame.PrimaryOptions;
+            this.Add(primaryFrame);
+            this.PrimaryCodec = primaryFrame.PrimaryCodec;
+            this.PrimaryOptions = primaryFrame.PrimaryOptions;
         }
 
         public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);

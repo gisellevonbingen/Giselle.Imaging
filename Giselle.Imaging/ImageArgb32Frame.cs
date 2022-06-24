@@ -12,7 +12,7 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging
 {
-    public class ImageArgb32Frame
+    public class ImageArgb32Frame : IImageArgb32
     {
         public int Width { get; }
         public int Height { get; }
@@ -41,12 +41,6 @@ namespace Giselle.Imaging
             this.Resolution = new PhysicalDensity(96.0D, PhysicalUnit.Inch);
             this._Colors = new Lazy<IEnumerable<Argb32>>(() => new ImageEnumerable<Argb32>(this, s => s.Frame[s.X, s.Y]));
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Frame, s.X, s.Y)));
-        }
-
-        public ImageArgb32Frame(ImageArgb32Frame other, int width, int height) : this(width, height)
-        {
-            this.PrimaryCodec = other.PrimaryCodec;
-            this.PrimaryOptions = other.PrimaryOptions;
         }
 
         public ImageArgb32Frame(int width, int height) : this()

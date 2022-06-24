@@ -21,6 +21,10 @@ namespace Giselle.Imaging
 
         public static Argb32 operator ^(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)(b1 ^ b2));
 
+        public static Argb32 operator &(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)(b1 & b2));
+
+        public static Argb32 operator |(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)(b1 | b2));
+
         public static Argb32 operator +(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)Math.Min(b1 + b2, byte.MaxValue));
 
         public static Argb32 operator -(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)Math.Max(b1 - b2, byte.MinValue));

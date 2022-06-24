@@ -10,6 +10,7 @@ using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.Codec.Jpeg;
 using Giselle.Imaging.Codec.Ico;
+using Giselle.Imaging.Codec.Ani;
 
 namespace Giselle.Imaging.Codec
 {
@@ -34,6 +35,7 @@ namespace Giselle.Imaging.Codec
             Register(TiffCodec.Instance);
             Register(JpegCodec.Instance);
             Register(IcoCodec.Instance);
+            Register(AniCodec.Instance);
         }
 
         public static ImageCodec FindCodec(Stream input)

@@ -8,7 +8,7 @@ using Giselle.Imaging.Codec.Png;
 
 namespace Giselle.Imaging.Codec.Ico
 {
-    public class IcoRawFramePng : IcoRawFrame
+    public class IcoFramePng : IcoFrame
     {
         public PngRawImage Frame { get; set; }
 
@@ -16,7 +16,7 @@ namespace Giselle.Imaging.Codec.Ico
         public override int Height => this.Frame.Height;
         public override int BitsPerPixel => this.Frame.PixelFormat.GetBitsPerPixel();
 
-        public IcoRawFramePng()
+        public IcoFramePng()
         {
 
         }

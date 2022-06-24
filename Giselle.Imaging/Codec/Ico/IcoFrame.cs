@@ -4,16 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Codec.Ico
 {
-    public abstract class IcoRawFrame
+    public abstract class IcoFrame
     {
+        public PointI Hotspot { get; set; }
+
         public abstract int Width { get; }
         public abstract int Height { get; }
         public abstract int BitsPerPixel { get; }
 
-        public IcoRawFrame()
+        public IcoFrame()
         {
 
         }

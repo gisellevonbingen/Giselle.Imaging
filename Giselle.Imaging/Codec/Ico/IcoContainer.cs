@@ -5,35 +5,32 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Codec.Bmp;
 using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.Drawable;
 using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Ico
 {
-    public class IcoRawContainer
+    public class IcoContainer
     {
         public IcoImageType Type { get; set; } = IcoImageType.Icon;
-        public List<IcoRawFrame> Frames { get; } = new List<IcoRawFrame>();
-        public List<PointI> CursorHotspots { get; } = new List<PointI>();
+        public List<IcoFrame> Frames { get; } = new List<IcoFrame>();
 
-        public IcoRawContainer()
+        public IcoContainer()
         {
 
         }
 
-        public IcoRawContainer(Stream input) : this()
+        public IcoContainer(Stream input) : this()
         {
             this.Read(input);
         }
 
-        public IcoRawContainer(ImageArgb32Container container, IcoSaveOptions options) : this()
-        {
-            this.Encode(container, options);
-        }
-
         public void Read(Stream input)
         {
+            this.Frames.Clear();
+
             var processor = IcoCodec.CreateIcoProcessor(input);
             var reserved = processor.ReadShort();
 
@@ -60,7 +57,6 @@ namespace Giselle.Imaging.Codec.Ico
             }
 
             this.Frames.Clear();
-            this.CursorHotspots.Clear();
 
             for (var i = 0; i < infos.Count; i++)
             {
@@ -70,26 +66,21 @@ namespace Giselle.Imaging.Codec.Ico
 
                 using (var ms = new MemoryStream(processor.ReadBytes(info.DataSize)))
                 {
-                    IcoRawFrame frame;
+                    IcoFrame frame;
                     var pngCodec = PngCodec.Instance;
 
                     if (pngCodec.Test(ms) == true)
                     {
-                        frame = new IcoRawFramePng();
+                        frame = new IcoFramePng();
                     }
                     else
                     {
-                        frame = new IcoRawFrameBmp();
+                        frame = new IcoFrameBmp();
                     }
 
+                    frame.Hotspot = type == IcoImageType.Cursor ? new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop } : default;
                     frame.ReadFrame(ms, info);
                     this.Frames.Add(frame);
-
-                    if (type == IcoImageType.Cursor)
-                    {
-                        this.CursorHotspots.Add(new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop });
-                    }
-
                 }
 
             }
@@ -98,44 +89,9 @@ namespace Giselle.Imaging.Codec.Ico
 
         public ImageArgb32Container Decode()
         {
-            var container = new ImageArgb32Container()
-            {
-                PrimaryCodec = IcoCodec.Instance,
-                PrimaryOptions = new IcoSaveOptions() { Type = this.Type, CursorHotspots = this.CursorHotspots.ToArray() },
-            };
+            var container = new ImageArgb32Container() { PrimaryCodec = IcoCodec.Instance };
             container.AddRange(this.Frames.Select(f => f.Decode()));
             return container;
-        }
-
-        public void Encode(ImageArgb32Container container, IcoSaveOptions options)
-        {
-            this.Type = options.Type;
-            this.Frames.Clear();
-            this.CursorHotspots.Clear();
-
-            for (var i = 0; i < container.Count; i++)
-            {
-                var frame = container[i];
-                IcoRawFrame rawFrame;
-
-                if (options.Type == IcoImageType.Icon)
-                {
-                    rawFrame = new IcoRawFramePng();
-                }
-                else if (options.Type == IcoImageType.Cursor)
-                {
-                    rawFrame = new IcoRawFrameBmp();
-                    this.CursorHotspots.Add(options.CursorHotspots.TryGet(i, out var cursor) ? cursor : default);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException($"Unknown type: {options.Type}");
-                }
-
-                rawFrame.EncodeFrame(frame);
-                this.Frames.Add(rawFrame);
-            }
-
         }
 
         public void Write(Stream output)
@@ -158,28 +114,20 @@ namespace Giselle.Imaging.Codec.Ico
 
                 if (this.Type == IcoImageType.Icon)
                 {
-                    if (frame is IcoRawFramePng)
-                    {
-
-                    }
-                    else if (frame is IcoRawFrameBmp)
-                    {
-                        info.IconColorPlanes = 0;
-                        info.IconBitsPerPixel = (short)frame.BitsPerPixel;
-                    }
-
+                    info.IconColorPlanes = 1;
+                    info.IconBitsPerPixel = (short)frame.BitsPerPixel;
                 }
                 else if (this.Type == IcoImageType.Cursor)
                 {
-                    this.CursorHotspots.TryGet(i, out PointI hotspot);
+                    var hotspot = frame.Hotspot;
                     info.CursorHotspotLeft = (short)hotspot.X;
                     info.CursorHotspotTop = (short)hotspot.Y;
-                    this.CursorHotspots.Add(new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop });
                 }
 
                 var frameStream = new MemoryStream();
                 frame.Write(frameStream, info);
                 frameStream.Position = 0L;
+
                 info.DataOffset = (int)streamsOffset;
                 info.DataSize = (int)frameStream.Length;
                 streamsOffset += frameStream.Length;

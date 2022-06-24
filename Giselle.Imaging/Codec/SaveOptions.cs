@@ -6,8 +6,17 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec
 {
-    public class SaveOptions
+    public abstract class SaveOptions
     {
+        public SaveOptions()
+        {
+
+        }
+
+        public SaveOptions(SaveOptions other)
+        {
+
+        }
 
     }
 

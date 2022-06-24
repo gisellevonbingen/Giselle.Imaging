@@ -14,11 +14,11 @@ namespace Giselle.Imaging.Codec.Bmp
     public class BmpRawImage
     {
         public const int InfoSize_WindowsV3 = 40;
-        public const int InfoSize_WindowsV4 = InfoSize_WindowsV3 + BitsFieldLength; // 108
+        public const int InfoSize_WindowsV4 = InfoSize_WindowsV3 + BitFieldsLength; // 108
         public const int InfoSize_WindowsV5 = InfoSize_WindowsV4 + 16; //124
         public const int InfoSize_AVIBMP = 68;
 
-        public const int BitsFieldLength = 68;
+        public const int BitFieldsLength = 68;
 
         public short Reserved1 { get; set; }
         public short Reserved2 { get; set; }
@@ -50,7 +50,7 @@ namespace Giselle.Imaging.Codec.Bmp
             this.Encode(frame, options);
         }
 
-        public int InfoSize => InfoSize_WindowsV3 + (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitsFieldLength : 0);
+        public int InfoSize => InfoSize_WindowsV3 + (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitFieldsLength : 0);
 
         public int Stride => ScanProcessor.GetStride4(this.Width, (short)this.BitsPerPixel);
 
@@ -138,7 +138,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         }
 
-        public void ReadScanData(DataProcessor processor)
+        public virtual void ReadScanData(DataProcessor processor)
         {
             var stride = this.Stride;
             this.ScanData = new byte[this.Height * stride];
@@ -154,7 +154,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         }
 
-        public ImageArgb32Frame Decode()
+        public virtual ImageArgb32Frame Decode()
         {
             var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
 
@@ -179,7 +179,7 @@ namespace Giselle.Imaging.Codec.Bmp
             return image;
         }
 
-        public void Encode(ImageArgb32Frame frame, BmpSaveOptions options)
+        public virtual void Encode(ImageArgb32Frame frame, BmpSaveOptions options)
         {
             this.Width = frame.Width;
             this.Height = frame.Height;
@@ -266,6 +266,8 @@ namespace Giselle.Imaging.Codec.Bmp
             this.WriteScanData(processor);
         }
 
+        public virtual int CompressionSize => (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitFieldsLength : 0) + (this.ColorTable.Length * 4) + this.ScanData.Length;
+
         public void WriteInfoBeforeGap1(DataProcessor processor)
         {
             var colorTable = this.ColorTable;
@@ -273,7 +275,7 @@ namespace Giselle.Imaging.Codec.Bmp
             processor.WriteShort(1); // Planes, Must be 1
             processor.WriteShort((short)this.BitsPerPixel);
             processor.WriteInt((int)this.CompressionMethod);
-            processor.WriteInt(0);
+            processor.WriteInt(this.CompressionSize);
             processor.WriteInt(this.WidthPixelsPerMeter);
             processor.WriteInt(this.HeightPixelsPerMeter);
             processor.WriteInt(colorTable.Length);
@@ -305,7 +307,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         }
 
-        public void WriteScanData(DataProcessor processor)
+        public virtual void WriteScanData(DataProcessor processor)
         {
             var stride = this.Stride;
 

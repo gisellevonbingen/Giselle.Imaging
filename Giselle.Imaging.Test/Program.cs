@@ -8,7 +8,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
+using Giselle.Imaging.Codec.Ani;
 using Giselle.Imaging.Codec.ICC;
+using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
@@ -149,7 +151,7 @@ namespace Giselle.Imaging.Test
                     var codec = ImageCodecs.FindCodec(inputBytes);
                     var container = ImageCodecs.FromBytes(inputBytes);
                     SaveContainerEachFrames(outputDir, fileName, container);
-                    SaveContainer(outputDir, fileName, container);
+                    SaveContainer(inputBytes, outputDir, fileName, container);
                 }
                 catch (Exception ex)
                 {
@@ -161,9 +163,35 @@ namespace Giselle.Imaging.Test
 
         }
 
-        public static void SaveContainer(string outputDir, string fileName, ImageArgb32Container container)
+        public static void SaveContainer(byte[] inputBytes, string outputDir, string fileName, ImageArgb32Container container)
         {
-            SaveImageAsPrimary($"{outputDir}/{fileName}", container);
+            var outputFileName = $"{outputDir}/{fileName}";
+
+            if (container.PrimaryCodec is IcoCodec icoCodec)
+            {
+                var ico = new IcoContainer(new MemoryStream(inputBytes));
+
+                using (var fs = new FileStream($"{outputFileName}.{icoCodec.GetExtension(ico.Type)}", FileMode.Create))
+                {
+                    ico.Write(fs);
+                }
+
+            }
+            else if (container.PrimaryCodec is AniCodec aniCodec)
+            {
+                var ani = new AniContainer(new MemoryStream(inputBytes));
+
+                using (var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create))
+                {
+                    ani.Write(fs);
+                }
+
+            }
+            else
+            {
+                SaveImageAsPrimary(outputFileName, container);
+            }
+
         }
 
         public static void SaveContainerEachFrames(string outputDir, string fileName, ImageArgb32Container container)
@@ -176,8 +204,8 @@ namespace Giselle.Imaging.Test
                 Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
 
                 var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
-                SaveImageAsPng(outputPath, frame);
-                //SaveImageAsPrimary(outputPath, frame);
+                //SaveImageAsPng(outputPath, frame);
+                SaveImageAsPrimary(outputPath, frame);
             }
 
         }

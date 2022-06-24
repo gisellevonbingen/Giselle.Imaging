@@ -8,6 +8,14 @@ namespace Giselle.Imaging.Codec.TIff
 {
     public class TiffSaveOptions : SaveOptions
     {
+        public TiffSaveOptions()
+        {
+        }
+
+        public TiffSaveOptions(TiffSaveOptions other) : base(other)
+        {
+
+        }
 
     }
 

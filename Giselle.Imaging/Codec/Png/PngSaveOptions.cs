@@ -12,6 +12,20 @@ namespace Giselle.Imaging.Codec.Png
         public byte BitDepth { get; set; } = 0;
         public CommonCompressionLevel CompressionLevel { get; set; } = CommonCompressionLevel.BestSpeed;
         public byte Interlace { get; set; } = 0;
+
+        public PngSaveOptions()
+        {
+
+        }
+
+        public PngSaveOptions(PngSaveOptions other) : base(other)
+        {
+            this.ColorType = other.ColorType;
+            this.BitDepth = other.BitDepth;
+            this.CompressionLevel = other.CompressionLevel;
+            this.Interlace = other.Interlace;
+        }
+
     }
 
 }

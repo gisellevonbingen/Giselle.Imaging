@@ -10,6 +10,18 @@ namespace Giselle.Imaging.Codec.Bmp
     {
         public BmpBitsPerPixel BitsPerPixel { get; set; } = BmpBitsPerPixel.Undefined;
         public BmpCompressionMethod? Compression { get; set; } = null;
+
+        public BmpSaveOptions()
+        {
+
+        }
+
+        public BmpSaveOptions(BmpSaveOptions other) : base(other)
+        {
+            this.BitsPerPixel = other.BitsPerPixel;
+            this.Compression = other.Compression;
+        }
+
     }
 
 }

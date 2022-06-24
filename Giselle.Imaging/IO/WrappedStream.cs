@@ -127,21 +127,6 @@ namespace Giselle.Imaging.IO
 
         }
 
-        public bool TryGetLength(out long length)
-        {
-            try
-            {
-                length = this.Length;
-                return true;
-            }
-            catch
-            {
-                length = default;
-                return false;
-            }
-
-        }
-
     }
 
 }

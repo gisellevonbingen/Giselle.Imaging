@@ -56,8 +56,9 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
+            var frame = container.FirstOrDefault();
             var options = _options.CastOrDefault<BmpSaveOptions>();
-            var raw = new BmpRawImage(container.FirstOrDefault(), options);
+            var raw = new BmpRawImage(frame, options);
             raw.Write(output);
         }
 
