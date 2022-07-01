@@ -18,13 +18,13 @@ namespace Giselle.Imaging.Codec.Bmp
         public const int SignatureLength = 2;
 
         public static BmpCodec Instance { get; } = new BmpCodec();
-        public static IList<byte> SignatureBM { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x4D });
-        public static IList<byte> SignatureBA { get; } = Array.AsReadOnly(new byte[] { 0x42, 0x41 });
-        public static IList<byte> SignatureCI { get; } = Array.AsReadOnly(new byte[] { 0x43, 0x49 });
-        public static IList<byte> SignatureCP { get; } = Array.AsReadOnly(new byte[] { 0x43, 0x50 });
-        public static IList<byte> SignatureIC { get; } = Array.AsReadOnly(new byte[] { 0x49, 0x43 });
-        public static IList<byte> SignaturePT { get; } = Array.AsReadOnly(new byte[] { 0x50, 0x54 });
-        public static IList<IList<byte>> Signatures { get; } = Array.AsReadOnly(new IList<byte>[] { SignatureBM, SignatureBA, SignatureCI, SignatureCP, SignatureIC, SignaturePT });
+        public static byte[] SignatureBM { get; } = new byte[] { 0x42, 0x4D };
+        public static byte[] SignatureBA { get; } = new byte[] { 0x42, 0x41 };
+        public static byte[] SignatureCI { get; } = new byte[] { 0x43, 0x49 };
+        public static byte[] SignatureCP { get; } = new byte[] { 0x43, 0x50 };
+        public static byte[] SignatureIC { get; } = new byte[] { 0x49, 0x43 };
+        public static byte[] SignaturePT { get; } = new byte[] { 0x50, 0x54 };
+        public static IList<byte[]> Signatures { get; } = new List<byte[]> { SignatureBM, SignatureBA, SignatureCI, SignatureCP, SignatureIC, SignaturePT }.AsReadOnly();
 
         public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 

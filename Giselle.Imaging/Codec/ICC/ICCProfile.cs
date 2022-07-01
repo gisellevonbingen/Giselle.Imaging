@@ -176,8 +176,8 @@ namespace Giselle.Imaging.Codec.ICC
             processor.WriteInt((int)this.RenderingIntent);
             this.PSCIlluminant.Write(processor);
             processor.WriteInt(this.Creator.ToASCIIInt32(isLittleEndian));
-            processor.WriteBytes(this.ID.TakeFixSize(0, IDLength));
-            processor.WriteBytes(this.Reserveds.TakeFixSize(0, ReservedsLength));
+            processor.WriteBytes(this.ID.TakeFixSize(0, IDLength).ToArray());
+            processor.WriteBytes(this.Reserveds.TakeFixSize(0, ReservedsLength).ToArray());
 
             processor.WriteInt(rawTags.Count);
 

@@ -229,13 +229,12 @@ namespace Giselle.Imaging.Codec.Png
             else if (type.Equals(PngChunkName.PLTE) == true)
             {
                 var colorTable = new List<Argb32>();
+                var rgb = new byte[3];
 
                 while (chunkProcessor.Position < chunkProcessor.Length)
                 {
-                    var r = chunkProcessor.ReadByte();
-                    var g = chunkProcessor.ReadByte();
-                    var b = chunkProcessor.ReadByte();
-                    var color = new Argb32(r, g, b);
+                    chunkProcessor.ReadBytes(rgb);
+                    var color = new Argb32(rgb[0], rgb[1], rgb[2]);
                     colorTable.Add(color);
                 }
 
@@ -294,21 +293,11 @@ namespace Giselle.Imaging.Codec.Png
                 }
                 else if (this.ColorType == PngColorType.Truecolor)
                 {
-                    var r = chunkProcessor.ReadShort();
-                    var g = chunkProcessor.ReadShort();
-                    var b = chunkProcessor.ReadShort();
+                    var rgb = chunkProcessor.ReadBytes(3);
                 }
                 else if (this.ColorType == PngColorType.IndexedColor)
                 {
-                    var alphaTable = new List<byte>();
-
-                    while (chunkProcessor.Position < chunkProcessor.Length)
-                    {
-                        var a = chunkProcessor.ReadByte();
-                        alphaTable.Add(a);
-                    }
-
-                    this.AlphaTable = alphaTable.ToArray();
+                    this.AlphaTable = chunkProcessor.ReadBytes(chunkProcessor.Length - chunkProcessor.Position);
                 }
 
             }
@@ -469,11 +458,14 @@ namespace Giselle.Imaging.Codec.Png
             {
                 this.WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
                 {
+                    var rgb = new byte[3];
+
                     foreach (var color in this.RgbTable)
                     {
-                        chunkProcessor.WriteByte(color.R);
-                        chunkProcessor.WriteByte(color.G);
-                        chunkProcessor.WriteByte(color.B);
+                        rgb[0] = color.R;
+                        rgb[1] = color.G;
+                        rgb[2] = color.B;
+                        chunkProcessor.WriteBytes(rgb);
                     }
                 });
 
@@ -481,10 +473,7 @@ namespace Giselle.Imaging.Codec.Png
                 {
                     this.WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
                     {
-                        foreach (var alpha in this.AlphaTable)
-                        {
-                            chunkProcessor.WriteByte(alpha);
-                        }
+                        chunkProcessor.WriteBytes(this.AlphaTable);
                     });
                 }
 

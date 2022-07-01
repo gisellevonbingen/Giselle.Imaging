@@ -72,11 +72,7 @@ namespace Giselle.Imaging.Codec.Ico
 
             for (var y = this.Height - 1; y > -1; y--)
             {
-                for (var x = 0; x < stride; x++)
-                {
-                    this.AndScanData[y * stride + x] = processor.ReadByte();
-                }
-
+                processor.Read(this.AndScanData, y * stride, stride);
             }
 
         }

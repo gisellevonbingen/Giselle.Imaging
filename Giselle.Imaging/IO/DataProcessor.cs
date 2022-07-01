@@ -40,13 +40,10 @@ namespace Giselle.Imaging.IO
 
         public virtual long Remain { get { return this.Length - this.Position; } }
 
-        public virtual void Write(byte[] bytes, int offset, int count)
+        public virtual void Write(byte[] buffer, int offset, int count)
         {
-            for (var i = 0; i < count; i++)
-            {
-                this.WriteByte(bytes[offset + i]);
-            }
-
+            this.BaseStream.Write(buffer, offset, count);
+            this.WriteLength += count;
         }
 
         public virtual void WriteByte(byte value)
@@ -58,13 +55,6 @@ namespace Giselle.Imaging.IO
         public virtual void WriteBytes(byte[] value)
         {
             this.Write(value, 0, value.Length);
-        }
-        public virtual void WriteBytes(IEnumerable<byte> value)
-        {
-            foreach (var b in value)
-            {
-                this.WriteByte(b);
-            }
         }
         public virtual void WriteSByte(sbyte value)
         {
@@ -141,28 +131,14 @@ namespace Giselle.Imaging.IO
             this.WriteBytes(bytes);
         }
 
-        public virtual int Read(byte[] bytes, int offset, int count)
+        public virtual int Read(byte[] buffer, int offset, int count)
         {
-            int length = 0;
-
-            for (var i = 0; i < count; i++)
-            {
-                if (this.ReadByte(out var data) == true)
-                {
-                    bytes[offset + i] = data;
-                    length++;
-                }
-                else
-                {
-                    break;
-                }
-
-            }
-
+            var length = this.BaseStream.Read(buffer, offset, count);
+            this.ReadLength += length;
             return length;
         }
 
-        public virtual bool ReadByte(out byte data)
+        public virtual bool TryReadByte(out byte data)
         {
             var d = this.BaseStream.ReadByte();
 
@@ -182,7 +158,7 @@ namespace Giselle.Imaging.IO
 
         public virtual byte ReadByte()
         {
-            if (this.ReadByte(out var data) == true)
+            if (this.TryReadByte(out var data) == true)
             {
                 return data;
             }
@@ -217,11 +193,7 @@ namespace Giselle.Imaging.IO
 
         public virtual void ReadBytes(byte[] bytes)
         {
-            for (var i = 0; i < bytes.Length; i++)
-            {
-                bytes[i] = this.ReadByte();
-            }
-
+            this.Read(bytes, 0, bytes.Length);
         }
 
         public virtual sbyte ReadSByte()

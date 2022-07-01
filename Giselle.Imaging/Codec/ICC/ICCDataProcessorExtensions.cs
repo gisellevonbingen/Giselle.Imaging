@@ -11,19 +11,14 @@ namespace Giselle.Imaging.Codec.ICC
     {
         public static Version ReadVersion(this DataProcessor processor)
         {
-            var major = processor.ReadByte();
-            var minor = processor.ReadByte();
-            var build = processor.ReadByte();
-            var revision = processor.ReadByte();
-            return new Version(major, minor, build, revision);
+            var bytes = processor.ReadBytes(4);
+            return new Version(bytes[0], bytes[1], bytes[2], bytes[3]);
         }
 
         public static void WriteVersion(this DataProcessor processor, Version version)
         {
-            processor.WriteByte((byte)version.Major);
-            processor.WriteByte((byte)version.Minor);
-            processor.WriteByte((byte)version.Build);
-            processor.WriteByte((byte)version.Revision);
+            var bytes = new byte[4] { (byte)version.Major, (byte)version.Minor, (byte)version.Build, (byte)version.Revision };
+            processor.WriteBytes(bytes);
         }
 
         public static float ReadS15Fixed16(this DataProcessor processor)

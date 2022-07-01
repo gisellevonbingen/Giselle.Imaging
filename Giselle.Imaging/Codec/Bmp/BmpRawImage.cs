@@ -125,13 +125,12 @@ namespace Giselle.Imaging.Codec.Bmp
 
             if (colorsUsed > 0)
             {
+                var bgr = new byte[4];
+
                 for (var i = 0; i < colorsUsed; i++)
                 {
-                    var b = processor.ReadByte();
-                    var g = processor.ReadByte();
-                    var r = processor.ReadByte();
-                    var _ = processor.ReadByte();
-                    this.ColorTable[i] = new Argb32(r, g, b);
+                    processor.ReadBytes(bgr);
+                    this.ColorTable[i] = new Argb32(bgr[2], bgr[1], bgr[0]);
                 }
 
             }
@@ -145,11 +144,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
             for (var y = this.Height - 1; y > -1; y--)
             {
-                for (var x = 0; x < stride; x++)
-                {
-                    this.ScanData[y * stride + x] = processor.ReadByte();
-                }
-
+                processor.Read(this.ScanData, y * stride, stride);
             }
 
         }
@@ -294,13 +289,16 @@ namespace Giselle.Imaging.Codec.Bmp
 
             if (colorTable.Length > 0)
             {
+                var bgra = new byte[4];
+                bgra[3] = byte.MaxValue;
+
                 for (var i = 0; i < colorTable.Length; i++)
                 {
                     var color = colorTable[i];
-                    processor.WriteByte(color.B);
-                    processor.WriteByte(color.G);
-                    processor.WriteByte(color.R);
-                    processor.WriteByte(byte.MaxValue);
+                    bgra[0] = color.B;
+                    bgra[1] = color.G;
+                    bgra[2] = color.R;
+                    processor.WriteBytes(bgra);
                 }
 
             }
@@ -313,11 +311,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
             for (var y = this.Height - 1; y > -1; y--)
             {
-                for (var x = 0; x < stride; x++)
-                {
-                    processor.WriteByte(this.ScanData[y * stride + x]);
-                }
-
+                processor.Write(this.ScanData, y * stride, stride);
             }
 
         }
