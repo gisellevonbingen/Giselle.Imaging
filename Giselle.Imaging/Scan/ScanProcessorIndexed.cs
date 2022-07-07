@@ -15,6 +15,21 @@ namespace Giselle.Imaging.Scan
 
         }
 
+        public Argb32[] GetColorTableWitFallback(ScanData scan) => this.GetColorTableWitFallback(scan.ColorTable, scan.BitsPerPixel);
+
+        public Argb32[] GetColorTableWitFallback(Argb32[] original, int bitsPerPixel)
+        {
+            if (original.Length == 0 && bitsPerPixel == 1)
+            {
+                return new Argb32[] { Argb32.Black, Argb32.White };
+            }
+            else
+            {
+                return original;
+            }
+
+        }
+
         public override void Read(ScanData input, byte[] formatScan)
         {
             var mask = 0;
@@ -28,6 +43,7 @@ namespace Giselle.Imaging.Scan
                 mask |= 1 << i;
             }
 
+            var colorTable = this.GetColorTableWitFallback(input);
             var passProcessor = new InterlacePassProcessor(input);
             var index = 0;
 
@@ -53,7 +69,7 @@ namespace Giselle.Imaging.Scan
                             var offset = (y * formatStride) + (x * dpp);
                             var shift = bpp * (ppb - 1 - bi);
                             var tableIndex = (b >> shift) & mask;
-                            var color = input.ColorTable[tableIndex];
+                            var color = colorTable[tableIndex];
                             formatScan[offset + 0] = color.B;
                             formatScan[offset + 1] = color.G;
                             formatScan[offset + 2] = color.R;
@@ -80,6 +96,7 @@ namespace Giselle.Imaging.Scan
                 maskBase |= 1 << i;
             }
 
+            var colorTable = this.GetColorTableWitFallback(output);
             var passProcessor = new InterlacePassProcessor(output);
             var index = 0;
 
@@ -103,7 +120,7 @@ namespace Giselle.Imaging.Scan
                             }
 
                             var color = this.GetFormatColor(formatScan, formatStride, x, y);
-                            var tableIndex = Array.IndexOf(output.ColorTable, color);
+                            var tableIndex = Array.IndexOf(colorTable, color);
 
                             if (tableIndex == -1)
                             {
