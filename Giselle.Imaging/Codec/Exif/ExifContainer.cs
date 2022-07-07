@@ -12,9 +12,9 @@ namespace Giselle.Imaging.Codec.Exif
     public class ExifContainer
     {
         public const int SignatureLength = 2;
-        public static IList<byte> SignatureLittleEndian { get; } = Array.AsReadOnly(new byte[SignatureLength] { 0x49, 0x49 });
-        public static IList<byte> SignatureBigEndian { get; } = Array.AsReadOnly(new byte[SignatureLength] { 0x4D, 0x4D });
-        public static IList<IList<byte>> Signatures { get; } = Array.AsReadOnly(new IList<byte>[] { SignatureLittleEndian, SignatureBigEndian });
+        public static byte[] SignatureLittleEndian { get; } = new byte[SignatureLength] { 0x49, 0x49 };
+        public static byte[] SignatureBigEndian { get; } = new byte[SignatureLength] { 0x4D, 0x4D };
+        public static IList<byte[]> Signatures { get; } = new List<byte[]>() { SignatureLittleEndian, SignatureBigEndian }.AsReadOnly();
 
         public const short EndianChecker = 0x002A;
 
