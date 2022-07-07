@@ -204,8 +204,8 @@ namespace Giselle.Imaging.Test
                 Console.WriteLine($"{logPrefix}unique colors = " + frame.Colors.Distinct().Count());
 
                 var outputPath = $"{outputDir}/{fileName}{fileSuffix}";
-                //SaveImageAsPng(outputPath, frame);
-                SaveImageAsPrimary(outputPath, frame);
+                SaveImageAsPng(outputPath, frame);
+                //SaveImageAsPrimary(outputPath, frame);
             }
 
         }
@@ -248,7 +248,7 @@ namespace Giselle.Imaging.Test
         {
             using (var outputStream = new FileStream(path + ".png", FileMode.Create))
             {
-                frame.ToBitmap().Save(outputStream, ImageFormat.Png);
+                PngCodec.Instance.Write(outputStream, frame, new PngSaveOptions() { });
             }
 
         }

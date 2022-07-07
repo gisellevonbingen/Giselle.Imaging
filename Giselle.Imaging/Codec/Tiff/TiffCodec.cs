@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.TIff;
-using Giselle.Imaging.Collections;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
+using Ionic.Zlib;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
@@ -88,72 +86,87 @@ namespace Giselle.Imaging.Codec.Tiff
             }
 
             var subFile = new TiffSubfile(directory.Entries);
-            var sampleCount = subFile.SamplesPerPixel;
             var bitsPerPixel = subFile.BitsPerPixel;
             var stride = ScanProcessor.GetBytesPerWidth(subFile.Width, bitsPerPixel);
             var scan = new ScanData(subFile.Width, subFile.Height, bitsPerPixel) { Stride = stride, Scan = new byte[stride * subFile.Height], ColorTable = subFile.ColorMap };
 
             var offsets = subFile.StripOffsets;
             var counts = subFile.StripByteCounts;
-            var predictor = subFile.Predictor;
-            var rows = subFile.RowsPerStrip;
             var photometricInterpretation = subFile.PhotometricInterpretation;
 
             for (var i = 0; i < offsets.Length; i++)
             {
                 var offset = offsets[i];
                 var count = counts[i];
+                var compression = subFile.Compression;
                 input.Position = offset + origin;
 
-                if (subFile.Compression == ExifCompressionMethod.LZW)
+                using (var ds = CreateDecompressStream(input, compression, true))
                 {
-                    using (var lzw = new ExifLZWStream(input, ExifLZWCompressionMode.Decompress, true))
-                    {
-                        for (var j = 0; j < rows; j++)
-                        {
-                            var samples = new byte[sampleCount];
-
-                            for (var k = 0; k < stride; k++)
-                            {
-                                var sampleIndex = k % subFile.SamplesPerPixel;
-                                var sample = lzw.ReadByte();
-
-                                if (sample == -1)
-                                {
-                                    break;
-                                }
-                                else if (predictor == ExifPredictor.NoPrediction)
-                                {
-                                    samples[sampleIndex] = (byte)sample;
-                                }
-                                else if (predictor == ExifPredictor.HorizontalDifferencing)
-                                {
-                                    samples[sampleIndex] = (byte)(samples[sampleIndex] + sample);
-                                }
-                                else
-                                {
-
-                                }
-
-                                var scanIndex = (rows * stride * i) + (stride * j) + k;
-                                scan.Scan[scanIndex] = samples[sampleIndex];
-                                //Console.WriteLine(scanIndex);
-                            }
-
-                        }
-
-                    }
-
-                }
-                else
-                {
-
+                    this.Decompress(subFile, stride, scan.Scan, i, ds);
                 }
 
             }
 
             var processor = subFile.GetScanProcessor();
             return new ImageArgb32Frame(scan, processor) { PrimaryCodec = this, PrimaryOptions = new TiffSaveOptions() { } };
+        }
+
+        private Stream CreateDecompressStream(Stream input, ExifCompressionMethod compression, bool leavOpen)
+        {
+            if (compression == ExifCompressionMethod.LZW)
+            {
+                return new ExifLZWStream(input, ExifLZWCompressionMode.Decompress, leavOpen);
+            }
+            else if (compression == ExifCompressionMethod.Deflate)
+            {
+                return new ZlibStream(input, CompressionMode.Decompress, leavOpen);
+            }
+            else
+            {
+                throw new NotSupportedException($"Not Supported Compression Method : {compression}");
+            }
+
+        }
+
+        private void Decompress(TiffSubfile subFile, int stride, byte[] scan, int stripIndex, Stream input)
+        {
+            var sampleCount = subFile.SamplesPerPixel;
+            var predictor = subFile.Predictor;
+            var rows = subFile.RowsPerStrip;
+
+            for (var j = 0; j < rows; j++)
+            {
+                var samples = new byte[sampleCount];
+
+                for (var k = 0; k < stride; k++)
+                {
+                    var sampleIndex = k % sampleCount;
+                    var sample = input.ReadByte();
+
+                    if (sample == -1)
+                    {
+                        break;
+                    }
+                    else if (predictor == ExifPredictor.Undefined || predictor == ExifPredictor.NoPrediction)
+                    {
+                        samples[sampleIndex] = (byte)sample;
+                    }
+                    else if (predictor == ExifPredictor.HorizontalDifferencing)
+                    {
+                        samples[sampleIndex] = (byte)(samples[sampleIndex] + sample);
+                    }
+                    else
+                    {
+                        throw new InvalidDataException($"Unknown Predictor : {predictor}");
+                    }
+
+                    var scanIndex = (rows * stride * stripIndex) + (stride * j) + k;
+                    scan[scanIndex] = samples[sampleIndex];
+                    //Console.WriteLine(scanIndex);
+                }
+
+            }
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
