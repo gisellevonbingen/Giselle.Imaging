@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Giselle.Imaging.Algorithms.LZW;
 using Giselle.Imaging.IO;
 
-namespace Giselle.Imaging.Codec.Exif
+namespace Giselle.Imaging.Codec.Tiff
 {
-    public class ExifLZWStream : WrappedByteStream
+    public class TiffLZWStream : WrappedByteStream
     {
         public const int ClearCode = 256;
         public const int EoiCode = 257;
@@ -24,21 +24,21 @@ namespace Giselle.Imaging.Codec.Exif
         }
 
         protected readonly BitStream BaseBitStream;
-        protected readonly ExifLZWCompressionMode Mode;
+        protected readonly TiffLZWCompressionMode Mode;
         protected readonly LZWProcessor Processor;
 
         protected int ReadingDataKey { get; private set; } = -1;
         protected IReadOnlyList<byte> ReadingData { get; private set; } = new byte[0];
         protected int ReadingPosition { get; private set; } = 0;
 
-        public ExifLZWStream(Stream baseStream, ExifLZWCompressionMode mode) : this(baseStream, mode, false)
+        public TiffLZWStream(Stream baseStream, TiffLZWCompressionMode mode) : this(baseStream, mode, false)
         {
 
         }
 
-        public ExifLZWStream(Stream baseStream, ExifLZWCompressionMode mode, bool leaveOpen) : base(baseStream, leaveOpen)
+        public TiffLZWStream(Stream baseStream, TiffLZWCompressionMode mode, bool leaveOpen) : base(baseStream, leaveOpen)
         {
-            if (mode == ExifLZWCompressionMode.Compress)
+            if (mode == TiffLZWCompressionMode.Compress)
             {
                 if (baseStream.CanWrite == false)
                 {
@@ -46,7 +46,7 @@ namespace Giselle.Imaging.Codec.Exif
                 }
 
             }
-            else if (mode == ExifLZWCompressionMode.Decompress)
+            else if (mode == TiffLZWCompressionMode.Decompress)
             {
                 if (baseStream.CanRead == false)
                 {
@@ -59,16 +59,16 @@ namespace Giselle.Imaging.Codec.Exif
             this.Mode = mode;
             this.Processor = new LZWProcessor(TableOffset);
 
-            if (mode == ExifLZWCompressionMode.Compress)
+            if (mode == TiffLZWCompressionMode.Compress)
             {
                 this.WriteKey(ClearCode);
             }
 
         }
 
-        public override bool CanRead => base.CanRead && this.Mode == ExifLZWCompressionMode.Decompress;
+        public override bool CanRead => base.CanRead && this.Mode == TiffLZWCompressionMode.Decompress;
 
-        public override bool CanWrite => base.CanWrite && this.Mode == ExifLZWCompressionMode.Compress;
+        public override bool CanWrite => base.CanWrite && this.Mode == TiffLZWCompressionMode.Compress;
 
         public override bool CanSeek => false;
 
@@ -178,7 +178,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         protected override void Dispose(bool disposing)
         {
-            if (this.Mode == ExifLZWCompressionMode.Compress)
+            if (this.Mode == TiffLZWCompressionMode.Compress)
             {
                 this.WriteCode(-1);
                 this.WriteKey(EoiCode);

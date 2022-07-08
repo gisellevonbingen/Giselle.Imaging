@@ -15,7 +15,7 @@ namespace Giselle.Imaging.Codec.Tiff
         public int Height { get; set; }
         public int[] BitsPerSample { get; set; } = new int[0];
         public int SamplesPerPixel { get; set; }
-        public ExifCompressionMethod Compression { get; set; }
+        public TiffCompressionMethod Compression { get; set; }
         public ExifPhotometricInterpretation PhotometricInterpretation { get; set; }
         public int[] StripOffsets { get; set; } = new int[0];
         public int[] StripByteCounts { get; set; } = new int[0];
@@ -71,7 +71,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (tagId == ExifTagId.Compression)
             {
-                this.Compression = (ExifCompressionMethod)value.AsNumbers().AsSigned;
+                this.Compression = (TiffCompressionMethod)value.AsNumbers().AsSigned;
             }
             else if (tagId == ExifTagId.PhotometricInterpretation)
             {

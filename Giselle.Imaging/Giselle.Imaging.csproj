@@ -54,12 +54,12 @@
     <Compile Include="Codec\Bmp\BmpSaveOptions.cs" />
     <Compile Include="Codec\CommonCompressionLevel.cs" />
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
-    <Compile Include="Codec\Exif\ExifCompressionMethod.cs" />
+    <Compile Include="Codec\Tiff\TiffCompressionMethod.cs" />
     <Compile Include="Codec\Exif\ExifContainer.cs" />
     <Compile Include="Codec\Exif\ExifEntry.cs" />
     <Compile Include="Codec\Exif\ExifImageFileDirectory.cs" />
-    <Compile Include="Codec\Exif\ExifLZWCompressionMode.cs" />
-    <Compile Include="Codec\Exif\ExifLZWStream.cs" />
+    <Compile Include="Codec\Tiff\TiffLZWCompressionMode.cs" />
+    <Compile Include="Codec\Tiff\TiffLZWStream.cs" />
     <Compile Include="Codec\Exif\ExifPhotometricInterpretation.cs" />
     <Compile Include="Codec\Exif\ExifPredictor.cs" />
     <Compile Include="Codec\Exif\ExifRational.cs" />
@@ -101,9 +101,9 @@
     <Compile Include="Codec\Riff\RiffChunkStream.cs" />
     <Compile Include="Codec\Riff\RiffInputStream.cs" />
     <Compile Include="Codec\Riff\TypeKeyExtensions.cs" />
-    <Compile Include="Codec\Tiff\ExifValueSBytes.cs" />
+    <Compile Include="Codec\Exif\ExifValueSBytes.cs" />
     <Compile Include="Codec\Exif\ExifValueShorts.cs" />
-    <Compile Include="Codec\Tiff\ExifValueSLongs.cs" />
+    <Compile Include="Codec\Exif\ExifValueSLongs.cs" />
     <Compile Include="Codec\Exif\ExifValueSShorts.cs" />
     <Compile Include="Codec\Exif\ExifValueType.cs" />
     <Compile Include="Codec\ICC\ICCColorSpaceType.cs" />
@@ -145,6 +145,7 @@
     <Compile Include="Algorithms\Huffman\HuffmanStream.cs" />
     <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="IO\MergedStream.cs" />
+    <Compile Include="IO\SiphonStream.cs" />
     <Compile Include="IO\StreamExtensions.cs" />
     <Compile Include="IO\WrappedByteStream.cs" />
     <Compile Include="IO\InternalStream.cs" />

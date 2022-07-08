@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Giselle.Imaging.Codec.Exif
+namespace Giselle.Imaging.Codec.Tiff
 {
-    public enum ExifCompressionMethod : ushort
+    public enum TiffCompressionMethod : ushort
     {
         Undefined = 0,
         NoCompression = 1,
-        HuffmanRLE = 2,
+        ModifiedHuffman = 2,
         T4Encoding = 3,
         T6Encoding = 4,
         LZW = 5,
