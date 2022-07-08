@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.Exif;
-using Giselle.Imaging.Codec.TIff;
+using Giselle.Imaging.Codec.Tiff;
+using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
 using Ionic.Zlib;
 
@@ -101,7 +102,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 var compression = subFile.Compression;
                 input.Position = offset + origin;
 
-                using (var ds = CreateDecompressStream(input, compression, true))
+                using (var ds = CreateDecompressStream(input, compression, i, count, true))
                 {
                     this.Decompress(subFile, stride, scan.Scan, i, ds);
                 }
@@ -112,15 +113,24 @@ namespace Giselle.Imaging.Codec.Tiff
             return new ImageArgb32Frame(scan, processor) { PrimaryCodec = this, PrimaryOptions = new TiffSaveOptions() { } };
         }
 
-        private Stream CreateDecompressStream(Stream input, ExifCompressionMethod compression, bool leavOpen)
+        private Stream CreateDecompressStream(Stream input, TiffCompressionMethod compression, int stripIndex, int stripLength, bool leaveOpen)
         {
-            if (compression == ExifCompressionMethod.LZW)
+            if (compression == TiffCompressionMethod.Undefined || compression == TiffCompressionMethod.NoCompression)
             {
-                return new ExifLZWStream(input, ExifLZWCompressionMode.Decompress, leavOpen);
+                return new SiphonStream(input, stripLength, true, leaveOpen);
             }
-            else if (compression == ExifCompressionMethod.Deflate)
+            else if (compression == TiffCompressionMethod.T4Encoding)
             {
-                return new ZlibStream(input, CompressionMode.Decompress, leavOpen);
+                throw new NotImplementedException();
+                return new SiphonStream(input, stripLength, true, leaveOpen);
+            }
+            else if (compression == TiffCompressionMethod.LZW)
+            {
+                return new TiffLZWStream(input, TiffLZWCompressionMode.Decompress, leaveOpen);
+            }
+            else if (compression == TiffCompressionMethod.Deflate)
+            {
+                return new ZlibStream(input, CompressionMode.Decompress, leaveOpen);
             }
             else
             {

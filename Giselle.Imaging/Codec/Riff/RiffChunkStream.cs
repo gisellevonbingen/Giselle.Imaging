@@ -30,8 +30,6 @@ namespace Giselle.Imaging.Codec.Riff
 
         public override long Length => this._Length;
 
-        public override void SetLength(long value) => throw new NotSupportedException();
-
     }
 
 }

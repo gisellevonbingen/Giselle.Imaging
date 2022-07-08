@@ -85,6 +85,11 @@ namespace Giselle.Imaging.IO
 
         }
 
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
     }
 
 }

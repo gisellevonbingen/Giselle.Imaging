@@ -61,11 +61,6 @@ namespace Giselle.Imaging.Codec.Png
 
         }
 
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
-        }
-
         public override int Read(byte[] buffer, int offset, int count)
         {
             int length;
