@@ -231,7 +231,7 @@ namespace Giselle.Imaging.Codec.Png
                 var colorTable = new List<Argb32>();
                 var rgb = new byte[3];
 
-                while (chunkProcessor.Position < chunkProcessor.Length)
+                while (chunkProcessor.Remain > 0)
                 {
                     chunkProcessor.ReadBytes(rgb);
                     var color = new Argb32(rgb[0], rgb[1], rgb[2]);
@@ -297,7 +297,7 @@ namespace Giselle.Imaging.Codec.Png
                 }
                 else if (this.ColorType == PngColorType.IndexedColor)
                 {
-                    this.AlphaTable = chunkProcessor.ReadBytes(chunkProcessor.Length - chunkProcessor.Position);
+                    this.AlphaTable = chunkProcessor.ReadBytes(chunkProcessor.Remain);
                 }
 
             }

@@ -36,9 +36,15 @@ namespace Giselle.Imaging.IO
             set { this.BaseStream.Position = value; }
         }
 
+        public virtual bool TryGetPosition(out long position) => this.BaseStream.TryGetPosition(out position);
+
         public virtual long Length { get { return this.BaseStream.Length; } }
 
-        public virtual long Remain { get { return this.Length - this.Position; } }
+        public virtual bool TryGetLength(out long length) => this.BaseStream.TryGetLength(out length);
+
+        public virtual long Remain { get { return this.BaseStream.GetRemain(); } }
+
+        public virtual bool TryGetRemain(out long remain) => this.BaseStream.TryGetRemain(out remain);
 
         public virtual void Write(byte[] buffer, int offset, int count)
         {

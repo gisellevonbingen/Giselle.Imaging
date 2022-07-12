@@ -23,7 +23,7 @@ namespace Giselle.Imaging.Codec.Riff
             this.FormType = input.ReadInt();
             this.Children.Clear();
 
-            while (input.Position < input.Length)
+            while (input.Remain > 0)
             {
                 this.Children.Add(ReadChunk(input.BaseStream));
             }

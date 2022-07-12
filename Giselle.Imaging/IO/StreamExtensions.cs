@@ -9,6 +9,23 @@ namespace Giselle.Imaging.IO
 {
     public static class StreamExtensions
     {
+        public static long GetRemain(this Stream stream) => stream.Length - stream.Position;
+
+        public static bool TryGetRemain(this Stream stream, out long remain)
+        {
+            if (stream.TryGetPosition(out var position) == true && stream.TryGetLength(out var length) == true)
+            {
+                remain = length - position;
+                return true;
+            }
+            else
+            {
+                remain = 0L;
+                return false;
+            }
+
+        }
+
         public static bool TrySetPosition(this Stream stream, long position)
         {
             try
