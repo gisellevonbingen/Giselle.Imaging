@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Tga
 {
-    public enum TgaImageType : byte
+    public enum TgaPixelFormat : byte
     {
         NoImage = 0,
-        ColorMapped = 1,
-        TrueColor = 2,
-        Grayscale = 3,
+
+        Bpp8Grayscale = 1,
+        Bpp16AGrayscale = 2,
+
+        Bpp24Rgb = 3,
+        Bpp32Argb = 4,
     }
 
 }

@@ -16,12 +16,13 @@ namespace Giselle.Imaging.Codec.Tga
         public const int ImageSpecificationLength = 10;
 
         public static BitVector32.Section DescriptorAlphaChannelSection { get; private set; } = BitVector32.CreateSection(0x0F);
-        public const int DescriptorFlipXBitOffset = 4;
-        public const int DescriptorFlipYBitOffset = 4;
+        public const int DescriptorFlipXBitMask = 0b00010000;
+        public const int DescriptorFlipYBitMask = 0b00100000;
 
         public byte IDLength { get; set; }
         public byte ColorMapType { get; set; }
         public TgaImageType ImageType { get; set; }
+        public bool Compression { get; set; }
 
         public ushort ColorMapFirstEntryOffset { get; set; }
         public ushort ColorMapLength { get; set; }
@@ -51,7 +52,9 @@ namespace Giselle.Imaging.Codec.Tga
             var processor = TgaCodec.CreateTgaProcessor(input);
             this.IDLength = processor.ReadByte();
             this.ColorMapType = processor.ReadByte();
-            this.ImageType = (TgaImageType)processor.ReadByte();
+            var imageType = processor.ReadByte();
+            this.ImageType = (TgaImageType)(imageType & 0x07);
+            this.Compression = (imageType & 0x08) == 0x08;
 
             // ColorMap Spec
             this.ColorMapFirstEntryOffset = processor.ReadUShort();
@@ -72,7 +75,7 @@ namespace Giselle.Imaging.Codec.Tga
             var processor = TgaCodec.CreateTgaProcessor(output);
             processor.WriteByte(this.IDLength);
             processor.WriteByte(this.ColorMapType);
-            processor.WriteByte((byte)this.ImageType);
+            processor.WriteByte((byte)(((byte)this.ImageType & 0x07) |(this.Compression ? 0x08 : 0x00)));
 
             // ColorMap Spec
             processor.WriteUShort(this.ColorMapFirstEntryOffset);
@@ -104,9 +107,9 @@ namespace Giselle.Imaging.Codec.Tga
 
         public byte AlphaChannelBits { get => (byte)this._Descriptor[DescriptorAlphaChannelSection]; set => this._Descriptor[DescriptorAlphaChannelSection] = value; }
 
-        public bool FlipX { get => this._Descriptor[DescriptorFlipXBitOffset]; set => this._Descriptor[DescriptorFlipXBitOffset] = value; }
+        public bool FlipX { get => this._Descriptor[DescriptorFlipXBitMask]; set => this._Descriptor[DescriptorFlipXBitMask] = value; }
 
-        public bool FlipY { get => this._Descriptor[DescriptorFlipYBitOffset]; set => this._Descriptor[DescriptorFlipYBitOffset] = value; }
+        public bool FlipY { get => this._Descriptor[DescriptorFlipYBitMask]; set => this._Descriptor[DescriptorFlipYBitMask] = value; }
 
     }
 

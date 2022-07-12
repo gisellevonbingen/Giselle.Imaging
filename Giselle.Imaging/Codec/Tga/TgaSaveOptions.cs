@@ -8,8 +8,10 @@ namespace Giselle.Imaging.Codec.Tga
 {
     public class TgaSaveOptions : SaveOptions
     {
-        public byte PixelDepth { get; set; } = 32;
-        public TgaImageType ImageType { get; set; } = TgaImageType.RunLengthEncodedTrueColor;
+        public TgaPixelFormat PixelFormat { get; set; } = TgaPixelFormat.Bpp32Argb;
+        public bool Compression { get; set; } = true;
+        public bool FlipX { get; set; } = false;
+        public bool FlipY { get; set; } = false;
 
         public TgaSaveOptions()
         {

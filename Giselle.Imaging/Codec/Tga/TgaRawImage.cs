@@ -16,33 +16,23 @@ namespace Giselle.Imaging.Codec.Tga
         public ushort Height { get; set; }
         public byte PixelDepth { get; set; }
         public int Stride => ScanProcessor.GetStride(this.Width, this.PixelDepth, 1);
+        public TgaPixelFormat TgaPixelFormat
+        {
+            get => this.ImageType.ToTgaPixelFormat(this.AlphaBits);
+            set => (this.ImageType, this.AlphaBits) = value.ToTgaImageType();
+        }
         public PixelFormat PixelFormat
         {
-            get
-            {
-                var depth = this.PixelDepth;
-                if (depth == 8) return PixelFormat.Format8bppIndexed;
-                else if (depth == 15) return PixelFormat.Format16bppRgb555;
-                else if (depth == 16) return PixelFormat.Format16bppRgb565;
-                else if (depth == 24) return PixelFormat.Format24bppRgb888;
-                else if (depth == 32) return PixelFormat.Format32bppArgb8888;
-                else throw new ArgumentOutOfRangeException();
-            }
-
-            set
-            {
-                if (value == PixelFormat.Format8bppIndexed) this.PixelDepth = 8;
-                else if (value == PixelFormat.Format16bppRgb555) this.PixelDepth = 15;
-                else if (value == PixelFormat.Format16bppRgb565) this.PixelDepth = 16;
-                else if (value == PixelFormat.Format24bppRgb888) this.PixelDepth = 24;
-                else if (value == PixelFormat.Format32bppArgb8888) this.PixelDepth = 32;
-                else throw new ArgumentOutOfRangeException();
-            }
-
+            get => this.TgaPixelFormat.ToPixelFormat();
+            set => this.TgaPixelFormat = value.ToTgaPixelFormat();
         }
 
-        public byte[] UncompressedScan { get; set; }
         public TgaImageType ImageType { get; set; }
+        public bool Compression { get; set; }
+        public byte AlphaBits { get; set; }
+        public bool FlipX { get; set; }
+        public bool FlipY { get; set; }
+        public byte[] UncompressedScan { get; set; }
 
         public TgaRawImage()
         {
@@ -66,19 +56,19 @@ namespace Giselle.Imaging.Codec.Tga
             this.Height = header.Height;
             this.PixelDepth = header.PixelDepth;
             this.ImageType = header.ImageType;
-            var stride = this.Stride;
+            this.Compression = header.Compression;
+            this.AlphaBits = header.AlphaChannelBits;
+            this.FlipX = header.FlipX;
+            this.FlipY = header.FlipY;
 
+            var stride = this.Stride;
             var processor = TgaCodec.CreateTgaProcessor(input);
             var id = processor.ReadBytes(header.IDLength);
             var colorMap = processor.ReadBytes(header.ColorMapLength * header.ColorMapEntrySize);
 
             this.UncompressedScan = new byte[stride * this.Height];
 
-            if (this.ImageType == TgaImageType.NoImage)
-            {
-
-            }
-            else if (this.ImageType.HasFlag(TgaImageType.RunLengthEncodedFlag) == true)
+            if (this.Compression == true)
             {
                 var bytesPerPixel = stride / this.Width;
                 var scanOffset = 0;
@@ -116,6 +106,8 @@ namespace Giselle.Imaging.Codec.Tga
 
         }
 
+        public CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(this.FlipX, !this.FlipY);
+
         public virtual ImageArgb32Frame Decode()
         {
             var format = this.PixelFormat;
@@ -124,18 +116,12 @@ namespace Giselle.Imaging.Codec.Tga
             var width = this.Width;
             var height = this.Height;
             var stride = this.Stride;
-            var flippedScan = new byte[this.UncompressedScan.Length];
 
-            for (var i = 0; i < height; i++)
-            {
-                Array.Copy(this.UncompressedScan, stride * (height - 1 - i), flippedScan, stride * i, stride);
-            }
-
-            var scanData = new ScanData(width, height, format.GetBitsPerPixel()) { Stride = stride, Scan = flippedScan };
+            var scanData = new ScanData(width, height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, CoordTransformer = this.GetCoordTransformer() };
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = TgaCodec.Instance,
-                PrimaryOptions = new TgaSaveOptions() { PixelDepth = this.PixelDepth, ImageType = this.ImageType },
+                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, FlipX = this.FlipX, FlipY = this.FlipY},
             };
             return image;
         }
@@ -144,53 +130,45 @@ namespace Giselle.Imaging.Codec.Tga
         {
             this.Width = (ushort)frame.Width;
             this.Height = (ushort)frame.Height;
-            this.PixelDepth = options.PixelDepth;
-            this.ImageType = options.ImageType;
+            this.TgaPixelFormat = options.PixelFormat;
+            this.Compression = options.Compression;
+            this.FlipX = options.FlipX;
+            this.FlipY = options.FlipY;
 
             var stride = this.Stride;
-
-            var flippedScan = new byte[stride * this.Height];
+            this.UncompressedScan = new byte[stride * this.Height];
             var format = this.PixelFormat;
-            var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = flippedScan };
+            var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, CoordTransformer = this.GetCoordTransformer() };
             var scanProcessor = ScanProcessor.GetScanProcessor(format);
             scanProcessor.Write(scanData, frame.Scan);
-
-            this.UncompressedScan = new byte[stride * this.Height];
-
-            for (var i = 0; i < this.Height; i++)
-            {
-                Array.Copy(flippedScan, stride * (this.Height - 1 - i), this.UncompressedScan, stride * i, stride);
-            }
 
         }
 
         public void Write(Stream output)
         {
-            var stride = this.Stride;
             new TgaRawHeader()
             {
                 Width = this.Width,
                 Height = this.Height,
                 PixelDepth = this.PixelDepth,
                 ImageType = this.ImageType,
+                Compression = this.Compression,
 
                 IDLength = 0,
                 ColorMapLength = 0,
 
-                AlphaChannelBits = (byte)(this.PixelDepth == 32 ? 0x08 : 0x00),
+                FlipX = this.FlipX,
+                FlipY = this.FlipY,
+                AlphaChannelBits = this.AlphaBits,
             }.Write(output);
 
             var processor = TgaCodec.CreateTgaProcessor(output);
             processor.WriteBytes(new byte[0]); // ID
             processor.WriteBytes(new byte[0]); // ColorMap
 
-            if (this.ImageType == TgaImageType.NoImage)
+            if (this.Compression == true)
             {
-
-            }
-            else if (this.ImageType.HasFlag(TgaImageType.RunLengthEncodedFlag) == true)
-            {
-                var bytesPerPixel = stride / this.Width;
+                var bytesPerPixel = this.Stride / this.Width;
                 var scanOffset = 0;
 
                 while (true)

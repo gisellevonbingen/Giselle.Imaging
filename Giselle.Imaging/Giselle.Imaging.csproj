@@ -57,6 +57,8 @@
     <Compile Include="Codec\Tga\TgaCodec.cs" />
     <Compile Include="Codec\Tga\TgaColorMapTypeKind.cs" />
     <Compile Include="Codec\Tga\TgaImageType.cs" />
+    <Compile Include="Codec\Tga\TgaPixelFormat.cs" />
+    <Compile Include="Codec\Tga\TgaPixelFormatExtensions.cs" />
     <Compile Include="Codec\Tga\TgaRawHeader.cs" />
     <Compile Include="Codec\Tga\TgaRawImage.cs" />
     <Compile Include="Codec\Tga\TgaSaveOptions.cs" />
