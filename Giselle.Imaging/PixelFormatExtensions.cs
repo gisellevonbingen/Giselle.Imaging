@@ -56,6 +56,9 @@ namespace Giselle.Imaging
                 case PixelFormat.Format4bppIndexed: return 4;
                 case PixelFormat.Format8bppIndexed: return 8;
 
+                case PixelFormat.Format8bppGrayscale: return 8;
+                case PixelFormat.Format16bppAGrayscale: return 16;
+
                 case PixelFormat.Format16bppRgb555: return 16;
                 case PixelFormat.Format16bppRgb565: return 16;
                 case PixelFormat.Format16bppArgb1555: return 16;

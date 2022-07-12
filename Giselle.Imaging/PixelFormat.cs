@@ -14,15 +14,19 @@ namespace Giselle.Imaging
         Format2bppIndexed = 2,
         Format4bppIndexed = 3,
         Format8bppIndexed = 4,
-        
-        Format16bppRgb555 = 10,
-        Format16bppRgb565 = 11,
-        Format16bppArgb1555 = 12,
 
-        Format24bppRgb888 = 20,
+        Format8bppGrayscale = 10,
+        Format16bppAGrayscale = 11,
 
-        Format32bppRgb888 = 30,
-        Format32bppArgb8888 = 31,
+        Format16bppRgb555 = 20,
+        Format16bppRgb565 = 21,
+        Format16bppArgb1555 = 22,
+
+        Format24bppRgb888 = 30,
+
+        Format32bppRgb888 = 40,
+        Format32bppArgb8888 = 41,
+
     }
 
 }

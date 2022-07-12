@@ -40,6 +40,14 @@ namespace Giselle.Imaging.Scan
             {
                 return ScanProcessorIndexed.Instance;
             }
+            else if (format == PixelFormat.Format8bppGrayscale)
+            {
+                return ScanProcessor8.InstanceGrayscale8;
+            }
+            else if (format == PixelFormat.Format16bppAGrayscale)
+            {
+                return ScanProcessor16.InstanceAGrayscale88;
+            }
             else if (format == PixelFormat.Format16bppRgb555)
             {
                 return ScanProcessor16.InstanceRgb555;

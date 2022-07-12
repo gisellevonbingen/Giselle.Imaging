@@ -196,6 +196,7 @@
     <Compile Include="Codec\ImageCodec.cs" />
     <Compile Include="IO\DataProcessor.cs" />
     <Compile Include="Collections\BidirectionalDictionary.cs" />
+    <Compile Include="Scan\ScanProcessor8.cs" />
     <Compile Include="Utils\BitConverter2.cs" />
     <Compile Include="Collections\EnumerableUtils.cs" />
     <Compile Include="Collections\ListExtensions.cs" />

@@ -8,6 +8,13 @@ namespace Giselle.Imaging.Scan
 {
     public class ScanProcessor16 : ScanProcessorBytesPerPixel
     {
+        public static ScanProcessor InstanceAGrayscale88 { get; } = new ScanProcessor16()
+        {
+            AMask = 0xFF00,
+            RMask = 0x00FF,
+            GMask = 0x00FF,
+            BMask = 0x00FF,
+        };
         public static ScanProcessor InstanceRgb555 { get; } = new ScanProcessor16()
         {
             RMask = 0x7C00,
