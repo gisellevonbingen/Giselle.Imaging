@@ -18,8 +18,8 @@ namespace Giselle.Imaging.Codec.Tga
         public int Stride => ScanProcessor.GetStride(this.Width, this.PixelDepth, 1);
         public TgaPixelFormat TgaPixelFormat
         {
-            get => this.ImageType.ToTgaPixelFormat(this.AlphaBits);
-            set => (this.ImageType, this.AlphaBits) = value.ToTgaImageType();
+            get => this.ImageType.ToTgaPixelFormat(this.PixelDepth, this.AlphaBits);
+            set => (this.ImageType, this.PixelDepth, this.AlphaBits) = value.ToTgaImageType();
         }
         public PixelFormat PixelFormat
         {
@@ -121,7 +121,7 @@ namespace Giselle.Imaging.Codec.Tga
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = TgaCodec.Instance,
-                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, FlipX = this.FlipX, FlipY = this.FlipY},
+                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, FlipX = this.FlipX, FlipY = this.FlipY },
             };
             return image;
         }
@@ -141,7 +141,6 @@ namespace Giselle.Imaging.Codec.Tga
             var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, CoordTransformer = this.GetCoordTransformer() };
             var scanProcessor = ScanProcessor.GetScanProcessor(format);
             scanProcessor.Write(scanData, frame.Scan);
-
         }
 
         public void Write(Stream output)

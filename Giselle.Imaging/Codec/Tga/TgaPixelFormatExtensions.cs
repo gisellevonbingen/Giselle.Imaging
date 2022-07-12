@@ -8,33 +8,33 @@ namespace Giselle.Imaging.Codec.Tga
 {
     public static class TgaPixelFormatExtensions
     {
-        public static (TgaImageType Type, byte AlphaBits) ToTgaImageType(this TgaPixelFormat value)
+        public static (TgaImageType Type, byte PixelDepth, byte AlphaBits) ToTgaImageType(this TgaPixelFormat value)
         {
             if (value == TgaPixelFormat.NoImage)
             {
-                return (TgaImageType.NoImage, 0);
+                return (TgaImageType.NoImage, 0, 0);
             }
             else if (value == TgaPixelFormat.Bpp8Grayscale)
             {
-                return (TgaImageType.Grayscale, 0);
+                return (TgaImageType.Grayscale, 8, 0);
             }
             else if (value == TgaPixelFormat.Bpp16AGrayscale)
             {
-                return (TgaImageType.Grayscale, 8);
+                return (TgaImageType.Grayscale, 16, 8);
             }
             else if (value == TgaPixelFormat.Bpp24Rgb)
             {
-                return (TgaImageType.TrueColor, 0);
+                return (TgaImageType.TrueColor, 24, 0);
             }
             else if (value == TgaPixelFormat.Bpp32Argb)
             {
-                return (TgaImageType.TrueColor, 8);
+                return (TgaImageType.TrueColor, 32, 8);
             }
 
             throw new ArgumentException($"Unknown TgaPixelFormat : {value}");
         }
 
-        public static TgaPixelFormat ToTgaPixelFormat(this TgaImageType type, byte alphaBits)
+        public static TgaPixelFormat ToTgaPixelFormat(this TgaImageType type, byte pixelDepth, byte alphaBits)
         {
             if (type == TgaImageType.NoImage)
             {
@@ -42,16 +42,16 @@ namespace Giselle.Imaging.Codec.Tga
             }
             else if (type == TgaImageType.Grayscale)
             {
-                if (alphaBits == 0) return TgaPixelFormat.Bpp8Grayscale;
-                else if (alphaBits == 8) return TgaPixelFormat.Bpp16AGrayscale;
+                if (pixelDepth == 8 && alphaBits == 0) return TgaPixelFormat.Bpp8Grayscale;
+                else if (pixelDepth == 16 && alphaBits == 8) return TgaPixelFormat.Bpp16AGrayscale;
             }
             else if (type == TgaImageType.TrueColor)
             {
-                if (alphaBits == 0) return TgaPixelFormat.Bpp24Rgb;
-                else if (alphaBits == 8) return TgaPixelFormat.Bpp32Argb;
+                if (pixelDepth == 24 && alphaBits == 0) return TgaPixelFormat.Bpp24Rgb;
+                else if (pixelDepth == 32 && alphaBits == 8) return TgaPixelFormat.Bpp32Argb;
             }
 
-            throw new ArgumentException($"Unknown ImageType, AlphaBits : {type}, {alphaBits}");
+            throw new ArgumentException($"Unknown ImageType, PixelDepth, AlphaBits : {type}, {pixelDepth}, {alphaBits}");
         }
 
         public static TgaPixelFormat ToTgaPixelFormat(this PixelFormat value)
