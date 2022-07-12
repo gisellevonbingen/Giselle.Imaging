@@ -151,8 +151,6 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public virtual ImageArgb32Frame Decode()
         {
-            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
-
             ScanProcessor scanProcessor;
 
             if (this.CompressionMethod == BmpCompressionMethod.BitFields)
@@ -164,6 +162,7 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(this.BitsPerPixel.ToPixelFormat());
             }
 
+            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = BmpCodec.Instance,
