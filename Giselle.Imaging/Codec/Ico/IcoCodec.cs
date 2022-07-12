@@ -24,7 +24,7 @@ namespace Giselle.Imaging.Codec.Ico
 
         }
 
-        public override int BytesForTest => 4;
+        public override int BytesForTest => 6;
 
         public override bool SupportMultiFrame => true;
 
@@ -48,7 +48,8 @@ namespace Giselle.Imaging.Codec.Ico
             var processor = CreateIcoProcessor(stream);
             var reserved = processor.ReadShort();
             var type = (IcoImageType)processor.ReadShort();
-            return reserved == 0 && TestType(type);
+            var frameCount = processor.ReadShort();
+            return reserved == 0 && TestType(type) && frameCount > 0;
         }
 
         public static bool TestType(IcoImageType type)
