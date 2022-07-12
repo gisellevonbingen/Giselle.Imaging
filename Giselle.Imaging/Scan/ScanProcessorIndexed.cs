@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
@@ -59,14 +60,14 @@ namespace Giselle.Imaging.Scan
 
                         for (var bi = 0; bi < ppb; bi++)
                         {
-                            (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
+                            var coord = passProcessor.GetDecodeCoord(new PointI(xi * ppb + bi, yi));
 
-                            if (x >= input.Width)
+                            if (coord.X >= input.Width)
                             {
                                 break;
                             }
 
-                            var offset = (y * formatStride) + (x * dpp);
+                            var offset = (coord.Y * formatStride) + (coord.X * dpp);
                             var shift = bpp * (ppb - 1 - bi);
                             var tableIndex = (b >> shift) & mask;
                             var color = colorTable[tableIndex];
@@ -112,19 +113,19 @@ namespace Giselle.Imaging.Scan
 
                         for (var bi = 0; bi < ppb; bi++)
                         {
-                            (var x, var y) = passProcessor.GetPosition(xi * ppb + bi, yi);
+                            var coord = passProcessor.GetEncodeCoord(new PointI(xi * ppb + bi, yi));
 
-                            if (x >= output.Width)
+                            if (coord.X >= output.Width)
                             {
                                 break;
                             }
 
-                            var color = this.GetFormatColor(formatScan, formatStride, x, y);
+                            var color = this.GetFormatColor(formatScan, formatStride, coord);
                             var tableIndex = Array.IndexOf(colorTable, color);
 
                             if (tableIndex == -1)
                             {
-                                throw new IndexOutOfRangeException($"x:{x}, y:{y}'s color #{color} is not contains in ColorTable");
+                                throw new IndexOutOfRangeException($"Coord:{coord}'s color #{color} is not contains in ColorTable");
                             }
 
                             var shift = bpp * (ppb - 1 - bi);

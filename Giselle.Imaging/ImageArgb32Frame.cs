@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
 using Giselle.Imaging.Codec.ICC;
+using Giselle.Imaging.Drawable;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 
@@ -104,6 +105,12 @@ namespace Giselle.Imaging
                 this[offset] = value;
             }
 
+        }
+
+        public Argb32 this[PointI coord]
+        {
+            get => this[coord.X, coord.Y];
+            set => this[coord.X, coord.Y] = value;
         }
 
         public Argb32[] GetColorTable(PixelFormat format)

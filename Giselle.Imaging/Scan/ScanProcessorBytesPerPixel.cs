@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
@@ -20,15 +21,15 @@ namespace Giselle.Imaging.Scan
 
         public override void Read(ScanData input, byte[] formatScan)
         {
-            this.ProcessFormat(input, formatScan, this.ReadPixel);
+            this.ProcessFormat(input, formatScan, this.ReadPixel, input.GetDecodeCoord);
         }
 
         public override void Write(ScanData output, byte[] formatScan)
         {
-            this.ProcessFormat(output, formatScan, this.WritePixel);
+            this.ProcessFormat(output, formatScan, this.WritePixel, output.GetEncodeCoord);
         }
 
-        private void ProcessFormat(ScanData scan, byte[] formatScan, Action<byte[], int, byte[], int> action)
+        private void ProcessFormat(ScanData scan, byte[] formatScan, Action<byte[], int, byte[], int> scanAction, Func<PointI, PointI> coordFunction)
         {
             var sbpp = scan.BitsPerPixel / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
@@ -45,10 +46,10 @@ namespace Giselle.Imaging.Scan
                 {
                     for (var xi = 0; xi < passInfo.PixelsX; xi++)
                     {
-                        (var x, var y) = passProcessor.GetPosition(xi, yi);
+                        var coord = coordFunction(new PointI(xi, yi));
 
-                        var formatOffset = (y * formatStirde) + (x * fbpp);
-                        action(scan.Scan, scanOffset, formatScan, formatOffset);
+                        var formatOffset = (coord.Y * formatStirde) + (coord.X * fbpp);
+                        scanAction(scan.Scan, scanOffset, formatScan, formatOffset);
                         scanOffset += sbpp;
                     }
 

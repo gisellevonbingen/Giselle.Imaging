@@ -41,7 +41,7 @@ namespace Giselle.Imaging.Codec.Ico
             xorFrame.PrimaryOptions.CastOrDefault<BmpSaveOptions>().BitsPerPixel = BmpBitsPerPixel.Bpp32Argb;
 
             var table = new Argb32[2] { Argb32.Black, Argb32.White, };
-            var scanData = new ScanData(this.Width, this.Height, (int)this.AndBitsPerPixel) { Stride = this.AndStride, Scan = this.AndScanData, ColorTable = table };
+            var scanData = new ScanData(this.Width, this.Height, (int)this.AndBitsPerPixel) { Stride = this.AndStride, Scan = this.AndScanData, ColorTable = table, CoordTransformer = this.GetCoordTransformer() };
             var scanProcessor = ScanProcessor.GetScanProcessor(this.AndBitsPerPixel.ToPixelFormat());
             var andFrame = new ImageArgb32Frame(scanData, scanProcessor);
             var hasAlpha = this.BitsPerPixel == BmpBitsPerPixel.Bpp32Argb;
@@ -67,31 +67,14 @@ namespace Giselle.Imaging.Codec.Ico
         {
             base.ReadScanData(processor);
 
-            var stride = this.AndStride;
-            this.AndScanData = new byte[this.Height * stride];
-
-            for (var y = this.Height - 1; y > -1; y--)
-            {
-                processor.Read(this.AndScanData, y * stride, stride);
-            }
-
+            this.AndScanData = processor.ReadBytes(this.Height * this.AndStride);
         }
 
         public override void WriteScanData(DataProcessor processor)
         {
             base.WriteScanData(processor);
 
-            var stride = this.AndStride;
-
-            for (var y = this.Height - 1; y > -1; y--)
-            {
-                for (var x = 0; x < stride; x++)
-                {
-                    processor.WriteByte(this.AndScanData[y * stride + x]);
-                }
-
-            }
-
+            processor.WriteBytes(this.AndScanData);
         }
 
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
@@ -120,9 +121,9 @@ namespace Giselle.Imaging.Scan
 
         public abstract void Write(ScanData output, byte[] formatScan);
 
-        public Argb32 GetFormatColor(byte[] formatScan, int formatStride, int x, int y)
+        public Argb32 GetFormatColor(byte[] formatScan, int formatStride, PointI coord)
         {
-            var offset = formatStride * y + (x * 4);
+            var offset = formatStride * coord.Y + (coord.X * 4);
             var b = formatScan[offset + 0];
             var g = formatScan[offset + 1];
             var r = formatScan[offset + 2];

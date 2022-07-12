@@ -172,6 +172,8 @@
     <Compile Include="Physical\PhysicalUnit.cs" />
     <Compile Include="Physical\PhysicalUnitUtils.cs" />
     <Compile Include="Physical\PhysicalValueUtils.cs" />
+    <Compile Include="Scan\CoordTransformer.cs" />
+    <Compile Include="Scan\CoordTransformerFlip.cs" />
     <Compile Include="Scan\Int32ChannelMask.cs" />
     <Compile Include="IO\Pipe.cs" />
     <Compile Include="IO\PipeReadStream.cs" />

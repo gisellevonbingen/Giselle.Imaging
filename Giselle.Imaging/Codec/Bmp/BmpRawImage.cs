@@ -139,14 +139,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public virtual void ReadScanData(DataProcessor processor)
         {
-            var stride = this.Stride;
-            this.ScanData = new byte[this.Height * stride];
-
-            for (var y = this.Height - 1; y > -1; y--)
-            {
-                processor.Read(this.ScanData, y * stride, stride);
-            }
-
+            this.ScanData = processor.ReadBytes(this.Height * this.Stride);
         }
 
         public virtual ImageArgb32Frame Decode()
@@ -162,7 +155,7 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(this.BitsPerPixel.ToPixelFormat());
             }
 
-            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable };
+            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = BmpCodec.Instance,
@@ -230,7 +223,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             var stride = ScanProcessor.GetStride4(frame.Width, (int)this.BitsPerPixel);
-            var scanData = new ScanData(frame.Width, frame.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[frame.Height * stride], ColorTable = this.ColorTable };
+            var scanData = new ScanData(frame.Width, frame.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[frame.Height * stride], ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
             scanProcessor.Write(scanData, frame.Scan);
             this.ScanData = scanData.Scan;
         }
@@ -261,6 +254,8 @@ namespace Giselle.Imaging.Codec.Bmp
         }
 
         public virtual int CompressionSize => (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitFieldsLength : 0) + (this.ColorTable.Length * 4) + this.ScanData.Length;
+
+        public CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(false, true);
 
         public void WriteInfoBeforeGap1(DataProcessor processor)
         {
@@ -306,13 +301,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public virtual void WriteScanData(DataProcessor processor)
         {
-            var stride = this.Stride;
-
-            for (var y = this.Height - 1; y > -1; y--)
-            {
-                processor.Write(this.ScanData, y * stride, stride);
-            }
-
+            processor.WriteBytes(this.ScanData);
         }
 
     }

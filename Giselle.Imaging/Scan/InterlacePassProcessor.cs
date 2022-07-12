@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Scan
@@ -19,23 +20,27 @@ namespace Giselle.Imaging.Scan
             this.PassIndex = -1;
         }
 
-        public (int X, int Y) GetPosition(int xi, int yi)
+        public PointI GetCoord(PointI indexCoord)
         {
             var scanData = this.ScanData;
 
             if (scanData.InterlacePasses.Length == 0)
             {
-                return (xi, yi);
+                return indexCoord;
             }
             else
             {
                 var pass = scanData.InterlacePasses[this.PassIndex];
-                var x = pass.OffsetX + pass.IntervalX * xi;
-                var y = pass.OffsetY + pass.IntervalY * yi;
-                return (x, y);
+                var x = pass.OffsetX + pass.IntervalX * indexCoord.X;
+                var y = pass.OffsetY + pass.IntervalY * indexCoord.Y;
+                return new PointI(x, y);
             }
 
         }
+
+        public PointI GetEncodeCoord(PointI indexCoord) => this.ScanData.GetEncodeCoord(this.GetCoord(indexCoord));
+
+        public PointI GetDecodeCoord(PointI indexCoord) => this.ScanData.GetDecodeCoord(this.GetCoord(indexCoord));
 
         public bool NextPass()
         {

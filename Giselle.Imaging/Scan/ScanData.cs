@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
@@ -19,6 +20,8 @@ namespace Giselle.Imaging.Scan
         public int InterlaceBlockWidth { get; set; } = 1;
         public int InterlaceBlockHeight { get; set; } = 1;
         public InterlacePass[] InterlacePasses { get; set; } = new InterlacePass[0];
+
+        public CoordTransformer CoordTransformer { get; set; } = null;
 
         public ScanData(int width, int height, int bitsPerPixel)
         {
@@ -61,6 +64,18 @@ namespace Giselle.Imaging.Scan
             var pixelsY = ScanProcessor.GetPaddedQuotient(this.Height - pass.OffsetY, pass.IntervalY);
             var stride = ScanProcessor.GetPaddedQuotient(pixelsX * this.BitsPerPixel, 8);
             return new InterlacePassInformation() { PixelsX = pixelsX, PixelsY = pixelsY, Stride = stride };
+        }
+
+        public PointI GetEncodeCoord(PointI coord)
+        {
+            var transformer = this.CoordTransformer;
+            return transformer != null ? transformer.Encode(this, coord) : coord;
+        }
+
+        public PointI GetDecodeCoord(PointI coord)
+        {
+            var transformer = this.CoordTransformer;
+            return transformer != null ? transformer.Decode(this, coord) : coord;
         }
 
     }
