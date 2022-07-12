@@ -42,11 +42,11 @@ namespace Giselle.Imaging.Scan
             }
             else if (format == PixelFormat.Format8bppGrayscale)
             {
-                return ScanProcessorMaskBpp8.InstanceGrayscale8;
+                return ScanProcessorGrayscaleBpp8.InstanceGrayscale8;
             }
             else if (format == PixelFormat.Format16bppAGrayscale)
             {
-                return ScanProcessorMaskBpp16.InstanceAGrayscale88;
+                return ScanProcessorGrayscaleBpp16.InstanceAGrayscale88;
             }
             else if (format == PixelFormat.Format16bppRgb555)
             {
@@ -117,33 +117,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public byte[] Read(ScanData input)
-        {
-            var stride = this.GetFormatStride(input.Width);
-            var scan = new byte[input.Height * stride];
-            this.Read(input, scan);
-            return scan;
-        }
+        public abstract void Read(ScanData input, ImageArgb32Frame frame);
 
-        public abstract void Read(ScanData input, byte[] formatScan);
-
-        public abstract void Write(ScanData output, byte[] formatScan);
-
-        public Argb32 GetFormatColor(byte[] formatScan, int formatStride, PointI coord)
-        {
-            var offset = formatStride * coord.Y + (coord.X * 4);
-            var b = formatScan[offset + 0];
-            var g = formatScan[offset + 1];
-            var r = formatScan[offset + 2];
-            var a = formatScan[offset + 3];
-            return new Argb32(a, r, g, b);
-        }
-
-        public int GetFormatStride(int width) => GetStride4(width, this.FormatBitsPerPixel);
-
-        public int FormatBitsPerPixel => this.FormatPixelFormat.GetBitsPerPixel();
-
-        public PixelFormat FormatPixelFormat => PixelFormat.Format32bppArgb8888;
+        public abstract void Write(ScanData output, ImageArgb32Frame frame);
 
     }
 

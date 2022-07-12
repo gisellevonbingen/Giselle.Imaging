@@ -31,13 +31,11 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public override void Read(ScanData input, byte[] formatScan)
+        public override void Read(ScanData input, ImageArgb32Frame frame)
         {
             var mask = 0;
             var bpp = input.BitsPerPixel;
             var ppb = 8 / bpp;
-            var dpp = this.FormatBitsPerPixel / 8;
-            var formatStride = this.GetFormatStride(input.Width);
 
             for (var i = 0; i < bpp; i++)
             {
@@ -67,14 +65,10 @@ namespace Giselle.Imaging.Scan
                                 break;
                             }
 
-                            var offset = (coord.Y * formatStride) + (coord.X * dpp);
                             var shift = bpp * (ppb - 1 - bi);
                             var tableIndex = (b >> shift) & mask;
                             var color = colorTable[tableIndex];
-                            formatScan[offset + 0] = color.B;
-                            formatScan[offset + 1] = color.G;
-                            formatScan[offset + 2] = color.R;
-                            formatScan[offset + 3] = color.A;
+                            frame[coord] = color;
                         }
 
                     }
@@ -85,12 +79,11 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public override void Write(ScanData output, byte[] formatScan)
+        public override void Write(ScanData output, ImageArgb32Frame frame)
         {
             var maskBase = 0;
             var bpp = output.BitsPerPixel;
             var ppb = 8 / bpp;
-            var formatStride = this.GetFormatStride(output.Width);
 
             for (var i = 0; i < bpp; i++)
             {
@@ -120,7 +113,7 @@ namespace Giselle.Imaging.Scan
                                 break;
                             }
 
-                            var color = this.GetFormatColor(formatScan, formatStride, coord);
+                            var color = frame[coord];
                             var tableIndex = Array.IndexOf(colorTable, color);
 
                             if (tableIndex == -1)

@@ -146,7 +146,11 @@ namespace Giselle.Imaging
 
         }
 
-        public byte Luminance => (byte)(this.R * 0.2126D + this.G * 0.7152D + this.B * 0.0722D);
+        public byte Grayscale
+        {
+            get => (byte)(this.R * 0.2126D + this.G * 0.7152D + this.B * 0.0722D);
+            set => (this.R, this.G, this.B) = (value, value, value);
+        }
 
         public Argb32 DeriveA(byte a) => new Argb32(a, this.R, this.G, this.B);
 

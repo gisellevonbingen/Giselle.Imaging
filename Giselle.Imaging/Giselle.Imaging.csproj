@@ -192,6 +192,9 @@
     <Compile Include="Scan\InterlacePassInformation.cs" />
     <Compile Include="Scan\InterlacePassProcessor.cs" />
     <Compile Include="Scan\InterlacePass.cs" />
+    <Compile Include="Scan\ScanProcessorGrayscaleBpp16.cs" />
+    <Compile Include="Scan\ScanProcessorGrayscaleBpp8.cs" />
+    <Compile Include="Scan\ScanProcessorInt32Mask.cs" />
     <Compile Include="Scan\ScanProcessorMaskBpp16.cs" />
     <Compile Include="Codec\Tiff\TiffSubfile.cs" />
     <Compile Include="Codec\Tiff\TiffCodec.cs" />

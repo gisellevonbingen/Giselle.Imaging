@@ -56,10 +56,10 @@ namespace Giselle.Imaging
         {
             this.Width = scanData.Width;
             this.Height = scanData.Height;
-            this.Stride = scanProcessor.GetFormatStride(this.Width);
+            this.Stride = ScanProcessor.GetStride4(this.Width, this.PixelFormat.GetBitsPerPixel());
             this.Scan = new byte[this.Height * this.Stride];
 
-            scanProcessor.Read(scanData, this.Scan);
+            scanProcessor.Read(scanData, this);
         }
 
         public PhysicalLength PrintWidth => new PhysicalLength(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);

@@ -9,32 +9,24 @@ namespace Giselle.Imaging.Scan
 {
     public abstract class ScanProcessorBytesPerPixel : ScanProcessor
     {
-        public Int32ChannelMask AMask { get; set; }
-        public Int32ChannelMask RMask { get; set; }
-        public Int32ChannelMask GMask { get; set; }
-        public Int32ChannelMask BMask { get; set; }
-
         public ScanProcessorBytesPerPixel()
         {
 
         }
 
-        public override void Read(ScanData input, byte[] formatScan)
+        public override void Read(ScanData input, ImageArgb32Frame frame)
         {
-            this.ProcessFormat(input, formatScan, this.ReadPixel, input.GetDecodeCoord);
+            this.ProcessFormat(input, frame, this.ReadPixel, input.GetDecodeCoord);
         }
 
-        public override void Write(ScanData output, byte[] formatScan)
+        public override void Write(ScanData output, ImageArgb32Frame frame)
         {
-            this.ProcessFormat(output, formatScan, this.WritePixel, output.GetEncodeCoord);
+            this.ProcessFormat(output, frame, this.WritePixel, output.GetEncodeCoord);
         }
 
-        private void ProcessFormat(ScanData scan, byte[] formatScan, Action<byte[], int, byte[], int> scanAction, Func<PointI, PointI> coordFunction)
+        private void ProcessFormat(ScanData scan, ImageArgb32Frame frame, Action<byte[], int, ImageArgb32Frame, PointI> scanAction, Func<PointI, PointI> coordFunction)
         {
             var sbpp = scan.BitsPerPixel / 8;
-            var fbpp = this.FormatBitsPerPixel / 8;
-            var formatStride = this.GetFormatStride(scan.Width);
-
             var passProcessor = new InterlacePassProcessor(scan);
             var scanOffset = 0;
 
@@ -48,8 +40,7 @@ namespace Giselle.Imaging.Scan
                     {
                         var coord = coordFunction(new PointI(xi, yi));
 
-                        var formatOffset = (coord.Y * formatStride) + (coord.X * fbpp);
-                        scanAction(scan.Scan, scanOffset, formatScan, formatOffset);
+                        scanAction(scan.Scan, scanOffset, frame, coord);
                         scanOffset += sbpp;
                     }
 
@@ -60,9 +51,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected abstract void ReadPixel(byte[] inputScan, int inputOffset, byte[] formatScan, int formatOffset);
+        protected abstract void ReadPixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord);
 
-        protected abstract void WritePixel(byte[] outputScan, int outputOffset, byte[] formatScan, int formatOffset);
+        protected abstract void WritePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord);
 
     }
 
