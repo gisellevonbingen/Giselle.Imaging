@@ -33,7 +33,7 @@ namespace Giselle.Imaging.Scan
         {
             var sbpp = scan.BitsPerPixel / 8;
             var fbpp = this.FormatBitsPerPixel / 8;
-            var formatStirde = this.GetFormatStride(scan.Width);
+            var formatStride = this.GetFormatStride(scan.Width);
 
             var passProcessor = new InterlacePassProcessor(scan);
             var scanOffset = 0;
@@ -48,7 +48,7 @@ namespace Giselle.Imaging.Scan
                     {
                         var coord = coordFunction(new PointI(xi, yi));
 
-                        var formatOffset = (coord.Y * formatStirde) + (coord.X * fbpp);
+                        var formatOffset = (coord.Y * formatStride) + (coord.X * fbpp);
                         scanAction(scan.Scan, scanOffset, formatScan, formatOffset);
                         scanOffset += sbpp;
                     }

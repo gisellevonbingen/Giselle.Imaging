@@ -146,6 +146,8 @@ namespace Giselle.Imaging
 
         }
 
+        public byte Luminance => (byte)(this.R * 0.2126D + this.G * 0.7152D + this.B * 0.0722D);
+
         public Argb32 DeriveA(byte a) => new Argb32(a, this.R, this.G, this.B);
 
         public override bool Equals(object obj) => obj is Argb32 other && this.Equals(other);

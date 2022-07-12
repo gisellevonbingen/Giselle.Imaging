@@ -6,16 +6,36 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Scan
 {
-    public class ScanProcessor24 : ScanProcessorBytesPerPixel
+    public class ScanProcessorMaskBpp16 : ScanProcessorBytesPerPixel
     {
-        public static ScanProcessor InstanceRgb888 { get; } = new ScanProcessor24()
+        public static ScanProcessor InstanceAGrayscale88 { get; } = new ScanProcessorMaskBpp16()
         {
-            RMask = 0xFF0000,
-            GMask = 0x00FF00,
-            BMask = 0x0000FF,
+            AMask = 0xFF00,
+            RMask = 0x00FF,
+            GMask = 0x00FF,
+            BMask = 0x00FF,
+        };
+        public static ScanProcessor InstanceRgb555 { get; } = new ScanProcessorMaskBpp16()
+        {
+            RMask = 0x7C00,
+            GMask = 0x03E0,
+            BMask = 0x001F,
+        };
+        public static ScanProcessor InstanceRgb565 { get; } = new ScanProcessorMaskBpp16()
+        {
+            RMask = 0xF800,
+            GMask = 0x07E0,
+            BMask = 0x001F,
+        };
+        public static ScanProcessor InstanceArgb1555 { get; } = new ScanProcessorMaskBpp16()
+        {
+            AMask = 0x8000,
+            RMask = 0x7C00,
+            GMask = 0x03E0,
+            BMask = 0x001F,
         };
 
-        public ScanProcessor24()
+        public ScanProcessorMaskBpp16()
         {
 
         }
@@ -24,8 +44,7 @@ namespace Giselle.Imaging.Scan
         {
             var b0 = inputScan[inputOffset + 0];
             var b1 = inputScan[inputOffset + 1];
-            var b2 = inputScan[inputOffset + 2];
-            var merged = (b2 << 0x10) | (b1 << 0x08) | (b0 << 0x00);
+            var merged = (b1 << 0x08) | (b0 << 0x00);
 
             formatScan[formatOffset + 0] = this.BMask.SplitByte(merged);
             formatScan[formatOffset + 1] = this.GMask.SplitByte(merged);
@@ -43,7 +62,6 @@ namespace Giselle.Imaging.Scan
 
             outputScan[outputOffset + 0] = (byte)((merged >> 0x00) & 0xFF);
             outputScan[outputOffset + 1] = (byte)((merged >> 0x08) & 0xFF);
-            outputScan[outputOffset + 2] = (byte)((merged >> 0x10) & 0xFF);
         }
 
     }
