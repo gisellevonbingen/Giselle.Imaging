@@ -47,6 +47,11 @@ namespace Giselle.Imaging
 
         }
 
+        public static bool IsColorTableLE(this PixelFormat own, PixelFormat with)
+        {
+            return own.GetColorTableLength() <= with.GetColorTableLength();
+        }
+
         public static int GetBitsPerPixel(this PixelFormat value)
         {
             switch (value)

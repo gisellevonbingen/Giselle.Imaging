@@ -7,14 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
+using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Tga
 {
     public class TgaRawImage
     {
-        public ushort Width { get; set; }
-        public ushort Height { get; set; }
-        public byte PixelDepth { get; set; }
+        public ushort Width { get; set; } = 0;
+        public ushort Height { get; set; } = 0;
+        public byte PixelDepth { get; set; } = 32;
         public int Stride => ScanProcessor.GetStride(this.Width, this.PixelDepth, 1);
         public TgaPixelFormat TgaPixelFormat
         {
@@ -27,12 +28,13 @@ namespace Giselle.Imaging.Codec.Tga
             set => this.TgaPixelFormat = value.ToTgaPixelFormat();
         }
 
-        public TgaImageType ImageType { get; set; }
-        public bool Compression { get; set; }
-        public byte AlphaBits { get; set; }
-        public bool FlipX { get; set; }
-        public bool FlipY { get; set; }
-        public byte[] UncompressedScan { get; set; }
+        public TgaImageType ImageType { get; set; } = TgaImageType.TrueColor;
+        public bool Compression { get; set; } = true;
+        public byte AlphaBits { get; set; } = 0;
+        public bool FlipX { get; set; } = false;
+        public bool FlipY { get; set; } = false;
+        public byte[] UncompressedScan { get; set; } = new byte[0];
+        public Argb32[] ColorTable { get; set; } = new Argb32[0];
 
         public TgaRawImage()
         {
@@ -64,7 +66,24 @@ namespace Giselle.Imaging.Codec.Tga
             var stride = this.Stride;
             var processor = TgaCodec.CreateTgaProcessor(input);
             var id = processor.ReadBytes(header.IDLength);
-            var colorMap = processor.ReadBytes(header.ColorMapLength * header.ColorMapEntrySize);
+
+            if (this.ImageType == TgaImageType.ColorMapped)
+            {
+                var pixel = new byte[ScanProcessor.GetPaddedQuotient(header.ColorMapEntryBitDepth, 8)];
+                var hasAlpha = pixel.Length > 3;
+                this.ColorTable = new Argb32[header.ColorMapLength];
+
+                for (var i = 0; i < header.ColorMapLength; i++)
+                {
+                    processor.ReadBytes(pixel);
+                    this.ColorTable[i] = new Argb32(hasAlpha ? pixel[3] : byte.MaxValue, pixel[2], pixel[1], pixel[0]);
+                }
+
+            }
+            else
+            {
+                this.ColorTable = new Argb32[0];
+            }
 
             this.UncompressedScan = new byte[stride * this.Height];
 
@@ -117,7 +136,7 @@ namespace Giselle.Imaging.Codec.Tga
             var height = this.Height;
             var stride = this.Stride;
 
-            var scanData = new ScanData(width, height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, CoordTransformer = this.GetCoordTransformer() };
+            var scanData = new ScanData(width, height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = TgaCodec.Instance,
@@ -136,9 +155,20 @@ namespace Giselle.Imaging.Codec.Tga
             this.FlipY = options.FlipY;
 
             var stride = this.Stride;
-            this.UncompressedScan = new byte[stride * this.Height];
             var format = this.PixelFormat;
-            var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, CoordTransformer = this.GetCoordTransformer() };
+
+            this.UncompressedScan = new byte[stride * this.Height];
+
+            if (this.ImageType == TgaImageType.ColorMapped)
+            {
+                this.ColorTable = frame.GetColorTable(format);
+            }
+            else
+            {
+                this.ColorTable = new Argb32[0];
+            }
+
+            var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
             var scanProcessor = ScanProcessor.GetScanProcessor(format);
             scanProcessor.Write(scanData, frame.Scan);
         }

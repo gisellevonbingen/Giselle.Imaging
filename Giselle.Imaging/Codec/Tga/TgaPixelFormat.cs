@@ -10,11 +10,13 @@ namespace Giselle.Imaging.Codec.Tga
     {
         NoImage = 0,
 
-        Bpp8Grayscale = 1,
-        Bpp16AGrayscale = 2,
+        Bpp8Indexed = 1,
 
-        Bpp24Rgb = 3,
-        Bpp32Argb = 4,
+        Bpp8Grayscale = 2,
+        Bpp16AGrayscale = 3,
+
+        Bpp24Rgb = 4,
+        Bpp32Argb = 5,
     }
 
 }

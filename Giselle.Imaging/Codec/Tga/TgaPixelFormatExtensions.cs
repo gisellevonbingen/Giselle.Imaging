@@ -14,6 +14,10 @@ namespace Giselle.Imaging.Codec.Tga
             {
                 return (TgaImageType.NoImage, 0, 0);
             }
+            else if (value == TgaPixelFormat.Bpp8Indexed)
+            {
+                return (TgaImageType.ColorMapped, 8, 0);
+            }
             else if (value == TgaPixelFormat.Bpp8Grayscale)
             {
                 return (TgaImageType.Grayscale, 8, 0);
@@ -40,6 +44,10 @@ namespace Giselle.Imaging.Codec.Tga
             {
                 return TgaPixelFormat.NoImage;
             }
+            else if (type == TgaImageType.ColorMapped)
+            {
+                if (pixelDepth == 8 && alphaBits == 0) return TgaPixelFormat.Bpp8Indexed;
+            }
             else if (type == TgaImageType.Grayscale)
             {
                 if (pixelDepth == 8 && alphaBits == 0) return TgaPixelFormat.Bpp8Grayscale;
@@ -56,7 +64,11 @@ namespace Giselle.Imaging.Codec.Tga
 
         public static TgaPixelFormat ToTgaPixelFormat(this PixelFormat value)
         {
-            if (value == PixelFormat.Format8bppGrayscale)
+            if (value.IsColorTableLE(PixelFormat.Format8bppIndexed) == true)
+            {
+                return TgaPixelFormat.Bpp8Indexed;
+            }
+            else if (value == PixelFormat.Format8bppGrayscale)
             {
                 return TgaPixelFormat.Bpp8Grayscale;
             }
@@ -81,6 +93,10 @@ namespace Giselle.Imaging.Codec.Tga
 
         public static PixelFormat ToPixelFormat(this TgaPixelFormat value)
         {
+            if (value == TgaPixelFormat.Bpp8Indexed)
+            {
+                return PixelFormat.Format8bppIndexed;
+            }
             if (value == TgaPixelFormat.Bpp8Grayscale)
             {
                 return PixelFormat.Format8bppGrayscale;

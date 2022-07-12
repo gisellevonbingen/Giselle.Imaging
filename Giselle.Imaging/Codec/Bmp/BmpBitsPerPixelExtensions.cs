@@ -18,7 +18,7 @@ namespace Giselle.Imaging.Codec.Bmp
             {
                 return BmpBitsPerPixel.Bpp4Indexed;
             }
-            else if (value == PixelFormat.Format8bppIndexed)
+            else if (value.IsColorTableLE(PixelFormat.Format8bppIndexed) == true)
             {
                 return BmpBitsPerPixel.Bpp8Indexed;
             }

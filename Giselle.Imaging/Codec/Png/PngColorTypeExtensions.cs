@@ -13,7 +13,7 @@ namespace Giselle.Imaging.Codec.Png
             if (format == PixelFormat.Format1bppIndexed) return (PngColorType.IndexedColor, 1);
             else if (format == PixelFormat.Format2bppIndexed) return (PngColorType.IndexedColor, 2);
             else if (format == PixelFormat.Format4bppIndexed) return (PngColorType.IndexedColor, 4);
-            else if (format == PixelFormat.Format8bppIndexed) return (PngColorType.IndexedColor, 8);
+            else if (format.IsColorTableLE(PixelFormat.Format8bppIndexed) == true) return (PngColorType.IndexedColor, 8);
             else if (format == PixelFormat.Format24bppRgb888) return (PngColorType.Truecolor, 8);
             else return (PngColorType.TruecolorWithAlpha, 8);
 

@@ -26,7 +26,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         public ushort ColorMapFirstEntryOffset { get; set; }
         public ushort ColorMapLength { get; set; }
-        public byte ColorMapEntrySize { get; set; }
+        public byte ColorMapEntryBitDepth { get; set; }
 
         public ushort OriginX { get; set; }
         public ushort OriginY { get; set; }
@@ -59,7 +59,7 @@ namespace Giselle.Imaging.Codec.Tga
             // ColorMap Spec
             this.ColorMapFirstEntryOffset = processor.ReadUShort();
             this.ColorMapLength = processor.ReadUShort();
-            this.ColorMapEntrySize = processor.ReadByte();
+            this.ColorMapEntryBitDepth = processor.ReadByte();
 
             // Image Spec
             this.OriginX = processor.ReadUShort();
@@ -80,7 +80,7 @@ namespace Giselle.Imaging.Codec.Tga
             // ColorMap Spec
             processor.WriteUShort(this.ColorMapFirstEntryOffset);
             processor.WriteUShort(this.ColorMapLength);
-            processor.WriteByte(this.ColorMapEntrySize);
+            processor.WriteByte(this.ColorMapEntryBitDepth);
 
             // Image Spec
             processor.WriteUShort(this.OriginX);
