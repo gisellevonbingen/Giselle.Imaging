@@ -17,15 +17,15 @@ namespace Giselle.Imaging.Scan
             }
             else if (bits == 16)
             {
-                return new ScanProcessorMaskBpp16() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+                return new ScanProcessorMasksBpp16() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
             else if (bits == 24)
             {
-                return new ScanProcessorMaskBpp24() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+                return new ScanProcessorMasksBpp24() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
             else if (bits == 32)
             {
-                return new ScanProcessorMaskBpp32() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
+                return new ScanProcessorMasksBpp32() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
             else
             {
@@ -50,27 +50,27 @@ namespace Giselle.Imaging.Scan
             }
             else if (format == PixelFormat.Format16bppRgb555)
             {
-                return ScanProcessorMaskBpp16.InstanceRgb555;
+                return ScanProcessorMasksBpp16.InstanceRgb555;
             }
             else if (format == PixelFormat.Format16bppRgb565)
             {
-                return ScanProcessorMaskBpp16.InstanceRgb565;
+                return ScanProcessorMasksBpp16.InstanceRgb565;
             }
             else if (format == PixelFormat.Format16bppArgb1555)
             {
-                return ScanProcessorMaskBpp16.InstanceArgb1555;
+                return ScanProcessorMasksBpp16.InstanceArgb1555;
             }
             else if (format == PixelFormat.Format24bppRgb888)
             {
-                return ScanProcessorMaskBpp24.InstanceRgb888;
+                return ScanProcessorMasksBpp24.InstanceRgb888;
             }
             else if (format == PixelFormat.Format32bppRgb888)
             {
-                return ScanProcessorMaskBpp32.InstanceRgb888;
+                return ScanProcessorMasksBpp32.InstanceRgb888;
             }
             else if (format == PixelFormat.Format32bppArgb8888)
             {
-                return ScanProcessorMaskBpp32.InstanceArgb8888;
+                return ScanProcessorMasksBpp32.InstanceArgb8888;
             }
             else
             {

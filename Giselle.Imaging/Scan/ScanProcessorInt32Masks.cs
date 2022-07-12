@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Scan
 {
-    public abstract class ScanProcessorInt32Mask : ScanProcessorBytesPerPixel
+    public abstract class ScanProcessorInt32Masks : ScanProcessorBytesPerPixel
     {
         public Int32ChannelMask AMask { get; set; }
         public Int32ChannelMask RMask { get; set; }
         public Int32ChannelMask GMask { get; set; }
         public Int32ChannelMask BMask { get; set; }
 
-        public ScanProcessorInt32Mask()
+        public ScanProcessorInt32Masks()
         {
 
         }

@@ -7,9 +7,9 @@ using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
-    public class ScanProcessorMaskBpp8 : ScanProcessorInt32Mask
+    public class ScanProcessorMasksBpp8 : ScanProcessorInt32Masks
     {
-        public ScanProcessorMaskBpp8()
+        public ScanProcessorMasksBpp8()
         {
 
         }
