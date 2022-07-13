@@ -232,23 +232,30 @@ namespace Giselle.Imaging.Codec.Tga
 
             if (this.Compression == true)
             {
-                var bytesPerPixel = this.Stride / this.Width;
-                var scanOffset = 0;
+                var stride = this.Stride;
+                var bytesPerPixel = stride / this.Width;
 
-                while (true)
+                for (var i = 0; i < this.Height; i++)
                 {
-                    var data = this.NextPacket(this.UncompressedScan, scanOffset, this.UncompressedScan.Length, bytesPerPixel, out var packetType, out var pixelCount);
+                    var scanOffset = i * stride;
+                    var scanEnd = scanOffset + stride;
 
-                    if (pixelCount == 0)
+                    while (true)
                     {
-                        break;
+                        var data = this.NextPacket(this.UncompressedScan, scanOffset, scanEnd, bytesPerPixel, out var packetType, out var pixelCount);
+
+                        if (pixelCount == 0)
+                        {
+                            break;
+                        }
+
+                        var packetHeader = (byte)(((packetType ? 1 : 0) << 0x07) | (pixelCount - 1));
+                        processor.WriteByte(packetHeader);
+
+                        processor.WriteBytes(data);
+                        scanOffset += pixelCount * bytesPerPixel;
                     }
 
-                    var packetHeader = (byte)(((packetType ? 1 : 0) << 0x07) | (pixelCount - 1));
-                    processor.WriteByte(packetHeader);
-
-                    processor.WriteBytes(data);
-                    scanOffset += pixelCount * bytesPerPixel;
                 }
 
             }
