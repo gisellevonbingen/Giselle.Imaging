@@ -9,7 +9,7 @@ namespace Giselle.Imaging.IO
 {
     public static class DataProcessorExtensions
     {
-        public static byte[] ReadBytesWhile0(this DataProcessor processor)
+        public static byte[] ReadBytesUntil0(this DataProcessor processor)
         {
             using (var ms = new MemoryStream())
             {

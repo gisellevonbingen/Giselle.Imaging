@@ -262,7 +262,7 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngChunkName.iCCP) == true)
             {
-                var name = chunkProcessor.ReadBytesWhile0();
+                var name = chunkProcessor.ReadBytesUntil0();
                 var compressionMethod = chunkProcessor.ReadByte();
 
                 using (var zlibStream = new ZlibStream(chunkStream, CompressionMode.Decompress, true))

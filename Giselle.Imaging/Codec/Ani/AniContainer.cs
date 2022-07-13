@@ -60,7 +60,7 @@ namespace Giselle.Imaging.Codec.Ani
 
                     if (formType == KnownRiffTypeKeys.Info)
                     {
-                        var text = Encoding.ASCII.GetString(processor.ReadBytesWhile0());
+                        var text = Encoding.ASCII.GetString(processor.ReadBytesUntil0());
 
                         if (typeKey == KnownRiffTypeKeys.InfoName)
                         {
