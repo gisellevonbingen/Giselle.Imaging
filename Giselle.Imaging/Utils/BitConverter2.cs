@@ -62,7 +62,7 @@ namespace Giselle.Imaging.Utils
                 var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
                 action(processor);
 
-                return Encoding.ASCII.GetStringUntilNull(ms.ToArray());
+                return Encoding.ASCII.GetStringUntil0(ms.ToArray());
             }
 
         }

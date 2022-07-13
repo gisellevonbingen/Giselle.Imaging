@@ -37,6 +37,7 @@ namespace Giselle.Imaging.Codec.Tga
         public bool FlipY { get; set; } = false;
         public byte[] UncompressedScan { get; set; } = new byte[0];
         public Argb32[] ColorTable { get; set; } = new Argb32[0];
+        public TgaExtensionArea ExtensionArea { get; set; } = null;
 
         public TgaRawImage()
         {
@@ -145,7 +146,8 @@ namespace Giselle.Imaging.Codec.Tga
                         if (footer.ExtensionOffset > 0)
                         {
                             siphonBlock.SetPosition(footer.ExtensionOffset);
-                            var extensionArea = new TgaExtensionArea(siphonProcessor);
+                            var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
+                            this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
                         }
 
                     }
@@ -171,7 +173,16 @@ namespace Giselle.Imaging.Codec.Tga
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = TgaCodec.Instance,
-                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, OriginX = this.OriginX, OriginY = this.OriginY, FlipX = this.FlipX, FlipY = this.FlipY },
+                PrimaryOptions = new TgaSaveOptions()
+                {
+                    PixelFormat = this.TgaPixelFormat,
+                    Compression = this.Compression,
+                    OriginX = this.OriginX,
+                    OriginY = this.OriginY,
+                    FlipX = this.FlipX,
+                    FlipY = this.FlipY,
+                    ExtensionArea = this.ExtensionArea,
+                },
             };
             return image;
         }
@@ -186,6 +197,7 @@ namespace Giselle.Imaging.Codec.Tga
             this.OriginY = options.OriginY;
             this.FlipX = options.FlipX;
             this.FlipY = options.FlipY;
+            this.ExtensionArea = options.ExtensionArea;
 
             var stride = this.Stride;
             var format = this.PixelFormat;
@@ -289,6 +301,21 @@ namespace Giselle.Imaging.Codec.Tga
             {
                 processor.Write(this.UncompressedScan, 0, this.UncompressedScan.Length);
             }
+
+            var extensionAreaOffset = 0;
+
+            if (this.ExtensionArea != null)
+            {
+                extensionAreaOffset = (int)processor.WriteLength;
+                var raw = this.ExtensionArea.Raw;
+                raw.AttributesType = (byte)(this.AlphaBits > 0 ? 3 : 0);
+                raw.Write(processor);
+            }
+
+            new TgaFileFooter()
+            {
+                ExtensionOffset = extensionAreaOffset,
+            }.Write(processor);
 
         }
 

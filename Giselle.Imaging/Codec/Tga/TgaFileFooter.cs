@@ -40,18 +40,27 @@ namespace Giselle.Imaging.Codec.Tga
 
             var dot = input.ReadByte();
 
-            if (dot != '.')
+            if (dot != 0x2E)
             {
                 throw new IOException("TgaFileFooter Constant Mismatched");
             }
 
             var nil = input.ReadByte();
 
-            if (nil != '\0')
+            if (nil != 0x00)
             {
                 throw new IOException("TgaFileFooter Constant Mismatched");
             }
 
+        }
+
+        public void Write(DataProcessor output)
+        {
+            output.WriteInt(this.ExtensionOffset);
+            output.WriteInt(this.DeveloperAreaOffset);
+            output.WriteBytes(Signature);
+            output.WriteByte(0x2E);
+            output.WriteByte(0x00);
         }
 
     }

@@ -23,6 +23,10 @@ namespace Giselle.Imaging.Codec.Tga
             this.Read(processor);
         }
 
+        public static TgaDateTime FromDateTime(DateTime dateTime) => new TgaDateTime(dateTime);
+
+        public static TgaDateTime FromDateTime(DateTime? dateTime) => dateTime.HasValue ? new TgaDateTime(dateTime.Value) : new TgaDateTime();
+
         public TgaDateTime(DateTime dateTime) : this()
         {
             this.Month = (ushort)dateTime.Month;
@@ -54,6 +58,7 @@ namespace Giselle.Imaging.Codec.Tga
         }
 
         public DateTime DateTime => new DateTime(this.Year, this.Month, this.Day, this.Hour, this.Minute, this.Second, DateTimeKind.Utc);
+        public DateTime? DateTimeNullable { get { try { return this.DateTime; } catch { return null; } } }
 
         public void Read(DataProcessor processor)
         {

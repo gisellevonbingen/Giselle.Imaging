@@ -10,10 +10,11 @@ namespace Giselle.Imaging.Codec.Tga
     {
         public TgaPixelFormat PixelFormat { get; set; } = TgaPixelFormat.Bpp32Argb;
         public bool Compression { get; set; } = true;
-        public ushort OriginX { get; set; }
-        public ushort OriginY { get; set; }
+        public ushort OriginX { get; set; } = 0;
+        public ushort OriginY { get; set; } = 0;
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
+        public TgaExtensionArea ExtensionArea { get; set; } = null;
 
         public TgaSaveOptions()
         {
