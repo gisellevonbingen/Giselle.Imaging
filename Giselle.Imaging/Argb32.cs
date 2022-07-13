@@ -12,6 +12,7 @@ namespace Giselle.Imaging
         public const float SampleMinAsFloat = byte.MinValue;
         public const float SampleMaxAsFloat = byte.MaxValue;
 
+        public static Argb32 Transparent { get; } = new Argb32(0x0FF, 0x00, 0x00, 0x00);
         public static Argb32 White { get; } = new Argb32(0xFF, 0xFF, 0xFF);
         public static Argb32 Black { get; } = new Argb32(0x00, 0x00, 0x00);
 
