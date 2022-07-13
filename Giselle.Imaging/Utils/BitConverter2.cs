@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Text;
 
 namespace Giselle.Imaging.Utils
 {
@@ -61,9 +62,7 @@ namespace Giselle.Imaging.Utils
                 var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
                 action(processor);
 
-                var bytes = ms.ToArray();
-                var nullIndex = Array.IndexOf(bytes, byte.MinValue);
-                return Encoding.ASCII.GetString(bytes, 0, nullIndex > -1 ? nullIndex : bytes.Length);
+                return Encoding.ASCII.GetStringUntilNull(ms.ToArray());
             }
 
         }

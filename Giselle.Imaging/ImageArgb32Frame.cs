@@ -70,6 +70,8 @@ namespace Giselle.Imaging
 
         public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
 
+        public int GetOffset(PointI coord) => this.GetOffset(coord.X, coord.Y);
+
         public Argb32 this[int offset]
         {
             get

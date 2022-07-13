@@ -39,7 +39,7 @@ namespace Giselle.Imaging.Codec.Tga
         {
             using (var ms = new MemoryStream(bytes))
             {
-                var header = new TgaRawHeader(ms);
+                var header = new TgaRawHeader(CreateTgaProcessor(ms));
                 return header.Width > 0 && header.Height > 0 && header.PixelDepth > 0;
             }
 

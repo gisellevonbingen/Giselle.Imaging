@@ -53,7 +53,9 @@ namespace Giselle.Imaging.Codec.Tga
 
         public void Read(Stream input)
         {
-            var header = new TgaRawHeader(input);
+            var processor = TgaCodec.CreateTgaProcessor(input);
+
+            var header = new TgaRawHeader(processor);
             this.Width = header.Width;
             this.Height = header.Height;
             this.PixelDepth = header.PixelDepth;
@@ -64,7 +66,6 @@ namespace Giselle.Imaging.Codec.Tga
             this.FlipY = header.FlipY;
 
             var stride = this.Stride;
-            var processor = TgaCodec.CreateTgaProcessor(input);
             var id = processor.ReadBytes(header.IDLength);
 
             if (this.ImageType == TgaImageType.ColorMapped)
@@ -123,6 +124,32 @@ namespace Giselle.Imaging.Codec.Tga
                 processor.Read(this.UncompressedScan, 0, this.UncompressedScan.Length);
             }
 
+            if (processor.TryGetRemain(out var remain) == true)
+            {
+                if (remain >= TgaFileFooter.Length)
+                {
+                    using (var siphonBlock = new SiphonBlock(input, (int)processor.ReadLength, (int)(remain - TgaFileFooter.Length)))
+                    {
+                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.Siphon);
+                        var footer = new TgaFileFooter(processor);
+
+                        if (footer.DeveloperAreaOffset > 0)
+                        {
+                            siphonBlock.SetPosition(footer.DeveloperAreaOffset);
+                        }
+
+                        if (footer.ExtensionOffset > 0)
+                        {
+                            siphonBlock.SetPosition(footer.ExtensionOffset);
+                            var extensionArea = new TgaExtensionArea(siphonProcessor);
+                        }
+
+                    }
+
+                }
+
+            }
+
         }
 
         public CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(this.FlipX, !this.FlipY);
@@ -175,6 +202,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         public void Write(Stream output)
         {
+            var processor = TgaCodec.CreateTgaProcessor(output);
             new TgaRawHeader()
             {
                 Width = this.Width,
@@ -189,9 +217,8 @@ namespace Giselle.Imaging.Codec.Tga
                 FlipX = this.FlipX,
                 FlipY = this.FlipY,
                 AlphaChannelBits = this.AlphaBits,
-            }.Write(output);
+            }.Write(processor);
 
-            var processor = TgaCodec.CreateTgaProcessor(output);
             processor.WriteBytes(new byte[0]); // ID
             processor.WriteBytes(new byte[0]); // ColorMap
 

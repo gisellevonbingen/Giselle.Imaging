@@ -9,6 +9,8 @@ namespace Giselle.Imaging.Codec.ICC
 {
     public struct ICCDateTime : IEquatable<ICCDateTime>
     {
+        public const int Length = 12;
+
         public ushort Year { get; set; }
         public ushort Month { get; set; }
         public ushort Day { get; set; }

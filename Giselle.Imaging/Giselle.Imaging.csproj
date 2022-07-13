@@ -56,12 +56,17 @@
     <Compile Include="Codec\CommonCompressionLevelExtensions.cs" />
     <Compile Include="Codec\Tga\TgaCodec.cs" />
     <Compile Include="Codec\Tga\TgaColorMapTypeKind.cs" />
+    <Compile Include="Codec\Tga\TgaDateTime.cs" />
+    <Compile Include="Codec\Tga\TgaExtensionArea.cs" />
+    <Compile Include="Codec\Tga\TgaFileFooter.cs" />
     <Compile Include="Codec\Tga\TgaImageType.cs" />
     <Compile Include="Codec\Tga\TgaPixelFormat.cs" />
     <Compile Include="Codec\Tga\TgaPixelFormatExtensions.cs" />
     <Compile Include="Codec\Tga\TgaRawHeader.cs" />
     <Compile Include="Codec\Tga\TgaRawImage.cs" />
     <Compile Include="Codec\Tga\TgaSaveOptions.cs" />
+    <Compile Include="Codec\Tga\TgaSoftwareVersion.cs" />
+    <Compile Include="Codec\Tga\TgaTimeSpan.cs" />
     <Compile Include="Codec\Tiff\TiffCompressionMethod.cs" />
     <Compile Include="Codec\Exif\ExifContainer.cs" />
     <Compile Include="Codec\Exif\ExifEntry.cs" />
@@ -154,6 +159,7 @@
     <Compile Include="IO\DataProcessorExtensions.cs" />
     <Compile Include="IO\MergedStream.cs" />
     <Compile Include="IO\SiphonStream.cs" />
+    <Compile Include="IO\SiphonBlock.cs" />
     <Compile Include="IO\StreamExtensions.cs" />
     <Compile Include="IO\WrappedByteStream.cs" />
     <Compile Include="IO\InternalStream.cs" />
@@ -202,6 +208,7 @@
     <Compile Include="IO\DataProcessor.cs" />
     <Compile Include="Collections\BidirectionalDictionary.cs" />
     <Compile Include="Scan\ScanProcessorMasksBpp8.cs" />
+    <Compile Include="Text\EncodingExtensions.cs" />
     <Compile Include="Utils\BitConverter2.cs" />
     <Compile Include="Collections\EnumerableUtils.cs" />
     <Compile Include="Collections\ListExtensions.cs" />

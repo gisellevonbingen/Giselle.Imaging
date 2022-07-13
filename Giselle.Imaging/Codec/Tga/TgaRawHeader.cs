@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
+using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Tga
 {
@@ -42,53 +43,51 @@ namespace Giselle.Imaging.Codec.Tga
 
         }
 
-        public TgaRawHeader(Stream input)
+        public TgaRawHeader(DataProcessor input)
         {
             this.Read(input);
         }
 
-        public void Read(Stream input)
+        public void Read(DataProcessor input)
         {
-            var processor = TgaCodec.CreateTgaProcessor(input);
-            this.IDLength = processor.ReadByte();
-            this.ColorMapType = processor.ReadByte();
-            var imageType = processor.ReadByte();
+            this.IDLength = input.ReadByte();
+            this.ColorMapType = input.ReadByte();
+            var imageType = input.ReadByte();
             this.ImageType = (TgaImageType)(imageType & 0x07);
             this.Compression = (imageType & 0x08) == 0x08;
 
             // ColorMap Spec
-            this.ColorMapFirstEntryOffset = processor.ReadUShort();
-            this.ColorMapLength = processor.ReadUShort();
-            this.ColorMapEntryBitDepth = processor.ReadByte();
+            this.ColorMapFirstEntryOffset = input.ReadUShort();
+            this.ColorMapLength = input.ReadUShort();
+            this.ColorMapEntryBitDepth = input.ReadByte();
 
             // Image Spec
-            this.OriginX = processor.ReadUShort();
-            this.OriginY = processor.ReadUShort();
-            this.Width = processor.ReadUShort();
-            this.Height = processor.ReadUShort();
-            this.PixelDepth = processor.ReadByte();
-            this.Descriptor = new BitVector32(processor.ReadByte());
+            this.OriginX = input.ReadUShort();
+            this.OriginY = input.ReadUShort();
+            this.Width = input.ReadUShort();
+            this.Height = input.ReadUShort();
+            this.PixelDepth = input.ReadByte();
+            this.Descriptor = new BitVector32(input.ReadByte());
         }
 
-        public void Write(Stream output)
+        public void Write(DataProcessor output)
         {
-            var processor = TgaCodec.CreateTgaProcessor(output);
-            processor.WriteByte(this.IDLength);
-            processor.WriteByte(this.ColorMapType);
-            processor.WriteByte((byte)(((byte)this.ImageType & 0x07) |(this.Compression ? 0x08 : 0x00)));
+            output.WriteByte(this.IDLength);
+            output.WriteByte(this.ColorMapType);
+            output.WriteByte((byte)(((byte)this.ImageType & 0x07) | (this.Compression ? 0x08 : 0x00)));
 
             // ColorMap Spec
-            processor.WriteUShort(this.ColorMapFirstEntryOffset);
-            processor.WriteUShort(this.ColorMapLength);
-            processor.WriteByte(this.ColorMapEntryBitDepth);
+            output.WriteUShort(this.ColorMapFirstEntryOffset);
+            output.WriteUShort(this.ColorMapLength);
+            output.WriteByte(this.ColorMapEntryBitDepth);
 
             // Image Spec
-            processor.WriteUShort(this.OriginX);
-            processor.WriteUShort(this.OriginY);
-            processor.WriteUShort(this.Width);
-            processor.WriteUShort(this.Height);
-            processor.WriteByte(this.PixelDepth);
-            processor.WriteByte((byte)this.Descriptor.Data);
+            output.WriteUShort(this.OriginX);
+            output.WriteUShort(this.OriginY);
+            output.WriteUShort(this.Width);
+            output.WriteUShort(this.Height);
+            output.WriteByte(this.PixelDepth);
+            output.WriteByte((byte)this.Descriptor.Data);
         }
 
         public TgaColorMapTypeKind ColorMapTypeKind
