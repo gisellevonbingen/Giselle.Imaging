@@ -209,7 +209,7 @@ namespace Giselle.Imaging.Codec.Tga
         public void Write(Stream output)
         {
             var processor = TgaCodec.CreateTgaProcessor(output);
-            new TgaRawHeader()
+            var header = new TgaRawHeader()
             {
                 Width = this.Width,
                 Height = this.Height,
@@ -220,15 +220,41 @@ namespace Giselle.Imaging.Codec.Tga
                 OriginY = this.OriginY,
 
                 IDLength = 0,
-                ColorMapLength = 0,
 
                 FlipX = this.FlipX,
                 FlipY = this.FlipY,
                 AlphaChannelBits = this.AlphaBits,
-            }.Write(processor);
+            };
 
+            var colorTableHasAlpha = false;
+
+            if (this.ImageType == TgaImageType.ColorMapped)
+            {
+                colorTableHasAlpha = this.ColorTable.Any(c => c.A != byte.MaxValue);
+                header.ColorMapType = (byte)TgaColorMapTypeKind.Present;
+                header.ColorMapFirstEntryOffset = 0;
+                header.ColorMapLength = (ushort)this.ColorTable.Length;
+                header.ColorMapEntryBitDepth = (byte)(colorTableHasAlpha ? PixelFormat.Format32bppArgb8888 : PixelFormat.Format24bppRgb888).GetBitsPerPixel();
+            }
+
+            header.Write(processor);
             processor.WriteBytes(new byte[0]); // ID
-            processor.WriteBytes(new byte[0]); // ColorMap
+
+            if (this.ImageType == TgaImageType.ColorMapped)
+            {
+                var pixel = new byte[ScanProcessor.GetPaddedQuotient(header.ColorMapEntryBitDepth, 8)];
+
+                for (var i = 0; i < header.ColorMapLength; i++)
+                {
+                    var color = this.ColorTable[i];
+                    pixel[0] = color.B;
+                    pixel[1] = color.G;
+                    pixel[2] = color.R;
+                    if (colorTableHasAlpha) pixel[3] = color.A;
+                    processor.WriteBytes(pixel);
+                }
+
+            }
 
             if (this.Compression == true)
             {
