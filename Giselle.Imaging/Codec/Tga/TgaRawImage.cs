@@ -30,6 +30,8 @@ namespace Giselle.Imaging.Codec.Tga
 
         public TgaImageType ImageType { get; set; } = TgaImageType.TrueColor;
         public bool Compression { get; set; } = true;
+        public ushort OriginX { get; set; } = 0;
+        public ushort OriginY { get; set; } = 0;
         public byte AlphaBits { get; set; } = 0;
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
@@ -61,6 +63,8 @@ namespace Giselle.Imaging.Codec.Tga
             this.PixelDepth = header.PixelDepth;
             this.ImageType = header.ImageType;
             this.Compression = header.Compression;
+            this.OriginX = header.OriginX;
+            this.OriginY = header.OriginY;
             this.AlphaBits = header.AlphaChannelBits;
             this.FlipX = header.FlipX;
             this.FlipY = header.FlipY;
@@ -167,7 +171,7 @@ namespace Giselle.Imaging.Codec.Tga
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = TgaCodec.Instance,
-                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, FlipX = this.FlipX, FlipY = this.FlipY },
+                PrimaryOptions = new TgaSaveOptions() { PixelFormat = this.TgaPixelFormat, Compression = this.Compression, OriginX = this.OriginX, OriginY = this.OriginY, FlipX = this.FlipX, FlipY = this.FlipY },
             };
             return image;
         }
@@ -178,6 +182,8 @@ namespace Giselle.Imaging.Codec.Tga
             this.Height = (ushort)frame.Height;
             this.TgaPixelFormat = options.PixelFormat;
             this.Compression = options.Compression;
+            this.OriginX = options.OriginX;
+            this.OriginY = options.OriginY;
             this.FlipX = options.FlipX;
             this.FlipY = options.FlipY;
 
@@ -210,6 +216,8 @@ namespace Giselle.Imaging.Codec.Tga
                 PixelDepth = this.PixelDepth,
                 ImageType = this.ImageType,
                 Compression = this.Compression,
+                OriginX = this.OriginX,
+                OriginY = this.OriginY,
 
                 IDLength = 0,
                 ColorMapLength = 0,
