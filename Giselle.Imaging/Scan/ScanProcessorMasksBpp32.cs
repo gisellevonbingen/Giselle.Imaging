@@ -29,20 +29,20 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected override void ReadPixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override void DecodePixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord)
         {
             var b0 = inputScan[inputOffset + 0];
             var b1 = inputScan[inputOffset + 1];
             var b2 = inputScan[inputOffset + 2];
             var b3 = inputScan[inputOffset + 3];
             var merged = (b3 << 0x18) | (b2 << 0x10) | (b1 << 0x08) | (b0 << 0x00);
-            frame[coord] = this.ReadPixel(merged);
+            frame[coord] = this.DecodePixel(merged);
         }
 
-        protected override void WritePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override void EncodePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord)
         {
             var color = frame[coord];
-            var merged = this.WritePixel(color);
+            var merged = this.EncodePixel(color);
             outputScan[outputOffset + 0] = (byte)((merged >> 0x00) & 0xFF);
             outputScan[outputOffset + 1] = (byte)((merged >> 0x08) & 0xFF);
             outputScan[outputOffset + 2] = (byte)((merged >> 0x10) & 0xFF);

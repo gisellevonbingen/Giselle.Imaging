@@ -18,7 +18,7 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected Argb32 ReadPixel(int merged) => new Argb32()
+        protected Argb32 DecodePixel(int merged) => new Argb32()
         {
             B = this.BMask.SplitByte(merged),
             G = this.GMask.SplitByte(merged),
@@ -26,7 +26,7 @@ namespace Giselle.Imaging.Scan
             A = this.AMask.SplitByte(merged, byte.MaxValue),
         };
 
-        protected int WritePixel(Argb32 color)
+        protected int EncodePixel(Argb32 color)
         {
             var merged = 0;
             merged = this.BMask.MergeByte(merged, color.B);

@@ -59,7 +59,7 @@ namespace Giselle.Imaging
             this.Stride = ScanProcessor.GetStride4(this.Width, this.PixelFormat.GetBitsPerPixel());
             this.Scan = new byte[this.Height * this.Stride];
 
-            scanProcessor.Read(scanData, this);
+            scanProcessor.Decode(scanData, this);
         }
 
         public PhysicalLength PrintWidth => new PhysicalLength(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);

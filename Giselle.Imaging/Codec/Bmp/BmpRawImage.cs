@@ -224,7 +224,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
             var stride = ScanProcessor.GetStride4(frame.Width, (int)this.BitsPerPixel);
             var scanData = new ScanData(frame.Width, frame.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[frame.Height * stride], ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
-            scanProcessor.Write(scanData, frame);
+            scanProcessor.Encode(scanData, frame);
             this.ScanData = scanData.Scan;
         }
 

@@ -217,7 +217,7 @@ namespace Giselle.Imaging.Codec.Tga
 
             var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
             var scanProcessor = ScanProcessor.GetScanProcessor(format);
-            scanProcessor.Write(scanData, frame);
+            scanProcessor.Encode(scanData, frame);
         }
 
         public void Write(Stream output)

@@ -14,17 +14,17 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public override void Read(ScanData input, ImageArgb32Frame frame)
+        public override void Decode(ScanData input, ImageArgb32Frame frame)
         {
-            this.ProcessFormat(input, frame, this.ReadPixel, input.GetDecodeCoord);
+            this.Process(input, frame, this.DecodePixel, input.GetDecodeCoord);
         }
 
-        public override void Write(ScanData output, ImageArgb32Frame frame)
+        public override void Encode(ScanData output, ImageArgb32Frame frame)
         {
-            this.ProcessFormat(output, frame, this.WritePixel, output.GetEncodeCoord);
+            this.Process(output, frame, this.EncodePixel, output.GetEncodeCoord);
         }
 
-        private void ProcessFormat(ScanData scan, ImageArgb32Frame frame, Action<byte[], int, ImageArgb32Frame, PointI> scanAction, Func<PointI, PointI> coordFunction)
+        private void Process(ScanData scan, ImageArgb32Frame frame, Action<byte[], int, ImageArgb32Frame, PointI> scanAction, Func<PointI, PointI> coordFunction)
         {
             var sbpp = scan.BitsPerPixel / 8;
             var passProcessor = new InterlacePassProcessor(scan);
@@ -51,9 +51,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected abstract void ReadPixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord);
+        protected abstract void DecodePixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord);
 
-        protected abstract void WritePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord);
+        protected abstract void EncodePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord);
 
     }
 

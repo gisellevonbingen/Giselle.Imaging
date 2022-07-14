@@ -31,7 +31,7 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public override void Read(ScanData input, ImageArgb32Frame frame)
+        public override void Decode(ScanData input, ImageArgb32Frame frame)
         {
             var mask = 0;
             var bpp = input.BitsPerPixel;
@@ -79,7 +79,7 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public override void Write(ScanData output, ImageArgb32Frame frame)
+        public override void Encode(ScanData output, ImageArgb32Frame frame)
         {
             var maskBase = 0;
             var bpp = output.BitsPerPixel;

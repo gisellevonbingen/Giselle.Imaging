@@ -130,7 +130,7 @@ namespace Giselle.Imaging.Codec.Png
 
             var scanData = CreateScanData(frame.Width, frame.Height, this.PixelFormat.GetBitsPerPixel(), this.Stride, this.Interlace, colorTable);
             var scanProcessor = this.CreateScanProcessor();
-            scanProcessor.Write(scanData, frame);
+            scanProcessor.Encode(scanData, frame);
 
             var bitPerPixel = this.PixelFormat.GetBitsPerPixel();
             var samples = bitPerPixel / this.BitDepth;

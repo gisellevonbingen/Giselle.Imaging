@@ -117,9 +117,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public abstract void Read(ScanData input, ImageArgb32Frame frame);
+        public abstract void Decode(ScanData input, ImageArgb32Frame frame);
 
-        public abstract void Write(ScanData output, ImageArgb32Frame frame);
+        public abstract void Encode(ScanData output, ImageArgb32Frame frame);
 
     }
 
