@@ -133,10 +133,12 @@ namespace Giselle.Imaging.Codec.Tga
             {
                 if (remain >= TgaFileFooter.Length)
                 {
-                    using (var siphonBlock = SiphonBlock.ByLength(input, (int)processor.ReadLength, (int)remain - TgaFileFooter.Length))
+                    using (var siphonBlock = SiphonBlock.ByLength(input, processor.ReadLength, remain - TgaFileFooter.Length))
                     {
-                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
+                        siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition);
                         var footer = new TgaFileFooter(processor);
+
+                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
 
                         if (footer.DeveloperAreaOffset > 0)
                         {

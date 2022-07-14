@@ -50,7 +50,9 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override ImageArgb32Container Read(Stream input)
         {
-            using (var siphonBlock = SiphonBlock.ByRemain(input))
+            var origin = 0L;
+
+            using (var siphonBlock = SiphonBlock.ByRemain(input, origin))
             {
                 var exif = new ExifContainer(siphonBlock.SiphonSteam);
                 var container = new ImageArgb32Container()

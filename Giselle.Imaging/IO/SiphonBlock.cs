@@ -10,14 +10,14 @@ namespace Giselle.Imaging.IO
     public class SiphonBlock : IDisposable
     {
         public Stream BaseStream { get; }
-        public int Origin { get; }
-        public int Length { get; }
+        public long Origin { get; }
+        public long Length { get; }
 
         private readonly MemoryStream Memory;
 
         public SiphonStream SiphonSteam { get; }
 
-        public static SiphonBlock ByLength(Stream baseStream, int length)
+        public static SiphonBlock ByLength(Stream baseStream, long length)
         {
             if (baseStream.CanSeek == false)
             {
@@ -26,18 +26,73 @@ namespace Giselle.Imaging.IO
             else
             {
                 var origin = baseStream.Position;
-                return ByLength(baseStream, (int)origin, length);
+                return ByLength(baseStream, origin, length);
             }
 
         }
 
-        public static SiphonBlock ByLength(Stream baseStream, int blockOrigin, int length)
+        private static int GetReadBufferSize(Stream stream, long length)
+        {
+            length = Math.Min(length, 81920);
+
+            if (stream.CanSeek == false)
+            {
+                return (int)length;
+            }
+            else
+            {
+                var remain = stream.GetRemain();
+
+                if (remain > 0)
+                {
+                    return (int)Math.Min(length, remain);
+                }
+                else
+                {
+                    return 1;
+                }
+
+            }
+
+        }
+
+        public static SiphonBlock ByLength(Stream baseStream, long blockOrigin, long length)
+        {
+            var bufferSize = GetReadBufferSize(baseStream, length);
+            return ByLength(baseStream, blockOrigin, length, bufferSize);
+        }
+
+        public static SiphonBlock ByLength(Stream baseStream, long blockOrigin, long length, int bufferSize)
+        {
+            var buffer = new byte[bufferSize];
+            return ByLength(baseStream, blockOrigin, length, buffer);
+        }
+
+        public static SiphonBlock ByLength(Stream baseStream, long blockOrigin, long length, byte[] buffer)
         {
             if (baseStream.CanSeek == false)
             {
-                var buffer = new byte[length];
-                baseStream.Read(buffer, 0, length);
-                var memory = new MemoryStream(buffer);
+                var position = 0;
+                var memory = new MemoryStream();
+
+                while (true)
+                {
+                    var readCount = (int)Math.Min(length - position, buffer.Length);
+                    var reading = baseStream.Read(buffer, 0, readCount);
+
+                    if (reading <= 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        position += reading;
+                        memory.Write(buffer, 0, reading);
+                    }
+
+                }
+
+                memory.Position = 0L;
                 var siphon = new SiphonStream(memory, length, true, true);
                 return new SiphonBlock(baseStream, siphon, blockOrigin, memory);
             }
@@ -58,17 +113,18 @@ namespace Giselle.Imaging.IO
             else
             {
                 var origin = baseStream.Position;
-                return ByRemain(baseStream, (int)origin);
+                return ByRemain(baseStream, origin);
             }
 
         }
 
-        public static SiphonBlock ByRemain(Stream baseStream, int blockOrigin)
+        public static SiphonBlock ByRemain(Stream baseStream, long blockOrigin)
         {
             if (baseStream.CanSeek == false)
             {
                 var memory = new MemoryStream();
                 baseStream.CopyTo(memory);
+                memory.Position = 0L;
                 var siphon = new SiphonStream(memory, memory.Length, true, true);
                 return new SiphonBlock(baseStream, siphon, blockOrigin, memory);
             }
@@ -81,17 +137,17 @@ namespace Giselle.Imaging.IO
 
         }
 
-        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, int origin)
+        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, long origin)
         {
             this.BaseStream = baseStream;
             this.Origin = origin;
-            this.Length = (int)siphonStream.Length;
+            this.Length = siphonStream.Length;
 
             this.Memory = null;
             this.SiphonSteam = siphonStream;
         }
 
-        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, int origin, MemoryStream memoryStream) : this(baseStream, siphonStream, origin)
+        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, long origin, MemoryStream memoryStream) : this(baseStream, siphonStream, origin)
         {
             this.Memory = memoryStream;
         }
@@ -100,6 +156,8 @@ namespace Giselle.Imaging.IO
         {
             this.SiphonSteam.Position = positionFromOrigin - this.Origin;
         }
+
+        public long BaseEndPosition => this.Origin + this.Length;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -112,7 +170,7 @@ namespace Giselle.Imaging.IO
 
             if (this.BaseStream.CanSeek == true)
             {
-                this.BaseStream.Position = this.Origin + this.Length;
+                this.BaseStream.Position = this.BaseEndPosition;
             }
 
         }

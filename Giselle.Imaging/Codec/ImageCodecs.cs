@@ -12,6 +12,9 @@ using Giselle.Imaging.Codec.Jpeg;
 using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Ani;
 using Giselle.Imaging.Codec.Tga;
+using Giselle.Imaging.IO;
+using System.CodeDom;
+using Microsoft.Win32.SafeHandles;
 
 namespace Giselle.Imaging.Codec
 {
@@ -27,8 +30,6 @@ namespace Giselle.Imaging.Codec
             return codec;
         }
 
-        public static ImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
-
         static ImageCodecs()
         {
             Register(BmpCodec.Instance);
@@ -39,6 +40,8 @@ namespace Giselle.Imaging.Codec
             Register(AniCodec.Instance);
             Register(TgaCodec.Instance);
         }
+
+        public static ImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
 
         public static ImageCodec FindCodec(Stream input)
         {
@@ -84,7 +87,39 @@ namespace Giselle.Imaging.Codec
             return null;
         }
 
-        public static ImageArgb32Container FromStream(Stream input) => FindCodec(input).Read(input);
+        public static ImageArgb32Container FromSiphonBlock(SiphonBlock siphonBlock)
+        {
+            var stream = siphonBlock.SiphonSteam;
+            stream.Position = 0L;
+
+            foreach (var codec in GetCodecs())
+            {
+                if (codec.Test(stream) == true)
+                {
+                    return codec.Read(stream);
+                }
+
+            }
+
+            throw new IOException("Codec Not Found");
+        }
+
+        public static ImageArgb32Container FromStream(Stream input, long length)
+        {
+            using (var siphonBlock = SiphonBlock.ByLength(input, length))
+            {
+                return FromSiphonBlock(siphonBlock);
+            }
+        }
+
+        public static ImageArgb32Container FromStream(Stream input)
+        {
+            using (var siphonBlock = SiphonBlock.ByRemain(input))
+            {
+                return FromSiphonBlock(siphonBlock);
+            }
+
+        }
 
         public static ImageArgb32Container FromBytes(byte[] bytes)
         {
