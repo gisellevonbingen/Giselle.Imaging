@@ -158,7 +158,6 @@
     <Compile Include="Algorithms\Huffman\HuffmanNode.cs" />
     <Compile Include="Algorithms\Huffman\HuffmanStream.cs" />
     <Compile Include="IO\DataProcessorExtensions.cs" />
-    <Compile Include="IO\MergedStream.cs" />
     <Compile Include="IO\SiphonStream.cs" />
     <Compile Include="IO\SiphonBlock.cs" />
     <Compile Include="IO\StreamExtensions.cs" />
@@ -184,9 +183,6 @@
     <Compile Include="Scan\CoordTransformer.cs" />
     <Compile Include="Scan\CoordTransformerFlip.cs" />
     <Compile Include="Scan\Int32ChannelMask.cs" />
-    <Compile Include="IO\Pipe.cs" />
-    <Compile Include="IO\PipeReadStream.cs" />
-    <Compile Include="IO\PipeWriteStream.cs" />
     <Compile Include="PixelFormat.cs" />
     <Compile Include="PixelFormatExtensions.cs" />
     <Compile Include="Codec\Png\PngChunkStream.cs" />

@@ -23,7 +23,6 @@ namespace Giselle.Imaging.Test
         {
             TestPadding();
             TestICCProfile();
-            //TestPipe();
             TestCodec();
         }
 
@@ -99,28 +98,6 @@ namespace Giselle.Imaging.Test
 
             }
 
-        }
-
-        public static void TestPipe()
-        {
-            var pipe = new Pipe();
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    var buffer = new byte[16];
-                    var len = pipe.Reader.Read(buffer, 0, buffer.Length);
-                    Console.WriteLine($"Read : {len}");
-                }
-            }).Start();
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    var data = new byte[Console.ReadLine().Length];
-                    pipe.Writer.Write(data, 0, data.Length);
-                }
-            }).Start();
         }
 
         public static void TestCodec()
