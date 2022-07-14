@@ -133,19 +133,19 @@ namespace Giselle.Imaging.Codec.Tga
             {
                 if (remain >= TgaFileFooter.Length)
                 {
-                    using (var siphonBlock = new SiphonBlock(input, (int)processor.ReadLength, (int)(remain - TgaFileFooter.Length)))
+                    using (var siphonBlock = SiphonBlock.ByLength(input, (int)processor.ReadLength, (int)remain - TgaFileFooter.Length))
                     {
-                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.Siphon);
+                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
                         var footer = new TgaFileFooter(processor);
 
                         if (footer.DeveloperAreaOffset > 0)
                         {
-                            siphonBlock.SetPosition(footer.DeveloperAreaOffset);
+                            siphonBlock.SetBasePosition(footer.DeveloperAreaOffset);
                         }
 
                         if (footer.ExtensionOffset > 0)
                         {
-                            siphonBlock.SetPosition(footer.ExtensionOffset);
+                            siphonBlock.SetBasePosition(footer.ExtensionOffset);
                             var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
                             this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
                         }

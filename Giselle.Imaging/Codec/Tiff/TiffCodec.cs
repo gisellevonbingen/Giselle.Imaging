@@ -50,34 +50,32 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override ImageArgb32Container Read(Stream input)
         {
-            if (input.CanSeek == false)
+            using (var siphonBlock = SiphonBlock.ByRemain(input))
             {
-                throw new ArgumentException("Tiff input stream required be seekable");
-            }
-
-            var origin = input.Position;
-            var exif = new ExifContainer(input, origin);
-            var container = new ImageArgb32Container()
-            {
-                PrimaryCodec = this,
-                PrimaryOptions = new TiffSaveOptions(),
-            };
-
-            foreach (var directory in exif.Directories)
-            {
-                var frame = this.Decode(input, directory, origin);
-
-                if (frame != null)
+                var exif = new ExifContainer(siphonBlock.SiphonSteam);
+                var container = new ImageArgb32Container()
                 {
-                    container.Add(frame);
+                    PrimaryCodec = this,
+                    PrimaryOptions = new TiffSaveOptions(),
+                };
+
+                foreach (var directory in exif.Directories)
+                {
+                    var frame = this.Decode(siphonBlock.SiphonSteam, directory);
+
+                    if (frame != null)
+                    {
+                        container.Add(frame);
+                    }
+
                 }
 
+                return container;
             }
 
-            return container;
         }
 
-        private ImageArgb32Frame Decode(Stream input, ExifImageFileDirectory directory, long origin)
+        private ImageArgb32Frame Decode(Stream input, ExifImageFileDirectory directory)
         {
             var newSubfileType = directory.Entries.FirstOrDefault(e => e.TagId == ExifTagId.NewSubfileType);
 
@@ -100,7 +98,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 var offset = offsets[i];
                 var count = counts[i];
                 var compression = subFile.Compression;
-                input.Position = offset + origin;
+                input.Position = offset;
 
                 using (var ds = CreateDecompressStream(input, compression, i, count, true))
                 {

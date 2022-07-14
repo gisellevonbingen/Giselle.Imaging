@@ -15,44 +15,102 @@ namespace Giselle.Imaging.IO
 
         private readonly MemoryStream Memory;
 
-        public SiphonStream Siphon { get; }
+        public SiphonStream SiphonSteam { get; }
 
-        public SiphonBlock(Stream stream, int origin, int length)
+        public static SiphonBlock ByLength(Stream baseStream, int length)
         {
-            this.BaseStream = stream;
-            this.Origin = origin;
-            this.Length = length;
-
-            if (stream.CanSeek == false)
+            if (baseStream.CanSeek == false)
             {
-                var buffer = new byte[length];
-                stream.Read(buffer, 0, length);
-                this.Memory = new MemoryStream(buffer);
-                this.Siphon = new SiphonStream(this.Memory, length, true, true);
+                return ByLength(baseStream, 0, length);
             }
             else
             {
-                this.Siphon = new SiphonStream(stream, length, true, true);
-                stream.Seek(length, SeekOrigin.Current);
+                var origin = baseStream.Position;
+                return ByLength(baseStream, (int)origin, length);
             }
 
         }
 
-        public void SetPosition(long positionFromOrigin)
+        public static SiphonBlock ByLength(Stream baseStream, int blockOrigin, int length)
         {
-            this.Siphon.Position = positionFromOrigin - this.Origin;
+            if (baseStream.CanSeek == false)
+            {
+                var buffer = new byte[length];
+                baseStream.Read(buffer, 0, length);
+                var memory = new MemoryStream(buffer);
+                var siphon = new SiphonStream(memory, length, true, true);
+                return new SiphonBlock(baseStream, siphon, blockOrigin, memory);
+            }
+            else
+            {
+                var siphon = new SiphonStream(baseStream, length, true, true);
+                return new SiphonBlock(baseStream, siphon, blockOrigin);
+            }
+
+        }
+
+        public static SiphonBlock ByRemain(Stream baseStream)
+        {
+            if (baseStream.CanSeek == false)
+            {
+                return ByRemain(baseStream, 0);
+            }
+            else
+            {
+                var origin = baseStream.Position;
+                return ByRemain(baseStream, (int)origin);
+            }
+
+        }
+
+        public static SiphonBlock ByRemain(Stream baseStream, int blockOrigin)
+        {
+            if (baseStream.CanSeek == false)
+            {
+                var memory = new MemoryStream();
+                baseStream.CopyTo(memory);
+                var siphon = new SiphonStream(memory, memory.Length, true, true);
+                return new SiphonBlock(baseStream, siphon, blockOrigin, memory);
+            }
+            else
+            {
+                var length = baseStream.GetRemain();
+                var siphon = new SiphonStream(baseStream, length, true, true);
+                return new SiphonBlock(baseStream, siphon, blockOrigin);
+            }
+
+        }
+
+        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, int origin)
+        {
+            this.BaseStream = baseStream;
+            this.Origin = origin;
+            this.Length = (int)siphonStream.Length;
+
+            this.Memory = null;
+            this.SiphonSteam = siphonStream;
+        }
+
+        private SiphonBlock(Stream baseStream, SiphonStream siphonStream, int origin, MemoryStream memoryStream) : this(baseStream, siphonStream, origin)
+        {
+            this.Memory = memoryStream;
+        }
+
+        public void SetBasePosition(long positionFromOrigin)
+        {
+            this.SiphonSteam.Position = positionFromOrigin - this.Origin;
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            this.Siphon.Dispose();
+            this.SiphonSteam.Dispose();
 
             if (this.Memory != null)
             {
                 this.Memory.Dispose();
             }
 
-            if(this.BaseStream.CanSeek == true)
+            if (this.BaseStream.CanSeek == true)
             {
                 this.BaseStream.Position = this.Origin + this.Length;
             }

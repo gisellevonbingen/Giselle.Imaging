@@ -53,111 +53,86 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public ExifContainer(byte[] input)
-        {
-            this.Read(input);
-        }
-
         public ExifContainer(Stream input)
         {
             this.Read(input);
         }
 
-        public ExifContainer(Stream input, long origin)
-        {
-            this.Read(input, origin);
-        }
-
-        public void Read(byte[] input)
-        {
-            using (var ms = new MemoryStream(input))
-            {
-                this.Read(ms);
-            }
-
-        }
-
         public void Read(Stream input)
         {
-            if (input.CanSeek == false)
+            using (var siphonBlock = SiphonBlock.ByRemain(input))
             {
-                throw new ArgumentException("Exif input stream required be seekable");
-            }
+                var siphon = siphonBlock.SiphonSteam;
+                var processor = CreateExifProcessor(siphon);
+                var signature = processor.ReadBytes(SignatureLength);
 
-            var origin = input.Position;
-            this.Read(input, origin);
-        }
-
-        public void Read(Stream input, long origin)
-        {
-            var processor = CreateExifProcessor(input);
-            var signature = processor.ReadBytes(SignatureLength);
-
-            if (TryGetEndian(signature, out var isLittleEndian) == false)
-            {
-                throw new IOException($"Signature not found");
-            }
-
-            processor.IsLittleEndian = isLittleEndian;
-            var endianChecker = processor.ReadShort();
-
-            if (endianChecker != EndianChecker)
-            {
-                throw new IOException($"Endian Check Failed : Reading={endianChecker:X4}, Require={EndianChecker:X4}");
-            }
-
-            this.Directories.Clear();
-            var ifdOffset = processor.ReadInt();
-
-            while (true)
-            {
-                if (ifdOffset == 0)
+                if (TryGetEndian(signature, out var isLittleEndian) == false)
                 {
-                    break;
+                    throw new IOException($"Signature not found");
                 }
 
-                input.Position = ifdOffset + origin;
+                processor.IsLittleEndian = isLittleEndian;
+                var endianChecker = processor.ReadShort();
 
-                var entryCount = processor.ReadShort();
-                var rawEntries = new List<ExifRawEntry>();
-
-                for (var i = 0; i < entryCount; i++)
+                if (endianChecker != EndianChecker)
                 {
-                    var entry = new ExifRawEntry();
-                    entry.ReadInfo(processor);
-                    rawEntries.Add(entry);
+                    throw new IOException($"Endian Check Failed : Reading={endianChecker:X4}, Require={EndianChecker:X4}");
                 }
 
-                ifdOffset = processor.ReadInt();
+                this.Directories.Clear();
+                var ifdOffset = processor.ReadInt();
 
-                var directory = new ExifImageFileDirectory();
-                this.Directories.Add(directory);
-
-                foreach (var raw in rawEntries)
+                while (true)
                 {
-                    var value = raw.ValueType.ValueGenerator();
-
-                    if (raw.IsOffset == true)
+                    if (ifdOffset == 0)
                     {
-                        input.Position = raw.ValueOrOffset + origin;
-                        value.Read(raw, processor);
+                        break;
                     }
-                    else
-                    {
-                        using (var ms = new MemoryStream())
-                        {
-                            var entryProcessor = CreateExifProcessor(ms, processor);
-                            entryProcessor.WriteInt(raw.ValueOrOffset);
 
-                            ms.Position = 0L;
-                            value.Read(raw, entryProcessor);
+                    siphon.Position = ifdOffset;
+
+                    var entryCount = processor.ReadShort();
+                    var rawEntries = new List<ExifRawEntry>();
+
+                    for (var i = 0; i < entryCount; i++)
+                    {
+                        var entry = new ExifRawEntry();
+                        entry.ReadInfo(processor);
+                        rawEntries.Add(entry);
+                    }
+
+                    ifdOffset = processor.ReadInt();
+
+                    var directory = new ExifImageFileDirectory();
+                    this.Directories.Add(directory);
+
+                    foreach (var raw in rawEntries)
+                    {
+                        var value = raw.ValueType.ValueGenerator();
+
+                        if (raw.IsOffset == true)
+                        {
+                            siphon.Position = raw.ValueOrOffset;
+                            value.Read(raw, processor);
+                        }
+                        else
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                var entryProcessor = CreateExifProcessor(ms, processor);
+                                entryProcessor.WriteInt(raw.ValueOrOffset);
+
+                                ms.Position = 0L;
+                                value.Read(raw, entryProcessor);
+                            }
+
                         }
 
+                        var entry = new ExifEntry() { TagId = raw.TagId, Value = value };
+                        directory.Entries.Add(entry);
+                        Console.WriteLine(entry);
                     }
 
-                    var entry = new ExifEntry() { TagId = raw.TagId, Value = value };
-                    directory.Entries.Add(entry);
-                    Console.WriteLine(entry);
                 }
 
             }
