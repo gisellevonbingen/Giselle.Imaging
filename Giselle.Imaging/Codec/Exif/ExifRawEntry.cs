@@ -22,7 +22,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public bool IsOffset => this.ValueType.DefaultOffset == true || this.ValueCount > 1;
+        public bool IsOffset => this.ValueType.DefaultOffset == true || (this.ValueType.ElementSize * this.ValueCount) > 4;
 
         public void ReadInfo(DataProcessor processor)
         {

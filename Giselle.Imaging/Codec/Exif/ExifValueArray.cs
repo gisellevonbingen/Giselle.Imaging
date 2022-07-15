@@ -51,11 +51,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public abstract T ReadElement(int raw);
-
         public abstract T ReadElement(DataProcessor processor);
-
-        public abstract int WriteElement(T element);
 
         public abstract void WriteElement(T element, DataProcessor processor);
 

@@ -16,18 +16,18 @@ namespace Giselle.Imaging.Codec.Exif
         private readonly static List<ExifValueType> _Values = new List<ExifValueType>();
         private readonly static Dictionary<short, ExifValueType> Lookups = new Dictionary<short, ExifValueType>();
 
-        public static ExifValueType Byte = Register(new ExifValueType("Byte", 1, false, () => new ExifValueBytes()));
+        public static ExifValueType Byte = Register(new ExifValueType("Byte", 1, false, 1, () => new ExifValueBytes()));
         public static ExifValueType ASCII = Register(new ExifValueType("ASCII", 2, true, () => new ExifValueASCII()));
-        public static ExifValueType Short = Register(new ExifValueType("Short", 3, false, () => new ExifValueShorts()));
-        public static ExifValueType Long = Register(new ExifValueType("Long", 4, false, () => new ExifValueLongs()));
-        public static ExifValueType Rational = Register(new ExifValueType("Rational", 5, true, () => new ExifValueRationals()));
-        public static ExifValueType SByte = Register(new ExifValueType("SByte", 6, false, () => new ExifValueSBytes()));
+        public static ExifValueType Short = Register(new ExifValueType("Short", 3, false, 2, () => new ExifValueShorts()));
+        public static ExifValueType Long = Register(new ExifValueType("Long", 4, false, 4, () => new ExifValueLongs()));
+        public static ExifValueType Rational = Register(new ExifValueType("Rational", 5, true, 8, () => new ExifValueRationals()));
+        public static ExifValueType SByte = Register(new ExifValueType("SByte", 6, false, 1, () => new ExifValueSBytes()));
         public static ExifValueType Undefined = Register(new ExifValueType("Undefined", 7, false, () => new ExifValueUndefineds()));
-        public static ExifValueType SShort = Register(new ExifValueType("SShort", 8, false, () => new ExifValueSShorts()));
-        public static ExifValueType SLong = Register(new ExifValueType("SLong", 9, false, () => new ExifValueSLongs()));
-        public static ExifValueType SRational = Register(new ExifValueType("SRational", 10, true, () => new ExifValueSRationals()));
-        public static ExifValueType Float = Register(new ExifValueType("Float", 11, false, () => null));
-        public static ExifValueType Double = Register(new ExifValueType("Double", 12, false, () => null));
+        public static ExifValueType SShort = Register(new ExifValueType("SShort", 8, false, 2, () => new ExifValueSShorts()));
+        public static ExifValueType SLong = Register(new ExifValueType("SLong", 9, false, 4, () => new ExifValueSLongs()));
+        public static ExifValueType SRational = Register(new ExifValueType("SRational", 10, true, 8, () => new ExifValueSRationals()));
+        public static ExifValueType Float = Register(new ExifValueType("Float", 11, false, 4, () => null));
+        public static ExifValueType Double = Register(new ExifValueType("Double", 12, false, 8, () => null));
 
         public static ExifValueType FromId(short id, ExifValueType fallback = default) => Lookups.TryGetValue(id, out var value) ? value : fallback;
 
@@ -41,6 +41,7 @@ namespace Giselle.Imaging.Codec.Exif
         public string Name { get; }
         public short Id { get; }
         public bool DefaultOffset { get; }
+        public int ElementSize { get; }
 
         public Func<ExifValue> ValueGenerator { get; }
 
@@ -50,6 +51,11 @@ namespace Giselle.Imaging.Codec.Exif
             this.Id = id;
             this.DefaultOffset = defaultOffset;
             this.ValueGenerator = valueGenerator;
+        }
+
+        public ExifValueType(string name, short id, bool defaultOffset, int elementSize, Func<ExifValue> valueGenerator) : this(name, id, defaultOffset, valueGenerator)
+        {
+            this.ElementSize = elementSize;
         }
 
         public override string ToString() => this.Name;

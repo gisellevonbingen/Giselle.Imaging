@@ -16,11 +16,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override ExifValueType Type => ExifValueType.SShort;
 
-        public override short ReadElement(int raw) => (short)raw;
-
         public override short ReadElement(DataProcessor processor) => processor.ReadShort();
-
-        public override int WriteElement(short element) => element;
 
         public override void WriteElement(short element, DataProcessor processor) => processor.WriteShort(element);
     }

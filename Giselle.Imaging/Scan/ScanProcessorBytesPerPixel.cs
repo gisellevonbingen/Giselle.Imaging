@@ -38,7 +38,7 @@ namespace Giselle.Imaging.Scan
                 {
                     for (var xi = 0; xi < passInfo.PixelsX; xi++)
                     {
-                        var coord = coordFunction(new PointI(xi, yi));
+                        var coord = coordFunction(passProcessor.GetPixelCoord(new PointI(xi, yi)));
 
                         scanAction(scan.Scan, scanOffset, frame, coord);
                         scanOffset += sbpp;

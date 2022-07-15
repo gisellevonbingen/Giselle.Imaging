@@ -16,11 +16,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override ExifValueType Type => ExifValueType.Rational;
 
-        public override ExifSRational ReadElement(int raw) => throw new NotSupportedException();
-
         public override ExifSRational ReadElement(DataProcessor processor) => new ExifSRational(processor);
-
-        public override int WriteElement(ExifSRational element) => throw new NotSupportedException();
 
         public override void WriteElement(ExifSRational element, DataProcessor processor) => element.Write(processor);
     }

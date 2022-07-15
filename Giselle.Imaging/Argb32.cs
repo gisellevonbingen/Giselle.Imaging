@@ -153,6 +153,8 @@ namespace Giselle.Imaging
             set => (this.R, this.G, this.B) = (value, value, value);
         }
 
+        public bool IsGraysclae => this.R == this.G && this.G == this.B;
+
         public Argb32 DeriveA(byte a) => new Argb32(a, this.R, this.G, this.B);
 
         public override bool Equals(object obj) => obj is Argb32 other && this.Equals(other);
