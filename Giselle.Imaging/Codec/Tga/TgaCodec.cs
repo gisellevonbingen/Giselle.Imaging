@@ -33,14 +33,10 @@ namespace Giselle.Imaging.Codec.Tga
             yield return "vst";
         }
 
-        protected override bool TestAsBytes(byte[] bytes, int offset, int count)
+        protected override bool TestAsStream(Stream stream)
         {
-            using (var ms = new MemoryStream(bytes, offset, count))
-            {
-                var header = new TgaRawHeader(CreateTgaProcessor(ms));
-                return header.Width > 0 && header.Height > 0 && header.PixelDepth > 0;
-            }
-
+            var header = new TgaRawHeader(CreateTgaProcessor(stream));
+            return header.Width > 0 && header.Height > 0 && header.PixelDepth > 0;
         }
 
         public override ImageArgb32Container Read(Stream input)

@@ -69,12 +69,12 @@ namespace Giselle.Imaging.Codec
             }
             else
             {
-                return this.TestAsBytes(bytes, 0, bytes.Length);
+                return this.TestAsBytes(bytes);
             }
 
         }
 
-        protected virtual bool TestAsBytes(byte[] bytes, int offset, int count)
+        protected virtual bool TestAsBytes(byte[] bytes)
         {
             return false;
         }

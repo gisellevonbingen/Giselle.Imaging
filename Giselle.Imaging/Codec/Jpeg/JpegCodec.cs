@@ -48,7 +48,7 @@ namespace Giselle.Imaging.Codec.Jpeg
 
         public override int BytesForTest => GetBytes((ushort)JpegMarker.SOI).Length;
 
-        protected override bool TestAsBytes(byte[] bytes, int offset, int count) => bytes.StartsWith(GetBytes((ushort)JpegMarker.SOI), offset);
+        protected override bool TestAsBytes(byte[] bytes) => bytes.StartsWith(GetBytes((ushort)JpegMarker.SOI));
 
         public static int[][] ZigZagOrder = new int[mcuWidth][]{
             new int[mcuHeight]{  0,  1,  5,  6, 14, 15, 27, 28 },

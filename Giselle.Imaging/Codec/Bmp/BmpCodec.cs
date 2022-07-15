@@ -41,7 +41,7 @@ namespace Giselle.Imaging.Codec.Bmp
             yield return "rle";
         }
 
-        protected override bool TestAsBytes(byte[] bytes, int offset, int count) => Signatures.Any(s => bytes.StartsWith(s, offset));
+        protected override bool TestAsBytes(byte[] bytes) => Signatures.Any(s => bytes.StartsWith(s));
 
         public override ImageArgb32Container Read(Stream input)
         {
