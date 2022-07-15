@@ -157,10 +157,8 @@ namespace Giselle.Imaging
 
             foreach (var color in this.Colors)
             {
-                if (report.UniqueColors.Contains(color) == false)
+                if (report.UniqueColors.Add(color) == true)
                 {
-                    report.UniqueColors.Add(color);
-
                     if (report.HasAlpha == false && color.A < byte.MaxValue)
                     {
                         report.HasAlpha = true;
