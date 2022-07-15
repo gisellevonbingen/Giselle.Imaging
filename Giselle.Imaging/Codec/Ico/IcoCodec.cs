@@ -28,8 +28,6 @@ namespace Giselle.Imaging.Codec.Ico
 
         public override bool SupportMultiFrame => true;
 
-        public override string PrimaryExtension => GetExtension(IcoImageType.Icon);
-
         public override IEnumerable<string> GetExtensions()
         {
             yield return GetExtension(IcoImageType.Icon);

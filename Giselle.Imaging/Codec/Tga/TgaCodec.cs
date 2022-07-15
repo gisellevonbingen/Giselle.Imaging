@@ -25,11 +25,9 @@ namespace Giselle.Imaging.Codec.Tga
 
         public override bool SupportMultiFrame => false;
 
-        public override string PrimaryExtension => "tga";
-
         public override IEnumerable<string> GetExtensions()
         {
-            yield return PrimaryExtension;
+            yield return "tga";
             yield return "icb";
             yield return "vda";
             yield return "vst";

@@ -23,13 +23,11 @@ namespace Giselle.Imaging.Codec.Ani
 
         public override bool SupportMultiFrame => true;
 
-        public override string PrimaryExtension => "ani";
-
         public override int BytesForTest => 12;
 
         public override IEnumerable<string> GetExtensions()
         {
-            yield return this.PrimaryExtension;
+            yield return "ani";
         }
 
         protected override bool TestAsStream(Stream stream)

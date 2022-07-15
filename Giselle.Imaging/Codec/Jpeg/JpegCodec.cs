@@ -38,11 +38,9 @@ namespace Giselle.Imaging.Codec.Jpeg
         
         public override bool SupportMultiFrame => false;
 
-        public override string PrimaryExtension => "jpg";
-
         public override IEnumerable<string> GetExtensions()
         {
-            yield return PrimaryExtension;
+            yield return "jpg";
             yield return "jpeg";
             yield return "jpe";
             yield return "jfif";

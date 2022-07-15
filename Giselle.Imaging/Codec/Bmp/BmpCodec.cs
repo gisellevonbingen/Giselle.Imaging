@@ -37,11 +37,9 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public override bool SupportMultiFrame => false;
 
-        public override string PrimaryExtension => "bmp";
-
         public override IEnumerable<string> GetExtensions()
         {
-            yield return PrimaryExtension;
+            yield return "bmp";
             yield return "dib";
             yield return "rle";
         }

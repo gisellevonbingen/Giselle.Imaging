@@ -25,11 +25,9 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override bool SupportMultiFrame => false;
 
-        public override string PrimaryExtension => "tiff";
-
         public override IEnumerable<string> GetExtensions()
         {
-            yield return PrimaryExtension;
+            yield return "tiff";
             yield return "tif";
         }
 

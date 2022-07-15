@@ -31,11 +31,9 @@ namespace Giselle.Imaging.Codec.Png
 
         public override bool SupportMultiFrame => false;
 
-        public override string PrimaryExtension => "png";
-
         public override IEnumerable<string> GetExtensions()
         {
-            yield return PrimaryExtension;
+            yield return "png";
         }
 
         protected override bool TestAsBytes(byte[] bytes, int offset, int count) => bytes.StartsWith(Signature, offset);

@@ -11,7 +11,7 @@ namespace Giselle.Imaging.Codec
     {
         public abstract bool SupportMultiFrame { get; }
 
-        public abstract string PrimaryExtension { get; }
+        public virtual string PrimaryExtension => this.GetExtensions().First();
 
         public abstract IEnumerable<string> GetExtensions();
 
