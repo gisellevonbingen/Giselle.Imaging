@@ -19,7 +19,7 @@ namespace Giselle.Imaging.Scan
             this.PassIndex = -1;
         }
 
-        public PointI GetCoord(PointI indexCoord)
+        public PointI GetPixelCoord(PointI indexCoord)
         {
             var scanData = this.ScanData;
 
@@ -37,9 +37,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        public PointI GetEncodeCoord(PointI indexCoord) => this.ScanData.GetEncodeCoord(this.GetCoord(indexCoord));
+        public PointI GetEncodeCoord(PointI indexCoord) => this.ScanData.GetEncodeCoord(this.GetPixelCoord(indexCoord));
 
-        public PointI GetDecodeCoord(PointI indexCoord) => this.ScanData.GetDecodeCoord(this.GetCoord(indexCoord));
+        public PointI GetDecodeCoord(PointI indexCoord) => this.ScanData.GetDecodeCoord(this.GetPixelCoord(indexCoord));
 
         public bool NextPass()
         {
