@@ -80,9 +80,9 @@ namespace Giselle.Imaging
         }
 
         public byte A { get; set; }
+        public byte B { get; set; }
         public byte R { get; set; }
         public byte G { get; set; }
-        public byte B { get; set; }
 
         public Argb32(byte r, byte g, byte b)
         {
@@ -100,21 +100,21 @@ namespace Giselle.Imaging
             this.B = b;
         }
 
-        public Argb32(byte[] samples)
+        public Argb32(byte[] bgra)
         {
-            if (samples.Length == 3)
+            if (bgra.Length == 3)
             {
                 this.A = byte.MaxValue;
-                this.R = samples[0];
-                this.G = samples[1];
-                this.B = samples[2];
+                this.R = bgra[2];
+                this.G = bgra[1];
+                this.B = bgra[0];
             }
-            else if (samples.Length == 4)
+            else if (bgra.Length == 4)
             {
-                this.A = samples[0];
-                this.R = samples[1];
-                this.G = samples[2];
-                this.B = samples[3];
+                this.A = bgra[3];
+                this.R = bgra[2];
+                this.G = bgra[1];
+                this.B = bgra[0];
             }
             else
             {
@@ -123,25 +123,25 @@ namespace Giselle.Imaging
 
         }
 
-        public byte[] GetSamples() => new byte[Samples] { this.A, this.R, this.G, this.B };
+        public byte[] GetSamples() => new byte[Samples] { this.B, this.G, this.R, this.A };
 
         public byte this[int sampleIndex]
         {
             get
             {
-                if (sampleIndex == 0) return this.A;
-                else if (sampleIndex == 1) return this.R;
-                else if (sampleIndex == 2) return this.G;
-                else if (sampleIndex == 3) return this.B;
+                if (sampleIndex == 0) return this.B;
+                else if (sampleIndex == 1) return this.G;
+                else if (sampleIndex == 2) return this.R;
+                else if (sampleIndex == 3) return this.A;
                 else throw new ArgumentOutOfRangeException();
             }
 
             set
             {
-                if (sampleIndex == 0) this.A = value;
-                else if (sampleIndex == 1) this.R = value;
-                else if (sampleIndex == 2) this.G = value;
-                else if (sampleIndex == 3) this.B = value;
+                if (sampleIndex == 0) this.B = value;
+                else if (sampleIndex == 1) this.G = value;
+                else if (sampleIndex == 2) this.R = value;
+                else if (sampleIndex == 3) this.A = value;
                 else throw new ArgumentOutOfRangeException();
             }
 
