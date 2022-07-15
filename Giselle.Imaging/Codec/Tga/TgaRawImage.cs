@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Scan;
-using Giselle.Imaging.Utils;
 
 namespace Giselle.Imaging.Codec.Tga
 {

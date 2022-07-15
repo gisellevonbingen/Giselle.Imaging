@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Giselle.Imaging.Algorithms.Huffman;
 using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.ICC;
-using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
 using Giselle.Imaging.Utils;

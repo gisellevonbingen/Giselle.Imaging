@@ -7,9 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
-using Giselle.Imaging.Physical;
-using Giselle.Imaging.Scan;
-using Ionic.Zlib;
 
 namespace Giselle.Imaging.Codec.Png
 {

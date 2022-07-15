@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Drawable;
-using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Scan
 {

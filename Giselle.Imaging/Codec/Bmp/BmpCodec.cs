@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
-using Giselle.Imaging.Physical;
-using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Bmp
 {
