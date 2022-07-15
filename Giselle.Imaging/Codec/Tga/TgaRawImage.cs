@@ -191,7 +191,16 @@ namespace Giselle.Imaging.Codec.Tga
         {
             this.Width = (ushort)frame.Width;
             this.Height = (ushort)frame.Height;
-            this.TgaPixelFormat = options.PixelFormat;
+
+            if (options.PixelFormat == TgaPixelFormat.Undefined)
+            {
+                this.TgaPixelFormat = TgaCodec.Instance.GetPreferredPixelFormat(frame).ToTgaPixelFormat();
+            }
+            else
+            {
+                this.TgaPixelFormat = options.PixelFormat;
+            }
+
             this.Compression = options.Compression;
             this.OriginX = options.OriginX;
             this.OriginY = options.OriginY;

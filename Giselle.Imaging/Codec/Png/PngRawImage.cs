@@ -89,7 +89,16 @@ namespace Giselle.Imaging.Codec.Png
         {
             this.Width = frame.Width;
             this.Height = frame.Height;
-            this.PixelFormat = frame.PixelFormat;
+
+            if (options.PixelFormat == PngPixelFormat.Undefined)
+            {
+                this.PngPixelFormat = PngCodec.Instance.GetPreferredPixelFormat(frame).ToPngPixelFormat();
+            }
+            else
+            {
+                this.PngPixelFormat = options.PixelFormat;
+            }
+
             this.Interlace = options.Interlace;
 
             var physicalUnit = frame.Resolution.Unit;
@@ -98,39 +107,16 @@ namespace Giselle.Imaging.Codec.Png
             this.YPixelsPerUnit = (int)frame.HeightResoulution.GetConvertValue(physicalUnit);
             this.ICCProfile = frame.ICCProfile;
 
-            var colorTable = new Argb32[0];
-
-            if (options.ColorType.HasValue == true)
-            {
-                colorTable = frame.GetColorTable(PngColorTypeExtensions.ToPixelFormat(options.ColorType.Value, options.BitDepth));
-            }
-            else
-            {
-                var usedColors = frame.Colors.Distinct().ToArray();
-                var noAlpha = usedColors.All(c => c.A == byte.MaxValue);
-
-                var format = usedColors.Length.GetPrefferedIndexedFormat();
-
-                if (format == PixelFormat.Undefined)
-                {
-                    this.ColorType = noAlpha ? PngColorType.Truecolor : PngColorType.TruecolorWithAlpha;
-                    this.BitDepth = 8;
-                }
-                else
-                {
-                    this.PixelFormat = format;
-                    colorTable = usedColors;
-                }
-
-            }
-
+            var pixelFormat = this.PixelFormat;
+            var bitsPerPixel = pixelFormat.GetBitsPerPixel();
+            var colorTable = frame.GetColorTable(pixelFormat);
             (this.RgbTable, this.AlphaTable) = ColorTableUtils.SplitColorTable(colorTable);
 
-            var scanData = CreateScanData(frame.Width, frame.Height, this.PixelFormat.GetBitsPerPixel(), this.Stride, this.Interlace, colorTable);
+            var scanData = CreateScanData(frame.Width, frame.Height, bitsPerPixel, this.Stride, this.Interlace, colorTable);
             var scanProcessor = this.CreateScanProcessor();
             scanProcessor.Encode(scanData, frame);
 
-            var bitPerPixel = this.PixelFormat.GetBitsPerPixel();
+            var bitPerPixel = bitsPerPixel;
             var samples = bitPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;
 
@@ -197,17 +183,23 @@ namespace Giselle.Imaging.Codec.Png
 
         public PixelFormat PixelFormat
         {
-            get => PngColorTypeExtensions.ToPixelFormat(this.ColorType, this.BitDepth);
-            set => (this.ColorType, this.BitDepth) = value.ToPngPixelFormat();
+            get => this.PngPixelFormat.ToPixelFormat();
+            set => this.PngPixelFormat = value.ToPngPixelFormat();
         }
 
-        public static int GetStride(int width, PngColorType colorType, byte bitDepth)
+        public PngPixelFormat PngPixelFormat
         {
-            var bitsPerPixel = PngColorTypeExtensions.ToPixelFormat(colorType, bitDepth).GetBitsPerPixel();
+            get => PngPixelFormatExtensions.ToPngPixelFormat(this.ColorType, this.BitDepth);
+            set => (this.ColorType, this.BitDepth) = value.ToPngColorType();
+        }
+
+        public static int GetStride(int width, PngPixelFormat pngPixelFormat)
+        {
+            var bitsPerPixel = pngPixelFormat.ToPixelFormat().GetBitsPerPixel();
             return ScanProcessor.GetStride(width, bitsPerPixel, 1);
         }
 
-        public int Stride => GetStride(this.Width, this.ColorType, this.BitDepth);
+        public int Stride => GetStride(this.Width, this.PngPixelFormat);
 
         private void ReadChunk(PngChunkStream chunkStream)
         {
@@ -396,7 +388,7 @@ namespace Giselle.Imaging.Codec.Png
             return new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = PngCodec.Instance,
-                PrimaryOptions = new PngSaveOptions() { Interlace = this.Interlace, BitDepth = this.BitDepth, ColorType = this.ColorType, },
+                PrimaryOptions = new PngSaveOptions() { Interlace = this.Interlace, PixelFormat = this.PngPixelFormat, },
                 WidthResoulution = new PhysicalDensity(this.XPixelsPerUnit, densityUnit),
                 HeightResoulution = new PhysicalDensity(this.YPixelsPerUnit, densityUnit),
                 ICCProfile = this.ICCProfile,

@@ -180,6 +180,11 @@ namespace Giselle.Imaging.Codec.Tiff
             throw new NotImplementedException();
         }
 
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
+        {
+            throw new NotSupportedException();
+        }
+
     }
 
 }

@@ -64,7 +64,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         public static TgaPixelFormat ToTgaPixelFormat(this PixelFormat value)
         {
-            if (value.IsColorTableLE(PixelFormat.Format8bppIndexed) == true)
+            if (value == PixelFormat.Format8bppIndexed)
             {
                 return TgaPixelFormat.Bpp8Indexed;
             }
@@ -86,7 +86,7 @@ namespace Giselle.Imaging.Codec.Tga
             }
             else
             {
-                return TgaPixelFormat.Bpp32Argb;
+                throw new ArgumentException($"Unknown PixelFormat : {value}");
             }
 
         }

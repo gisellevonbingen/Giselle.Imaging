@@ -146,6 +146,59 @@ namespace Giselle.Imaging
             codec.Write(output, this, options);
         }
 
+        public PreferredIndexedReport GetPreferredIndexedPixelFormat(bool canContainAlpha) => GetPreferredIndexedPixelFormat(canContainAlpha, PixelFormatUtils.GetIndexedPixelFormats());
+
+        public PreferredIndexedReport GetPreferredIndexedPixelFormat(bool canContainAlpha, IEnumerable<PixelFormat> indexedFormats)
+        {
+            var report = new PreferredIndexedReport();
+            var greatestTableLength = indexedFormats.Select(f => f.GetColorTableLength()).Max();
+            var find = false;
+
+            foreach (var color in this.Colors)
+            {
+                if (color.A < byte.MaxValue)
+                {
+                    report.HasAlpha = true;
+
+                    if (canContainAlpha == false)
+                    {
+                        report.IndexedPixelFormat = PixelFormat.Undefined;
+                        find = true;
+                        break;
+                    }
+
+                }
+
+                if (report.SeekColors.Contains(color) == false)
+                {
+                    report.SeekColors.Add(color);
+
+                    if (report.SeekColors.Count > greatestTableLength)
+                    {
+                        report.IndexedPixelFormat = PixelFormat.Undefined;
+                        find = true;
+                        break;
+                    }
+
+                }
+
+            }
+
+            if (find == false)
+            {
+                report.IndexedPixelFormat = PixelFormatUtils.GetPreferredIndexedFormat(report.SeekColors.Count, indexedFormats);
+            }
+
+            return report;
+        }
+
+        public class PreferredIndexedReport
+        {
+            public HashSet<Argb32> SeekColors { get; } = new HashSet<Argb32>();
+            public bool HasAlpha { get; set; } = false;
+            public PixelFormat IndexedPixelFormat { get; set; } = PixelFormat.Undefined;
+        }
+
         public class ImageEnumerable<T> : IEnumerable<T>
         {
             public ImageArgb32Frame Frame { get; }

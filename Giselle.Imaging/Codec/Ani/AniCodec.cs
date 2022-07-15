@@ -32,8 +32,11 @@ namespace Giselle.Imaging.Codec.Ani
 
         protected override bool TestAsStream(Stream stream)
         {
-            var s = new RiffInputStream(stream);
-            return s.FormType == ACONFormTypeKey;
+            using (var s = new RiffInputStream(stream, true))
+            {
+                return s.FormType == ACONFormTypeKey;
+            }
+
         }
 
         public override ImageArgb32Container Read(Stream input)
@@ -43,6 +46,11 @@ namespace Giselle.Imaging.Codec.Ani
         }
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
         {
             throw new NotSupportedException();
         }

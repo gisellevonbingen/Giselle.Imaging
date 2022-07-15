@@ -8,31 +8,75 @@ namespace Giselle.Imaging
 {
     public static class PixelFormatExtensions
     {
-        public static PixelFormat GetPrefferedIndexedFormat(this int colorCount, PixelFormat fallback = PixelFormat.Undefined)
+        public static bool HasAlphaChannel(this PixelFormat value)
         {
-            var lastCount = 0;
-            var lastPixelFormat = fallback;
-
-            foreach (var e in Enum.GetValues(typeof(PixelFormat)) as PixelFormat[])
+            if (value == PixelFormat.Format16bppAGrayscale)
             {
-                var colorTableLength = e.GetColorTableLength();
-
-                if (colorTableLength > 0 && colorTableLength >= colorCount)
-                {
-                    if (lastCount == 0 || colorTableLength < lastCount)
-                    {
-                        lastPixelFormat = e;
-                        lastCount = colorTableLength;
-                    }
-
-                }
-
+                return true;
+            }
+            else
+            {
+                return IsArgb(value);
             }
 
-            return lastPixelFormat;
         }
 
-        public static bool IsUseColorTable(this PixelFormat value) => GetColorTableLength(value) > 0;
+        public static bool IsGrayscale(this PixelFormat value)
+        {
+            if (value == PixelFormat.Format8bppGrayscale)
+            {
+                return true;
+            }
+            else if (value == PixelFormat.Format16bppAGrayscale)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public static bool IsArgb(this PixelFormat value)
+        {
+            if (value == PixelFormat.Format16bppArgb1555)
+            {
+                return true;
+            }
+            else if (value == PixelFormat.Format32bppArgb8888)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public static bool IsRgb(this PixelFormat value)
+        {
+            if (value == PixelFormat.Format16bppRgb555 || value == PixelFormat.Format16bppRgb565 || value == PixelFormat.Format16bppArgb1555)
+            {
+                return true;
+            }
+            else if (value == PixelFormat.Format24bppRgb888)
+            {
+                return true;
+            }
+            else if (value == PixelFormat.Format32bppRgb888 || value == PixelFormat.Format32bppArgb8888)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public static bool IsIndexed(this PixelFormat value) => GetColorTableLength(value) > 0;
 
         public static int GetColorTableLength(this PixelFormat value)
         {

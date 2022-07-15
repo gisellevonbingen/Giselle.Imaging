@@ -152,7 +152,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
             else
             {
-                scanProcessor = ScanProcessor.GetScanProcessor(this.BitsPerPixel.ToPixelFormat());
+                scanProcessor = ScanProcessor.GetScanProcessor(this.PixelFormat);
             }
 
             var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
@@ -170,30 +170,14 @@ namespace Giselle.Imaging.Codec.Bmp
         {
             this.Width = frame.Width;
             this.Height = frame.Height;
-            this.BitsPerPixel = options.BitsPerPixel;
 
-            var colorTable = new Argb32[0];
-
-            if (options.BitsPerPixel != BmpBitsPerPixel.Undefined)
+            if (options.BitsPerPixel == BmpBitsPerPixel.Undefined)
             {
-                colorTable = frame.GetColorTable(options.BitsPerPixel.ToPixelFormat());
+                this.BitsPerPixel = BmpCodec.Instance.GetPreferredPixelFormat(frame).ToBmpBitsPerPixel();
             }
             else
             {
-                var usedColors = frame.Colors.Distinct().ToArray();
-                var noAlpha = usedColors.All(c => c.A == byte.MaxValue);
-
-                if (noAlpha == false)
-                {
-                    this.BitsPerPixel = BmpBitsPerPixel.Bpp32Argb;
-                }
-                else
-                {
-                    var format = usedColors.Length.GetPrefferedIndexedFormat();
-                    this.BitsPerPixel = format.ToBmpBitsPerPixel();
-                    if (format.IsUseColorTable() == true) colorTable = usedColors;
-                }
-
+                this.BitsPerPixel = options.BitsPerPixel;
             }
 
             this.CompressionMethod = options.Compression ?? (this.BitsPerPixel == BmpBitsPerPixel.Bpp32Argb ? BmpCompressionMethod.BitFields : BmpCompressionMethod.Rgb);
@@ -208,7 +192,8 @@ namespace Giselle.Imaging.Codec.Bmp
                 this.AChannelMask = 0xFF000000;
             }
 
-            this.ColorTable = colorTable;
+            var pixelFormat = this.PixelFormat;
+            this.ColorTable = frame.GetColorTable(pixelFormat);
 
             ScanProcessor scanProcessor;
 
@@ -218,8 +203,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
             else
             {
-                var format = this.BitsPerPixel.ToPixelFormat();
-                scanProcessor = ScanProcessor.GetScanProcessor(format);
+                scanProcessor = ScanProcessor.GetScanProcessor(pixelFormat);
             }
 
             var stride = ScanProcessor.GetStride4(frame.Width, (int)this.BitsPerPixel);
@@ -302,6 +286,12 @@ namespace Giselle.Imaging.Codec.Bmp
         public virtual void WriteScanData(DataProcessor processor)
         {
             processor.WriteBytes(this.ScanData);
+        }
+
+        public PixelFormat PixelFormat
+        {
+            get => this.BitsPerPixel.ToPixelFormat();
+            set => this.BitsPerPixel = value.ToBmpBitsPerPixel();
         }
 
     }

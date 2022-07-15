@@ -43,10 +43,33 @@ namespace Giselle.Imaging.Codec.Png
 
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
-            var frame = container.FirstOrDefault();
+            var frame = container.First();
             var options = _options.CastOrDefault<PngSaveOptions>();
             var raw = new PngRawImage(frame, options);
             raw.Write(output);
+        }
+
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
+        {
+            var report = frame.GetPreferredIndexedPixelFormat(true, this.GetSupportIndexedPixelFormats());
+
+            if (report.IndexedPixelFormat == PixelFormat.Undefined)
+            {
+                return report.HasAlpha ? PixelFormat.Format32bppArgb8888 : PixelFormat.Format24bppRgb888;
+            }
+            else
+            {
+                return report.IndexedPixelFormat;
+            }
+
+        }
+
+        public override IEnumerable<PixelFormat> GetSupportIndexedPixelFormats()
+        {
+            yield return PixelFormat.Format1bppIndexed;
+            yield return PixelFormat.Format2bppIndexed;
+            yield return PixelFormat.Format4bppIndexed;
+            yield return PixelFormat.Format8bppIndexed;
         }
 
     }

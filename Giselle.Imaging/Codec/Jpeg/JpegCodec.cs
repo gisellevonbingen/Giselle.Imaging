@@ -318,6 +318,11 @@ namespace Giselle.Imaging.Codec.Jpeg
             throw new NotImplementedException();
         }
 
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
+        {
+            throw new NotSupportedException();
+        }
+
     }
 
 }

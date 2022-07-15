@@ -66,6 +66,11 @@ namespace Giselle.Imaging.Codec.Ico
             throw new NotSupportedException();
         }
 
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
+        {
+            throw new NotSupportedException();
+        }
+
     }
 
 }

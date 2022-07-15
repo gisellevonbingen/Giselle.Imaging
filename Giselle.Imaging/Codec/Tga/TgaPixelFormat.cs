@@ -8,15 +8,16 @@ namespace Giselle.Imaging.Codec.Tga
 {
     public enum TgaPixelFormat : byte
     {
-        NoImage = 0,
+        Undefined = 0,
+        NoImage = 1,
 
-        Bpp8Indexed = 1,
+        Bpp8Indexed = 2,
 
-        Bpp8Grayscale = 2,
-        Bpp16AGrayscale = 3,
+        Bpp8Grayscale = 3,
+        Bpp16AGrayscale = 4,
 
-        Bpp24Rgb = 4,
-        Bpp32Argb = 5,
+        Bpp24Rgb = 5,
+        Bpp32Argb = 6,
     }
 
 }

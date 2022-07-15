@@ -14,11 +14,11 @@ namespace Giselle.Imaging.Codec.Bmp
             {
                 return BmpBitsPerPixel.Bpp1Indexed;
             }
-            else if (value == PixelFormat.Format2bppIndexed || value == PixelFormat.Format4bppIndexed)
+            else if (value == PixelFormat.Format4bppIndexed)
             {
                 return BmpBitsPerPixel.Bpp4Indexed;
             }
-            else if (value.IsColorTableLE(PixelFormat.Format8bppIndexed) == true)
+            else if (value == PixelFormat.Format8bppIndexed)
             {
                 return BmpBitsPerPixel.Bpp8Indexed;
             }
@@ -36,7 +36,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
             else
             {
-                return BmpBitsPerPixel.Bpp24Rgb;
+                throw new ArgumentException($"Unknown PixelFormat : {value}");
             }
 
         }

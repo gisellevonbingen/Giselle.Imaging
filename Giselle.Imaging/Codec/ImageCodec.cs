@@ -84,6 +84,14 @@ namespace Giselle.Imaging.Codec
         public void Write(Stream output, ImageArgb32Frame frame, SaveOptions options) => this.Write(output, new ImageArgb32Container() { frame }, options);
 
         public abstract void Write(Stream output, ImageArgb32Container container, SaveOptions options);
+
+        public abstract PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame);
+
+        public virtual IEnumerable<PixelFormat> GetSupportIndexedPixelFormats()
+        {
+            yield break;
+        }
+
     }
 
 }

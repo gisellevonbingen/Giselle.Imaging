@@ -49,10 +49,32 @@ namespace Giselle.Imaging.Codec.Tga
             return new ImageArgb32Container(raw.Decode());
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
+        public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
-            var raw = new TgaRawImage(container.FirstOrDefault(), options.CastOrDefault<TgaSaveOptions>());
+            var frame = container.First();
+            var options = _options.CastOrDefault<TgaSaveOptions>();
+            var raw = new TgaRawImage(frame, options);
             raw.Write(output);
+        }
+
+        public override PixelFormat GetPreferredPixelFormat(ImageArgb32Frame frame)
+        {
+            var report = frame.GetPreferredIndexedPixelFormat(true, this.GetSupportIndexedPixelFormats());
+
+            if (report.IndexedPixelFormat == PixelFormat.Undefined)
+            {
+                return report.HasAlpha ? PixelFormat.Format32bppArgb8888 : PixelFormat.Format24bppRgb888;
+            }
+            else
+            {
+                return report.IndexedPixelFormat;
+            }
+
+        }
+
+        public override IEnumerable<PixelFormat> GetSupportIndexedPixelFormats()
+        {
+            yield return PixelFormat.Format8bppIndexed;
         }
 
     }
