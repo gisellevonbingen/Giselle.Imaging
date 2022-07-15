@@ -38,7 +38,7 @@ namespace Giselle.Imaging.Codec.Png
             yield return PrimaryExtension;
         }
 
-        protected override bool TestAsBytes(byte[] bytes) => bytes.StartsWith(Signature);
+        protected override bool TestAsBytes(byte[] bytes, int offset, int count) => bytes.StartsWith(Signature, offset);
 
         public override ImageArgb32Container Read(Stream input)
         {

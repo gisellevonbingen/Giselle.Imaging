@@ -35,9 +35,9 @@ namespace Giselle.Imaging.Codec.Tga
             yield return "vst";
         }
 
-        protected override bool TestAsBytes(byte[] bytes)
+        protected override bool TestAsBytes(byte[] bytes, int offset, int count)
         {
-            using (var ms = new MemoryStream(bytes))
+            using (var ms = new MemoryStream(bytes, offset, count))
             {
                 var header = new TgaRawHeader(CreateTgaProcessor(ms));
                 return header.Width > 0 && header.Height > 0 && header.PixelDepth > 0;

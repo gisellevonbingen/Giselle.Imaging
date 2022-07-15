@@ -41,7 +41,9 @@ namespace Giselle.Imaging.Codec
             Register(TgaCodec.Instance);
         }
 
-        public static ImageCodec FindCodec(byte[] bytes) => GetCodecs().FirstOrDefault(c => c.Test(bytes));
+        public static ImageCodec FindCodec(byte[] bytes) => FindCodec(bytes, 0, bytes.Length);
+
+        public static ImageCodec FindCodec(byte[] bytes, int offset, int count) => GetCodecs().FirstOrDefault(c => c.Test(bytes, offset, count));
 
         public static ImageCodec FindCodec(Stream input)
         {
@@ -110,6 +112,7 @@ namespace Giselle.Imaging.Codec
             {
                 return FromSiphonBlock(siphonBlock);
             }
+
         }
 
         public static ImageArgb32Container FromStream(Stream input)
@@ -124,6 +127,15 @@ namespace Giselle.Imaging.Codec
         public static ImageArgb32Container FromBytes(byte[] bytes)
         {
             using (var ms = new MemoryStream(bytes))
+            {
+                return FromStream(ms);
+            }
+
+        }
+
+        public static ImageArgb32Container FromBytes(byte[] bytes, int offset, int count)
+        {
+            using (var ms = new MemoryStream(bytes, offset, count))
             {
                 return FromStream(ms);
             }

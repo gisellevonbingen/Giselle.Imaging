@@ -37,15 +37,17 @@ namespace Giselle.Imaging.Codec
 
         }
 
-        public bool Test(byte[] bytes)
+        public bool Test(byte[] bytes) => this.Test(bytes, 0, bytes.Length);
+
+        public bool Test(byte[] bytes, int offset, int count)
         {
-            if (bytes.Length < this.BytesForTest)
+            if (count < this.BytesForTest)
             {
                 return false;
             }
             else
             {
-                return this.TestAsBytes(bytes);
+                return this.TestAsBytes(bytes, offset, count);
             }
 
         }
@@ -63,12 +65,12 @@ namespace Giselle.Imaging.Codec
             }
             else
             {
-                return this.TestAsBytes(bytes);
+                return this.TestAsBytes(bytes, 0, bytes.Length);
             }
 
         }
 
-        protected virtual bool TestAsBytes(byte[] bytes)
+        protected virtual bool TestAsBytes(byte[] bytes, int offset, int count)
         {
             return false;
         }
