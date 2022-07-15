@@ -12,11 +12,11 @@ namespace Giselle.Imaging
         public int X { get; }
         public int Y { get; }
 
-        public ColorWithPosition(ImageArgb32Frame frame, int x, int y) : this()
+        public ColorWithPosition(ImageArgb32Frame frame, int offset) : this()
         {
             this.Frame = frame;
-            this.X = x;
-            this.Y = y;
+            this.X = offset % frame.Width;
+            this.Y = offset / frame.Width;
         }
 
         public Argb32 Color

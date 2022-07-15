@@ -40,8 +40,8 @@ namespace Giselle.Imaging
         public ImageArgb32Frame()
         {
             this.Resolution = new PhysicalDensity(96.0D, PhysicalUnit.Inch);
-            this._Colors = new Lazy<IEnumerable<Argb32>>(() => new ImageEnumerable<Argb32>(this, s => s.Frame[s.X, s.Y]));
-            this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Frame, s.X, s.Y)));
+            this._Colors = new Lazy<IEnumerable<Argb32>>(() => new ImageEnumerable<Argb32>(this, s => s.Frame[s.Offset]));
+            this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Frame, s.Offset)));
         }
 
         public ImageArgb32Frame(int width, int height) : this()
@@ -68,7 +68,9 @@ namespace Giselle.Imaging
 
         public PixelFormat PixelFormat => PixelFormat.Format32bppArgb8888;
 
-        public int GetOffset(int x, int y) => (y * this.Stride) + (x * 4);
+        public int BytesPerPixel { get; } = 4;
+
+        public int GetOffset(int x, int y) => (y * this.Stride) + (x * this.BytesPerPixel);
 
         public int GetOffset(PointI coord) => this.GetOffset(coord.X, coord.Y);
 
@@ -151,33 +153,24 @@ namespace Giselle.Imaging
         public PreferredIndexedReport GetPreferredIndexedPixelFormat(bool canContainAlpha, IEnumerable<PixelFormat> indexedFormats)
         {
             var report = new PreferredIndexedReport();
-            var greatestTableLength = indexedFormats.Select(f => f.GetColorTableLength()).Max();
             var find = false;
 
             foreach (var color in this.Colors)
             {
-                if (color.A < byte.MaxValue)
+                if (report.UniqueColors.Contains(color) == false)
                 {
-                    report.HasAlpha = true;
+                    report.UniqueColors.Add(color);
 
-                    if (canContainAlpha == false)
+                    if (report.HasAlpha == false && color.A < byte.MaxValue)
                     {
-                        report.IndexedPixelFormat = PixelFormat.Undefined;
-                        find = true;
-                        break;
-                    }
+                        report.HasAlpha = true;
 
-                }
+                        if (canContainAlpha == false)
+                        {
+                            report.IndexedPixelFormat = PixelFormat.Undefined;
+                            find = true;
+                        }
 
-                if (report.SeekColors.Contains(color) == false)
-                {
-                    report.SeekColors.Add(color);
-
-                    if (report.SeekColors.Count > greatestTableLength)
-                    {
-                        report.IndexedPixelFormat = PixelFormat.Undefined;
-                        find = true;
-                        break;
                     }
 
                 }
@@ -186,7 +179,7 @@ namespace Giselle.Imaging
 
             if (find == false)
             {
-                report.IndexedPixelFormat = PixelFormatUtils.GetPreferredIndexedFormat(report.SeekColors.Count, indexedFormats);
+                report.IndexedPixelFormat = PixelFormatUtils.GetPreferredIndexedFormat(report.UniqueColors.Count, indexedFormats);
             }
 
             return report;
@@ -194,7 +187,7 @@ namespace Giselle.Imaging
 
         public class PreferredIndexedReport
         {
-            public HashSet<Argb32> SeekColors { get; } = new HashSet<Argb32>();
+            public HashSet<Argb32> UniqueColors { get; } = new HashSet<Argb32>();
             public bool HasAlpha { get; set; } = false;
             public PixelFormat IndexedPixelFormat { get; set; } = PixelFormat.Undefined;
         }
@@ -222,16 +215,14 @@ namespace Giselle.Imaging
             public Func<ImageEnumerator<T>, T> Selector { get; }
 
             public int Length { get; private set; }
-            public int Index { get; private set; }
-            public int X { get; private set; }
-            public int Y { get; private set; }
+            public int Offset { get; private set; }
 
             public ImageEnumerator(ImageArgb32Frame frame, Func<ImageEnumerator<T>, T> selector)
             {
                 this.Frame = frame;
                 this.Selector = selector;
 
-                this.Length = frame.Width * frame.Height;
+                this.Length = frame.Scan.Length;
                 this.Reset();
             }
 
@@ -241,21 +232,13 @@ namespace Giselle.Imaging
 
             public bool MoveNext()
             {
-                var nextIndex = this.Index + 1;
-                var width = this.Frame.Width;
-
-                this.Index = nextIndex;
-                this.X = nextIndex % width;
-                this.Y = nextIndex / width;
-
-                return nextIndex < this.Length;
+                this.Offset += this.Frame.BytesPerPixel;
+                return this.Offset < this.Length;
             }
 
             public void Reset()
             {
-                this.Index = -1;
-                this.X = -1;
-                this.Y = -1;
+                this.Offset = -this.Frame.BytesPerPixel;
             }
 
             public void Dispose()
