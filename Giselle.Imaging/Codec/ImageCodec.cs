@@ -47,7 +47,11 @@ namespace Giselle.Imaging.Codec
             }
             else
             {
-                return this.TestAsBytes(bytes, offset, count);
+                using (var ms = new MemoryStream(bytes, offset, count))
+                {
+                    return this.TestAsStream(ms);
+                }
+
             }
 
         }
