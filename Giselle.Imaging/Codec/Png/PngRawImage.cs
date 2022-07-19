@@ -196,7 +196,7 @@ namespace Giselle.Imaging.Codec.Png
         public static int GetStride(int width, PngPixelFormat pngPixelFormat)
         {
             var bitsPerPixel = pngPixelFormat.ToPixelFormat().GetBitsPerPixel();
-            return ScanProcessor.GetStride(width, bitsPerPixel, 1);
+            return ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
         }
 
         public int Stride => GetStride(this.Width, this.PngPixelFormat);

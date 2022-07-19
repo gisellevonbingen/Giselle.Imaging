@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Codec.Tga
         public ushort Width { get; set; } = 0;
         public ushort Height { get; set; } = 0;
         public byte PixelDepth { get; set; } = 32;
-        public int Stride => ScanProcessor.GetStride(this.Width, this.PixelDepth, 1);
+        public int Stride => ScanProcessor.GetBytesPerWidth(this.Width, this.PixelDepth);
         public TgaPixelFormat TgaPixelFormat
         {
             get => this.ImageType.ToTgaPixelFormat(this.PixelDepth, this.AlphaBits);
