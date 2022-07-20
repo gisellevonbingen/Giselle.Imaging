@@ -95,10 +95,6 @@ namespace Giselle.Imaging.Algorithms.Huffman
             base.Dispose(disposing);
         }
 
-        public override long Length => throw new NotSupportedException();
-
-        public override void SetLength(long value) => throw new NotSupportedException();
-
     }
 
 }

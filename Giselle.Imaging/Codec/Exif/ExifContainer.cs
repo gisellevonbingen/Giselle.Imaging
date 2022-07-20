@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Collections;
 using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Exif
@@ -17,8 +16,9 @@ namespace Giselle.Imaging.Codec.Exif
         public static IList<byte[]> Signatures { get; } = new List<byte[]>() { SignatureLittleEndian, SignatureBigEndian }.AsReadOnly();
 
         public const short EndianChecker = 0x002A;
+        public const int EndianCheckerSize = 2;
 
-        public static IList<byte> GetSignature(bool isLittleEndian) => isLittleEndian ? SignatureLittleEndian : SignatureBigEndian;
+        public static byte[] GetSignature(bool isLittleEndian) => isLittleEndian ? SignatureLittleEndian : SignatureBigEndian;
 
         public static bool TryGetEndian(byte[] signature, out bool isLittleEndian)
         {
@@ -46,7 +46,6 @@ namespace Giselle.Imaging.Codec.Exif
 
 
         public List<ExifImageFileDirectory> Directories { get; } = new List<ExifImageFileDirectory>();
-        public byte[] ExtraBytes { get; set; } = new byte[0];
 
         public ExifContainer()
         {
@@ -128,9 +127,98 @@ namespace Giselle.Imaging.Codec.Exif
 
                         }
 
-                        var entry = new ExifEntry() { TagId = raw.TagId, Value = value };
-                        directory.Entries.Add(entry);
-                        Console.WriteLine(entry);
+                        directory.Add(raw.TagId, value);
+                    }
+
+                }
+
+            }
+
+        }
+
+        public long InfoSize
+        {
+            get
+            {
+                var size = SignatureLength + EndianCheckerSize + (this.Directories.Count + 1) * 4;
+                size += this.Directories.Sum(d => 2 + d.Count * ExifRawEntry.InfoSize);
+                return size;
+            }
+
+        }
+
+        public long InfoWithValuesSize
+        {
+            get
+            {
+                var size = this.InfoSize;
+                size += this.Directories.Sum(d => d.OffsetValuesSize);
+
+                return size;
+            }
+
+        }
+
+        public void Write(Stream output) => this.Write(output, new ExifSaveOptions());
+
+        public void Write(Stream output, ExifSaveOptions options)
+        {
+            var processor = CreateExifProcessor(output);
+            processor.IsLittleEndian = options.IsLittleEndian;
+            processor.WriteBytes(GetSignature(processor.IsLittleEndian));
+            processor.WriteShort(EndianChecker);
+
+            var dataAreaOffset = this.InfoSize;
+            var dataAreaCursor = dataAreaOffset;
+
+            foreach (var directory in this.Directories)
+            {
+                processor.WriteInt((int)(processor.WriteLength + 4)); // IFD Offset, Add own size, Entries will be list right behind
+
+                var entryCount = (short)directory.Count;
+                processor.WriteShort(entryCount);
+
+                foreach (var pair in directory)
+                {
+                    var raw = new ExifRawEntry(pair);
+
+                    if (raw.IsOffset == true)
+                    {
+                        raw.ValueOrOffset = (int)dataAreaCursor;
+                        dataAreaCursor += raw.ValuesSize;
+                    }
+                    else
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            var entryProcessor = CreateExifProcessor(ms, processor);
+                            pair.Value.Write(raw, entryProcessor);
+                            entryProcessor.WriteInt(0);
+                            ms.Position = 0L;
+
+                            raw.ValueOrOffset = entryProcessor.ReadInt();
+                        }
+
+                    }
+
+                    raw.WriteInfo(processor);
+                }
+
+            }
+
+            processor.WriteInt(0);
+
+            foreach (var directory in this.Directories)
+            {
+                var entryCount = (short)directory.Count;
+
+                foreach (var pair in directory)
+                {
+                    var raw = new ExifRawEntry(pair);
+
+                    if (raw.IsOffset == true)
+                    {
+                        pair.Value.Write(raw, processor);
                     }
 
                 }

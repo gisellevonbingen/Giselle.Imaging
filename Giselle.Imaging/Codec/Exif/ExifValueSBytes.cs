@@ -16,6 +16,14 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override ExifValueType Type => ExifValueType.SByte;
 
+        protected override int CastToSigned(sbyte value) => value;
+
+        protected override uint CastToUnsigned(sbyte value) => (uint)value;
+
+        protected override sbyte CastToValue(int i) => (sbyte)i;
+
+        protected override sbyte CastToValue(uint i) => (sbyte)i;
+
         public override sbyte ReadElement(DataProcessor processor) => processor.ReadSByte();
 
         public override void WriteElement(sbyte element, DataProcessor processor) => processor.WriteSByte(element);

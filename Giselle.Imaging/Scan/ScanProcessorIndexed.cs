@@ -10,25 +10,21 @@ namespace Giselle.Imaging.Scan
     public class ScanProcessorIndexed : ScanProcessor
     {
         public static ScanProcessor Instance { get; } = new ScanProcessorIndexed();
+        public static ScanProcessor BlackIsZero { get; } = new ScanProcessorIndexed() { PresetColorTable = new[] { Argb32.Black, Argb32.White } };
+        public static ScanProcessor WhiteIsZero { get; } = new ScanProcessorIndexed() { PresetColorTable = new[] { Argb32.White, Argb32.Black } };
+
+        public Argb32[] PresetColorTable { get; set; }
 
         public ScanProcessorIndexed()
         {
 
         }
 
-        public Argb32[] GetColorTableWitFallback(ScanData scan) => this.GetColorTableWitFallback(scan.ColorTable, scan.BitsPerPixel);
+        public Argb32[] GetUsingColorTable(ScanData scan) => this.GetUsingColorTable(scan.ColorTable);
 
-        public Argb32[] GetColorTableWitFallback(Argb32[] original, int bitsPerPixel)
+        public Argb32[] GetUsingColorTable(Argb32[] original)
         {
-            if (original.Length == 0 && bitsPerPixel == 1)
-            {
-                return new Argb32[] { Argb32.Black, Argb32.White };
-            }
-            else
-            {
-                return original;
-            }
-
+            return this.PresetColorTable ?? original;
         }
 
         public override void Decode(ScanData input, ImageArgb32Frame frame)
@@ -42,7 +38,7 @@ namespace Giselle.Imaging.Scan
                 mask |= 1 << i;
             }
 
-            var colorTable = this.GetColorTableWitFallback(input);
+            var colorTable = this.GetUsingColorTable(input);
             var passProcessor = new InterlacePassProcessor(input);
             var index = 0;
 
@@ -90,7 +86,7 @@ namespace Giselle.Imaging.Scan
                 maskBase |= 1 << i;
             }
 
-            var colorTable = this.GetColorTableWitFallback(output);
+            var colorTable = this.GetUsingColorTable(output);
             var passProcessor = new InterlacePassProcessor(output);
             var index = 0;
 

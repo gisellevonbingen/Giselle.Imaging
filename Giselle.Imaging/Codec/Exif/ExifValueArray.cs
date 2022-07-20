@@ -22,6 +22,8 @@ namespace Giselle.Imaging.Codec.Exif
             set => this.Values = new T[] { value };
         }
 
+        public override int RawValueCount => this.Values.Length;
+
         public ExifValueArray()
         {
 
@@ -42,7 +44,6 @@ namespace Giselle.Imaging.Codec.Exif
         public override void Write(ExifRawEntry entry, DataProcessor processor)
         {
             var count = this.Values.Length;
-            entry.ValueCount = count;
 
             for (var i = 0; i < count; i++)
             {
@@ -57,7 +58,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override string ToString()
         {
-            return $"[{string.Join(", ", this.Values)}]";
+            return $"Type: {this.Type.Name}, Values: [{string.Join(", ", this.Values)}]";
         }
 
     }

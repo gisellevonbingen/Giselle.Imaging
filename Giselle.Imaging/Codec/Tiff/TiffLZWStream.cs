@@ -61,7 +61,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
             if (mode == TiffLZWCompressionMode.Compress)
             {
-                this.WriteKey(ClearCode);
+                this.WriteCode(ClearCode);
             }
 
         }
@@ -71,8 +71,6 @@ namespace Giselle.Imaging.Codec.Tiff
         public override bool CanWrite => base.CanWrite && this.Mode == TiffLZWCompressionMode.Compress;
 
         public override bool CanSeek => false;
-
-        public override long Length => throw new NotSupportedException();
 
         protected int ReadCode()
         {
@@ -96,7 +94,7 @@ namespace Giselle.Imaging.Codec.Tiff
             return code;
         }
 
-        protected void WriteKey(int key)
+        protected void WriteCode(int key)
         {
             var nextKey = this.Processor.NextKey;
             var bits = GetUsingBits(nextKey - 1);
@@ -111,7 +109,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        protected bool FetchKey()
+        protected bool ReadData()
         {
             var code = this.ReadCode();
 
@@ -144,7 +142,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (this.ReadingPosition >= this.ReadingData.Count)
             {
-                if (this.FetchKey() == false)
+                if (this.ReadData() == false)
                 {
                     return -1;
                 }
@@ -162,36 +160,41 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override void WriteByte(byte value)
         {
-            this.WriteCode(value);
+            var nextKey = this.Processor.NextKey;
+
+            if (nextKey >= 4096)
+            {
+                this.WriteData(-1);
+                this.WriteCode(ClearCode);
+                this.Processor.ClearTable();
+            }
+
+            this.WriteData(value);
         }
 
-        protected void WriteCode(int value)
+        protected void WriteData(int value)
         {
             var key = this.Processor.Encode(value);
 
-            if (key > -1)
+            if (key == -1)
             {
-                this.WriteKey(key);
+                return;
             }
 
+            this.WriteCode(key);
         }
 
         protected override void Dispose(bool disposing)
         {
             if (this.Mode == TiffLZWCompressionMode.Compress)
             {
-                this.WriteCode(-1);
-                this.WriteKey(EoiCode);
+                this.WriteData(-1);
+                this.WriteCode(EoiCode);
             }
 
             this.BaseBitStream.Dispose();
 
             base.Dispose(disposing);
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
         }
 
     }

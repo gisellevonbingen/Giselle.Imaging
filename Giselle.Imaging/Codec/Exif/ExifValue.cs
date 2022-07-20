@@ -20,6 +20,8 @@ namespace Giselle.Imaging.Codec.Exif
     {
         public abstract ExifValueType Type { get; }
 
+        public abstract int RawValueCount { get; }
+
         public ExifValue()
         {
 

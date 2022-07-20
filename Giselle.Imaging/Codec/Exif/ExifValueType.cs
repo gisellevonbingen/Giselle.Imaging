@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.IO;
 
 namespace Giselle.Imaging.Codec.Exif
 {
@@ -17,7 +16,7 @@ namespace Giselle.Imaging.Codec.Exif
         private readonly static Dictionary<short, ExifValueType> Lookups = new Dictionary<short, ExifValueType>();
 
         public static ExifValueType Byte = Register(new ExifValueType("Byte", 1, false, 1, () => new ExifValueBytes()));
-        public static ExifValueType ASCII = Register(new ExifValueType("ASCII", 2, true, () => new ExifValueASCII()));
+        public static ExifValueType ASCII = Register(new ExifValueType("ASCII", 2, true, 1, () => new ExifValueASCII()));
         public static ExifValueType Short = Register(new ExifValueType("Short", 3, false, 2, () => new ExifValueShorts()));
         public static ExifValueType Long = Register(new ExifValueType("Long", 4, false, 4, () => new ExifValueLongs()));
         public static ExifValueType Rational = Register(new ExifValueType("Rational", 5, true, 8, () => new ExifValueRationals()));
@@ -50,6 +49,7 @@ namespace Giselle.Imaging.Codec.Exif
             this.Name = name;
             this.Id = id;
             this.DefaultOffset = defaultOffset;
+            this.ElementSize = 1;
             this.ValueGenerator = valueGenerator;
         }
 

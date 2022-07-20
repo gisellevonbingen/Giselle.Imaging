@@ -72,9 +72,6 @@ namespace Giselle.Imaging.Codec.Jpeg
 
             }
 
-            public override long Length => throw new NotSupportedException();
-
-            public override void SetLength(long value) => throw new NotSupportedException();
         }
 
     }

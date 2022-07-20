@@ -15,6 +15,8 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override ExifValueType Type => ExifValueType.ASCII;
 
+        public override int RawValueCount => this.Value.Length + 1;
+
         public override void Read(ExifRawEntry entry, DataProcessor processor)
         {
             var bytes = processor.ReadBytes(entry.ValueCount);
@@ -31,7 +33,6 @@ namespace Giselle.Imaging.Codec.Exif
         {
             var bytes = Encoding.ASCII.GetBytes(this.Value + '\0');
             processor.WriteBytes(bytes);
-            entry.ValueCount = bytes.Length;
         }
 
         public override string ToString()

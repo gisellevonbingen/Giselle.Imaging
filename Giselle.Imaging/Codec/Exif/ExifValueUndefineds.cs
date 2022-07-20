@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public override ExifValueType Type => ExifValueType.Rational;
+        public override ExifValueType Type => ExifValueType.Undefined;
 
         public override byte ReadElement(DataProcessor processor) => processor.ReadByte();
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.IO
 {
-    public abstract class WrappedStream : Stream
+    public class WrappedStream : Stream
     {
         protected virtual Stream BaseStream { get; }
         protected bool LeaveOpen { get; }
@@ -64,6 +64,8 @@ namespace Giselle.Imaging.IO
             }
 
         }
+
+        public override long Length => throw new NotSupportedException();
 
         public override void Flush() => this.BaseStream.Flush();
 
@@ -125,6 +127,11 @@ namespace Giselle.Imaging.IO
                 this.BaseStream.Dispose();
             }
 
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
         }
 
     }

@@ -28,7 +28,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public static ExifValueRationals AsRtaionals(this ExifValue value) => CastValueType<ExifValueRationals>(value, "Rationals");
 
-        public static IExifValueIntegers AsNumbers(this ExifValue value) => CastValueType<IExifValueIntegers>(value, "Integers");
+        public static IExifValueIntegers AsNumbers(this ExifValue value) => CastValueType<IExifValueIntegers>(value, "Numbers");
 
     }
 

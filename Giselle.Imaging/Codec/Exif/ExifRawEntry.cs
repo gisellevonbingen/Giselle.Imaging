@@ -22,7 +22,16 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public bool IsOffset => this.ValueType.DefaultOffset == true || (this.ValueType.ElementSize * this.ValueCount) > 4;
+        public ExifRawEntry(KeyValuePair<ExifTagId, ExifValue> pair)
+        {
+            this.TagId = pair.Key;
+            this.ValueType = pair.Value.Type;
+            this.ValueCount = pair.Value.RawValueCount;
+        }
+
+        public bool IsOffset => this.ValueType.DefaultOffset == true || this.ValuesSize > 4;
+
+        public int ValuesSize => this.ValueType.ElementSize * this.ValueCount;
 
         public void ReadInfo(DataProcessor processor)
         {

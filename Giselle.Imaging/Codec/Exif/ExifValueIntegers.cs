@@ -8,24 +8,32 @@ namespace Giselle.Imaging.Codec.Exif
 {
     public interface IExifValueIntegers : IExifValue
     {
-        int AsSigned { get; }
+        int AsSigned { get; set; }
 
-        IEnumerable<int> AsSigneds { get; }
+        IEnumerable<int> AsSigneds { get; set; }
 
-        uint AsUnsigned { get; }
+        uint AsUnsigned { get; set; }
 
-        IEnumerable<uint> AsUnsigneds { get; }
+        IEnumerable<uint> AsUnsigneds { get; set; }
     }
 
     public abstract class ExifValueIntegers<T> : ExifValueNumbers<T>, IExifValueIntegers where T : IConvertible
     {
-        public int AsSigned => this.AsSigneds.FirstOrDefault();
+        protected abstract int CastToSigned(T value);
 
-        public IEnumerable<int> AsSigneds => this.Values.Select(v => v.ToInt32(null));
+        protected abstract uint CastToUnsigned(T value);
 
-        public uint AsUnsigned => this.AsUnsigneds.FirstOrDefault();
+        protected abstract T CastToValue(int i);
 
-        public IEnumerable<uint> AsUnsigneds => this.Values.Select(v => v.ToUInt32(null));
+        protected abstract T CastToValue(uint i);
+
+        public int AsSigned { get => this.AsSigneds.FirstOrDefault(); set => this.AsSigneds = new[] { value }; }
+
+        public IEnumerable<int> AsSigneds { get => this.Values.Select(this.CastToSigned); set => this.Values = value.Select(this.CastToValue).ToArray(); }
+
+        public uint AsUnsigned { get => this.AsUnsigneds.FirstOrDefault(); set => this.AsUnsigneds = new[] { value }; }
+
+        public IEnumerable<uint> AsUnsigneds { get => this.Values.Select(this.CastToUnsigned); set => this.Values = value.Select(this.CastToValue).ToArray(); }
     }
 
 }

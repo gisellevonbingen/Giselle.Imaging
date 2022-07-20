@@ -10,9 +10,11 @@ namespace Giselle.Imaging.Algorithms.LZW
     public class LZWProcessor
     {
         public BidirectionalDictionary<int, LZWNode> Table { get; }
-        private LZWNode EncodeBuilder;
         private readonly int ExtendsKeyOffset;
+
+        private LZWNode EncodeBuilder;
         public int LastKey { get; private set; } = -1;
+        public int NextKey { get; private set; } = -1;
 
         public LZWProcessor() : this(0)
         {
@@ -22,7 +24,6 @@ namespace Giselle.Imaging.Algorithms.LZW
         public LZWProcessor(int extendsKeyOffset)
         {
             this.Table = new BidirectionalDictionary<int, LZWNode>();
-            this.EncodeBuilder = new LZWNode();
             this.ExtendsKeyOffset = extendsKeyOffset;
             this.ClearTable();
         }
@@ -36,11 +37,11 @@ namespace Giselle.Imaging.Algorithms.LZW
                 this.Table.Add(i, new LZWNode((byte)i));
             }
 
+            this.EncodeBuilder = new LZWNode();
             this.NextKey = this.Table.Count + this.ExtendsKeyOffset;
             this.LastKey = -1;
         }
 
-        public virtual int NextKey { get; private set; }
 
         /// <summary>
         /// 
