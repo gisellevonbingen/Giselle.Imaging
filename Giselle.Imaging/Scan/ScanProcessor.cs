@@ -9,27 +9,27 @@ namespace Giselle.Imaging.Scan
 {
     public abstract class ScanProcessor
     {
-        public static ScanProcessor CreateScanProcessor(int bits, uint aMask, uint rMask, uint gMask, uint bMask)
+        public static ScanProcessor CreateScanProcessor(int bitsPerPixel, uint aMask, uint rMask, uint gMask, uint bMask)
         {
-            if (bits == 1 || bits == 2 || bits == 4 || bits == 8)
+            if (bitsPerPixel == 1 || bitsPerPixel == 2 || bitsPerPixel == 4 || bitsPerPixel == 8)
             {
                 return new ScanProcessorIndexed();
             }
-            else if (bits == 16)
+            else if (bitsPerPixel == 16)
             {
                 return new ScanProcessorMasksBpp16() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
-            else if (bits == 24)
+            else if (bitsPerPixel == 24)
             {
                 return new ScanProcessorMasksBpp24() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
-            else if (bits == 32)
+            else if (bitsPerPixel == 32)
             {
                 return new ScanProcessorMasksBpp32() { AMask = aMask, RMask = rMask, GMask = gMask, BMask = bMask };
             }
             else
             {
-                throw new ArgumentException($"Unknown bits : {bits}");
+                throw new ArgumentException($"Unknown bits : {bitsPerPixel}");
             }
 
         }
