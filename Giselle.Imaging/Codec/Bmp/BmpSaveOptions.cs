@@ -8,12 +8,13 @@ namespace Giselle.Imaging.Codec.Bmp
 {
     public class BmpSaveOptions : SaveOptions
     {
-        public BmpBitsPerPixel BitsPerPixel { get; set; } = BmpBitsPerPixel.Undefined;
-        public BmpCompressionMethod? Compression { get; set; } = null;
+        public BmpBitsPerPixel BitsPerPixel { get; set; } 
+        public BmpCompressionMethod? Compression { get; set; }
 
         public BmpSaveOptions()
         {
-
+            this.BitsPerPixel = BmpBitsPerPixel.Undefined;
+            this.Compression = null;
         }
 
         public BmpSaveOptions(BmpSaveOptions other) : base(other)

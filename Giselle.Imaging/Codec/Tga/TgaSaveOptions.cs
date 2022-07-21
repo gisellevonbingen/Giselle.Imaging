@@ -8,17 +8,23 @@ namespace Giselle.Imaging.Codec.Tga
 {
     public class TgaSaveOptions : SaveOptions
     {
-        public TgaPixelFormat PixelFormat { get; set; } = TgaPixelFormat.Undefined;
-        public bool Compression { get; set; } = true;
-        public ushort OriginX { get; set; } = 0;
-        public ushort OriginY { get; set; } = 0;
-        public bool FlipX { get; set; } = false;
-        public bool FlipY { get; set; } = false;
-        public TgaExtensionArea ExtensionArea { get; set; } = null;
+        public TgaPixelFormat PixelFormat { get; set; }
+        public bool Compression { get; set; }
+        public ushort OriginX { get; set; }
+        public ushort OriginY { get; set; }
+        public bool FlipX { get; set; }
+        public bool FlipY { get; set; }
+        public TgaExtensionArea ExtensionArea { get; set; }
 
         public TgaSaveOptions()
         {
-
+            this.PixelFormat = TgaPixelFormat.Undefined;
+            this.Compression = true;
+            this.OriginX = 0;
+            this.OriginY = 0;
+            this.FlipX = false;
+            this.FlipY = false;
+            this.ExtensionArea = null;
         }
 
         public TgaSaveOptions(TgaSaveOptions other) : base(other)
