@@ -61,7 +61,7 @@
     <Compile Include="Codec\Exif\ExifRational.cs" />
     <Compile Include="Codec\Exif\ExifRawEntry.cs" />
     <Compile Include="Codec\Exif\ExifResolutionUnit.cs" />
-    <Compile Include="Codec\Exif\ExifSaveOptions.cs" />
+    <Compile Include="Codec\Exif\ExifResolutionUnitExtensions.cs" />
     <Compile Include="Codec\Exif\ExifSRational.cs" />
     <Compile Include="Codec\Exif\ExifSubfileTypeFlag.cs" />
     <Compile Include="Codec\Exif\ExifTagId.cs" />

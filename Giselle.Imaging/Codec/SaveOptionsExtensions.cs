@@ -10,6 +10,8 @@ namespace Giselle.Imaging.Codec
     {
         public static T CastOrDefault<T>(this SaveOptions options) where T : SaveOptions, new() => CastOr(options, () => new T());
 
+        public static T CastOr<T>(this SaveOptions options, T fallback) where T : SaveOptions, new() => CastOr(options, () => fallback);
+
         public static T CastOr<T>(this SaveOptions options, Func<T> func) where T : SaveOptions, new() => options as T ?? func();
 
     }

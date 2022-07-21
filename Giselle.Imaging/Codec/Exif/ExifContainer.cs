@@ -44,7 +44,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public static DataProcessor CreateExifProcessor(Stream stream, DataProcessor processor) => new DataProcessor(stream) { IsLittleEndian = processor.IsLittleEndian };
 
-
+        public bool IsLittleEndian { get; set; } = BitConverter.IsLittleEndian;
         public List<ExifImageFileDirectory> Directories { get; } = new List<ExifImageFileDirectory>();
 
         public ExifContainer()
@@ -71,6 +71,8 @@ namespace Giselle.Imaging.Codec.Exif
                 }
 
                 processor.IsLittleEndian = isLittleEndian;
+                this.IsLittleEndian = IsLittleEndian;
+
                 var endianChecker = processor.ReadShort();
 
                 if (endianChecker != EndianChecker)
@@ -159,12 +161,10 @@ namespace Giselle.Imaging.Codec.Exif
 
         }
 
-        public void Write(Stream output) => this.Write(output, new ExifSaveOptions());
-
-        public void Write(Stream output, ExifSaveOptions options)
+        public void Write(Stream output)
         {
             var processor = CreateExifProcessor(output);
-            processor.IsLittleEndian = options.IsLittleEndian;
+            processor.IsLittleEndian = this.IsLittleEndian;
             processor.WriteBytes(GetSignature(processor.IsLittleEndian));
             processor.WriteShort(EndianChecker);
 

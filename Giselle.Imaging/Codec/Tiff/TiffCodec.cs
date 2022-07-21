@@ -10,6 +10,7 @@ using Giselle.Imaging.IO;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 using Ionic.Zlib;
+using static Giselle.Imaging.ImageArgb32Frame;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
@@ -55,7 +56,10 @@ namespace Giselle.Imaging.Codec.Tiff
                 var container = new ImageArgb32Container()
                 {
                     PrimaryCodec = this,
-                    PrimaryOptions = new TiffSaveOptions(),
+                    PrimaryOptions = new TiffSaveOptions()
+                    {
+                        ExifLittleEndian = exif.IsLittleEndian,
+                    },
                 };
 
                 foreach (var directory in exif.Directories)
@@ -188,17 +192,35 @@ namespace Giselle.Imaging.Codec.Tiff
             }
 
             var processor = this.GetScanProcessor(photometricInterpretation, bitsPerSamples, bitsPerPixel);
-            return new ImageArgb32Frame(scan, processor)
+            var frame = new ImageArgb32Frame(scan, processor)
             {
                 PrimaryCodec = this,
                 PrimaryOptions = new TiffFrameSaveOptions()
                 {
-                    PhotometricInterpretation = photometricInterpretation,
-                    SamplesPerPixel = samplesPerPixel,
                     BitsPerSample = bitsPerSamples[0],
+                    SamplesPerPixel = samplesPerPixel,
                     Compression = compression,
-                }
+                    PhotometricInterpretation = photometricInterpretation,
+                },
             };
+
+            var resolutionUnit = (ExifResolutionUnit)directory.GetSigned(ExifTagId.ResolutionUnit);
+
+            if (resolutionUnit != ExifResolutionUnit.Undefined)
+            {
+                if (directory.TryGetValue(ExifTagId.XResolution, out var _x) && _x is ExifValueRationals xResolution)
+                {
+                    frame.WidthResoulution = new PhysicalDensity(xResolution.Value.Ratio, resolutionUnit.ToPhysicalUnit());
+                }
+
+                if (directory.TryGetValue(ExifTagId.YResolution, out var _y) && _y is ExifValueRationals yResolution)
+                {
+                    frame.HeightResoulution = new PhysicalDensity(yResolution.Value.Ratio, resolutionUnit.ToPhysicalUnit());
+                }
+
+            }
+
+            return frame;
         }
 
         private Stream CreateDecompressStream(Stream input, TiffCompressionMethod compression, int stripIndex, int stripLength, bool leaveOpen)
@@ -294,32 +316,30 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
+        public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
-            var exif = new ExifContainer();
+            var options = _options.CastOrDefault<TiffSaveOptions>();
+            var exif = new ExifContainer()
+            {
+                IsLittleEndian = options.ExifLittleEndian,
+            };
             var multiPage = container.Count > 1;
+            var frameOptionsMap = new Dictionary<ImageArgb32Frame, TiffFrameSaveOptions>();
 
             foreach (var frame in container)
             {
-                var report = frame.GetPreferredIndexedPixelFormat(false, this.GetSupportIndexedPixelFormats());
-                //var frameOptions =
-                //   //options.CastOr(  () =>
-                //   new TiffFrameSaveOptions()
-                //   {
-                //       PhotometricInterpretation = report.IndexedPixelFormat == PixelFormat.Undefined ? ExifPhotometricInterpretation.Rgb : ExifPhotometricInterpretation.PaletteColor,
-                //       SamplesPerPixel = report.IndexedPixelFormat == PixelFormat.Undefined ? (report.HasAlpha ? 4 : 3) : 1,
-                //       BitsPerSample = report.IndexedPixelFormat == PixelFormat.Undefined ? 8 : report.IndexedPixelFormat.GetBitsPerPixel(),
-                //       Compression = TiffCompressionMethod.NoCompression,
-                //   }
-                //   ;
-                ////);
-                var frameOptions = new TiffFrameSaveOptions()
+                PreferredIndexedReport report = null;
+                var frameOptions = frameOptionsMap[frame] = frame.PrimaryOptions.CastOr(options.FallbackFrameOptions).CastOr(() =>
                 {
-                    PhotometricInterpretation = report.IndexedPixelFormat == PixelFormat.Undefined ? ExifPhotometricInterpretation.Rgb : ExifPhotometricInterpretation.PaletteColor,
-                    SamplesPerPixel = report.IndexedPixelFormat == PixelFormat.Undefined ? (report.HasAlpha ? 4 : 3) : 1,
-                    BitsPerSample = report.IndexedPixelFormat == PixelFormat.Undefined ? 8 : report.IndexedPixelFormat.GetBitsPerPixel(),
-                    Compression = TiffCompressionMethod.LZW,
-                };
+                    report = frame.GetPreferredIndexedPixelFormat(false, this.GetSupportIndexedPixelFormats());
+                    return new TiffFrameSaveOptions()
+                    {
+                        PhotometricInterpretation = report.IndexedPixelFormat == PixelFormat.Undefined ? ExifPhotometricInterpretation.Rgb : ExifPhotometricInterpretation.PaletteColor,
+                        SamplesPerPixel = report.IndexedPixelFormat == PixelFormat.Undefined ? (report.HasAlpha ? 4 : 3) : 1,
+                        BitsPerSample = report.IndexedPixelFormat == PixelFormat.Undefined ? 8 : report.IndexedPixelFormat.GetBitsPerPixel(),
+                        Compression = TiffCompressionMethod.LZW,
+                    };
+                });
                 var bitsPerPixel = frameOptions.BitsPerSample * frameOptions.SamplesPerPixel;
                 var rowsPerStrip = Math.Min(Math.Max(10000 / ScanProcessor.GetBytesPerWidth(frame.Width, bitsPerPixel), 1), frame.Height);
                 var strips = ScanProcessor.GetPaddedQuotient(frame.Height, rowsPerStrip);
@@ -338,15 +358,20 @@ namespace Giselle.Imaging.Codec.Tiff
                 var denominator = 1000u;
                 directory.SetRational(ExifTagId.XResolution, new ExifRational((uint)(frame.WidthResoulution.GetConvertValue(unit) * denominator), denominator));
                 directory.SetRational(ExifTagId.YResolution, new ExifRational((uint)(frame.HeightResoulution.GetConvertValue(unit) * denominator), denominator));
-                directory.SetShort(ExifTagId.ResolutionUnit, (ushort)ExifResolutionUnit.Inch);
+                directory.SetShort(ExifTagId.ResolutionUnit, (ushort)unit.ToExifResolutionUnit());
                 directory.SetShort(ExifTagId.Predictor, (ushort)(frameOptions.Compression != TiffCompressionMethod.NoCompression && frameOptions.PhotometricInterpretation == ExifPhotometricInterpretation.Rgb ? ExifPredictor.HorizontalDifferencing : ExifPredictor.NoPrediction));
-                
+
                 directory.SetLongs(ExifTagId.StripOffsets, Enumerable.Repeat(0u, strips).ToArray());
                 directory.SetLongs(ExifTagId.StripByteCounts, Enumerable.Repeat(0u, strips).ToArray());
 
                 if (frameOptions.PhotometricInterpretation == ExifPhotometricInterpretation.PaletteColor)
                 {
-                    var colorMap = report.UniqueColors.TakeFixSize(0, report.IndexedPixelFormat.GetColorTableLength()).ToArray();
+                    if (report == null)
+                    {
+                        report = frame.GetPreferredIndexedPixelFormat(false, this.GetSupportIndexedPixelFormats());
+                    }
+
+                    var colorMap = report.UniqueColors.TakeFixSize(0, PixelFormatUtils.GetColorTableLength(frameOptions.BitsPerSample)).ToArray();
                     this.EncodeColorMap(directory, colorMap);
                 }
 
@@ -363,7 +388,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 var newStripOffsets = new uint[srtipCount];
                 var newStripBytes = new uint[srtipCount];
 
-                this.Process(directory, frame, () => new LengthOnlyStream(), (stripIndex, baseStream) =>
+                this.Process(directory, frame, frameOptionsMap[frame], () => new LengthOnlyStream(), (stripIndex, baseStream) =>
                 {
                     newStripOffsets[stripIndex] = (uint)stripCursor;
                     newStripBytes[stripIndex] = (uint)baseStream.Length;
@@ -380,12 +405,12 @@ namespace Giselle.Imaging.Codec.Tiff
             {
                 var directory = exif.Directories[i];
                 var frame = container[i];
-                this.Process(directory, frame, () => output, null);
+                this.Process(directory, frame, frameOptionsMap[frame], () => output, null);
             }
 
         }
 
-        private void Process(ExifImageFileDirectory directory, ImageArgb32Frame frame, Func<Stream> streamProvider, Action<int, Stream> callback)
+        private void Process(ExifImageFileDirectory directory, ImageArgb32Frame frame, TiffFrameSaveOptions options, Func<Stream> streamProvider, Action<int, Stream> callback)
         {
             var bitsPerSamples = directory.GetSigneds(ExifTagId.BitsPerSample);
             var bitsPerPixel = bitsPerSamples.Sum();
@@ -409,7 +434,7 @@ namespace Giselle.Imaging.Codec.Tiff
             {
                 var baseStream = streamProvider();
 
-                using (var stream = this.CreateCompressStream(baseStream, compression, true))
+                using (var stream = this.CreateCompressStream(baseStream, compression, options.CompressionLevel, true))
                 {
                     this.Compress(stride, samplesPerPixel, predictor, rowsPerStrip, scan.Scan, stripIndex, stream);
                 }
@@ -419,7 +444,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        private Stream CreateCompressStream(Stream output, TiffCompressionMethod compression, bool leaveOpen)
+        private Stream CreateCompressStream(Stream output, TiffCompressionMethod compression, CommonCompressionLevel level, bool leaveOpen)
         {
             if (compression == TiffCompressionMethod.Undefined || compression == TiffCompressionMethod.NoCompression)
             {
@@ -435,7 +460,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (compression == TiffCompressionMethod.Deflate)
             {
-                return new ZlibStream(output, CompressionMode.Compress, leaveOpen);
+                return new ZlibStream(output, CompressionMode.Compress, level.ToZlibCompressionLevel(), leaveOpen);
             }
             else
             {

@@ -62,6 +62,12 @@ namespace Giselle.Imaging.IO
                 this.ReadingByte = this.ReadEncodedByte(out var length);
                 this.ReadingPosition = 0;
                 this.ReadingLength = length;
+
+                if (this.ReadingByte > -1)
+                {
+                    this.InBytes++;
+                }
+
             }
 
             if (this.ReadingByte == -1)
@@ -95,7 +101,6 @@ namespace Giselle.Imaging.IO
                 value |= bit << shift;
             }
 
-            this.InBytes++;
             return value;
         }
 
@@ -129,6 +134,7 @@ namespace Giselle.Imaging.IO
             {
                 this.WritingByte = 0;
                 this.WritingPosition = 0;
+                this.OutBytes++;
             }
 
         }
@@ -143,7 +149,6 @@ namespace Giselle.Imaging.IO
                 this.WriteBit(bit);
             }
 
-            this.OutBytes++;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
