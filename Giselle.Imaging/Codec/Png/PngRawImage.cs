@@ -57,35 +57,24 @@ namespace Giselle.Imaging.Codec.Png
 
             while (true)
             {
-                PngChunkStream chunkStream;
-
-                try
+                using (var chunkStream = new PngChunkStream(input))
                 {
-                    using (chunkStream = new PngChunkStream(input))
+                    try
                     {
-                        try
-                        {
-                            this.ReadChunk(chunkStream);
-                        }
-                        catch (Exception)
-                        {
-                            chunkStream.IgnoreCRC = true;
-                            throw;
-                        }
-
-                        if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
-                        {
-                            chunkStream.IgnoreCRC = true;
-                            break;
-                        }
-
+                        this.ReadChunk(chunkStream);
+                    }
+                    catch (Exception)
+                    {
+                        chunkStream.IgnoreCRC = true;
+                        throw;
                     }
 
-                }
-                catch (Exception)
-                {
+                    if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
+                    {
+                        chunkStream.IgnoreCRC = true;
+                        break;
+                    }
 
-                    throw;
                 }
 
             }
