@@ -129,20 +129,21 @@ namespace Giselle.Imaging.Codec.Png
                 while (passProcessor.NextPass() == true)
                 {
                     var passInfo = passProcessor.PassInfo;
-                    var scanline = new byte[passInfo.Stride];
+                    var filteredScanline = new byte[passInfo.Stride];
+                    var originalScanline = new byte[passInfo.Stride];
 
                     for (var yi = 0; yi < passInfo.PixelsY; yi++)
                     {
-                        byte filter = 0;
-                        var currLineSamples1 = new byte[samples];
-                        var lastLineSamples2 = new byte[samples];
+                        byte filter = 1;
+                        var currLineSamples = new byte[samples];
+                        var lastLineSamples = new byte[samples];
 
                         for (var xi = 0; xi < passInfo.Stride; xi++)
                         {
                             var x = scanData.Scan[scanOffset++];
-                            var a = currLineSamples1[xi % samples];
-                            var b = scanline[xi];
-                            var c = lastLineSamples2[xi % samples];
+                            var a = currLineSamples[xi % samples];
+                            var b = originalScanline[xi];
+                            var c = lastLineSamples[xi % samples];
                             byte result = 0;
 
                             if (filter == 0)
@@ -166,13 +167,14 @@ namespace Giselle.Imaging.Codec.Png
                                 throw new NotImplementedException($"Filter is {filter}");
                             }
 
-                            scanline[xi] = result;
-                            currLineSamples1[xi % samples] = result;
-                            lastLineSamples2[xi % samples] = a;
+                            filteredScanline[xi] = result;
+                            originalScanline[xi] = x;
+                            currLineSamples[xi % samples] = x;
+                            lastLineSamples[xi % samples] = a;
                         }
 
                         dataProcessor.WriteByte(filter);
-                        dataProcessor.WriteBytes(scanline);
+                        dataProcessor.WriteBytes(filteredScanline);
                     }
 
                 }

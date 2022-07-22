@@ -12,17 +12,10 @@ namespace Giselle.Imaging.Codec
         public static CompressionLevel ToZlibCompressionLevel(this CommonCompressionLevel value)
         {
             if (value == CommonCompressionLevel.None) return CompressionLevel.None;
+            if (value == CommonCompressionLevel.Default) return CompressionLevel.Default;
             else if (value == CommonCompressionLevel.BestSpeed) return CompressionLevel.BestSpeed;
             else if (value == CommonCompressionLevel.BestCompression) return CompressionLevel.BestCompression;
             else throw new ArgumentException($"Unknown CommonCompressionLevel : {value}");
-        }
-
-        public static CommonCompressionLevel ToCommonCompressionLevel(this CompressionLevel value)
-        {
-            if (value == CompressionLevel.None) return CommonCompressionLevel.None;
-            else if (value == CompressionLevel.BestSpeed) return CommonCompressionLevel.BestSpeed;
-            else if (value == CompressionLevel.BestCompression) return CommonCompressionLevel.BestCompression;
-            else throw new ArgumentException($"Unknown ZlibCommonCompressionLevel : {value}");
         }
 
     }

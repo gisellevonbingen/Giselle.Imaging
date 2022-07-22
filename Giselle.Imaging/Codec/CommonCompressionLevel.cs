@@ -9,7 +9,8 @@ namespace Giselle.Imaging.Codec
     public enum CommonCompressionLevel : byte
     {
         None = 0,
-        BestSpeed = 1,
-        BestCompression = 2,
+        Default = 1,
+        BestSpeed = 2,
+        BestCompression = 3,
     }
 }

@@ -20,7 +20,7 @@ namespace Giselle.Imaging.Codec.Tiff
             this.BitsPerSample = 8;
             this.SamplesPerPixel = 4;
             this.Compression = TiffCompressionMethod.Deflate;
-            this.CompressionLevel = CommonCompressionLevel.BestSpeed;
+            this.CompressionLevel = CommonCompressionLevel.Default;
             this.PhotometricInterpretation = ExifPhotometricInterpretation.Rgb;
         }
 

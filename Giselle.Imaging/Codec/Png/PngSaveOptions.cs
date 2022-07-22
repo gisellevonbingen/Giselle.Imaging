@@ -15,7 +15,7 @@ namespace Giselle.Imaging.Codec.Png
         public PngSaveOptions()
         {
             this.PixelFormat = PngPixelFormat.Undefined;
-            this.CompressionLevel = CommonCompressionLevel.BestSpeed;
+            this.CompressionLevel = CommonCompressionLevel.Default;
             this.Interlace = 0;
         }
 
