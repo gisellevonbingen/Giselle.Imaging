@@ -101,7 +101,7 @@ namespace Giselle.Imaging.Codec.Png
 
             this.Interlace = options.Interlace;
 
-            var physicalUnit = frame.Resolution.Unit;
+            var physicalUnit = PhysicalUnit.Meter;
             this.PhysicalPixelDimensionsUnit = physicalUnit.ToPngPhysicalPixelDimensionsUnit();
             this.XPixelsPerUnit = (int)frame.WidthResoulution.GetConvertValue(physicalUnit);
             this.YPixelsPerUnit = (int)frame.HeightResoulution.GetConvertValue(physicalUnit);

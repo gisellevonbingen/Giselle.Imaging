@@ -30,8 +30,8 @@ namespace Giselle.Imaging.Physical
 
         public static double GetConvertValue(this IPhysicalValue value, PhysicalUnit toUnit)
         {
-            var inch = value.Value / value.Unit.GetInchPerCoefficient();
-            var toValue = inch * toUnit.GetInchPerCoefficient();
+            var inch = value.Value * value.Unit.GetValuesPerInch();
+            var toValue = inch / toUnit.GetValuesPerInch();
             return toValue;
         }
 

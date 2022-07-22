@@ -13,6 +13,7 @@ using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.IO;
+using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Test
@@ -22,17 +23,20 @@ namespace Giselle.Imaging.Test
         public static void Main()
         {
             TestPadding();
+            TestPhysical();
             TestICCProfile();
             TestCodec();
         }
 
         public static void TestPadding()
         {
-            Action<int, int, int, int> function = (int width, int bitsPerPixel, int padding, int require) =>
+            Console.WriteLine("===== Padding =====");
+
+            void function(int width, int bitsPerPixel, int padding, int require)
             {
                 var result = ScanProcessor.GetStride(width, bitsPerPixel, padding);
                 Console.WriteLine($"ScanProcessor.GetStride({width}, {bitsPerPixel}, {padding}) = {result}, {result == require}");
-            };
+            }
 
             function(17, 1, 1, 3);
             function(17, 1, 2, 4);
@@ -43,8 +47,28 @@ namespace Giselle.Imaging.Test
             function(335, 8, 4, 336);
         }
 
+        public static void TestPhysical()
+        {
+            Console.WriteLine("===== Physical =====");
+
+            void function(PhysicalDensity value, PhysicalUnit unit, double convertedValue)
+            {
+                Console.WriteLine($"PhysicalDensity {value}'s converted {unit} value = {value.ConvertTo(unit)}, {Math.Abs(value.ConvertTo(unit).Value - convertedValue) < double.Epsilon}");
+            }
+
+            var inch96 = new PhysicalDensity(96, PhysicalUnit.Inch);
+            function(inch96, PhysicalUnit.Centimeter, 37.795275590551178D);
+            function(inch96, PhysicalUnit.Meter, 3779.5275590551182D);
+
+            var inch72 = new PhysicalDensity(72, PhysicalUnit.Inch);
+            function(inch72, PhysicalUnit.Centimeter, 28.346456692913385D);
+            function(inch72, PhysicalUnit.Meter, 2834.6456692913389D);
+        }
+
         public static void TestICCProfile()
         {
+            Console.WriteLine("===== ICCProfile =====");
+
             var rootDir = @"C:\Users\Seil\Desktop\Test\ICCProfile\";
             var inputDir = $@"{rootDir}Input\";
             var outputDir = $@"{rootDir}Output\";

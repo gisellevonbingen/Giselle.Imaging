@@ -20,12 +20,12 @@ namespace Giselle.Imaging.Physical
 
         }
 
-        public static double GetInchPerCoefficient(this PhysicalUnit unit)
+        public static double GetValuesPerInch(this PhysicalUnit unit)
         {
             switch (unit)
             {
                 case PhysicalUnit.Inch: return 1.0D;
-                case PhysicalUnit.Centimeter: return 25.4D;
+                case PhysicalUnit.Centimeter: return 2.54D;
                 case PhysicalUnit.Meter: return 0.0254D;
                 default: return 0.0D;
             }
