@@ -84,7 +84,7 @@ namespace Giselle.Imaging.Codec.Jpeg
 
             while (true)
             {
-                using (var chunkStream = new JpegChunkStream(processor))
+                using (var chunkStream = new JpegChunkStream(input, true))
                 {
                     var chunkProcessor = CreateJpegProcessor(chunkStream);
                     var marker = chunkStream.Marker;

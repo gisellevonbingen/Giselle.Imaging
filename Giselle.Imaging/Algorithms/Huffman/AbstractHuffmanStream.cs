@@ -23,6 +23,17 @@ namespace Giselle.Imaging.Algorithms.Huffman
             this.BitBaseStream = new BitStream(baseStream, leaveOpen);
         }
 
+        public override bool CanSeek => false;
+
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public override long Length => throw new NotSupportedException();
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
         protected abstract Dictionary<byte, HuffmanCode> NextReadingCodes();
 
         protected abstract Dictionary<byte, HuffmanCode> NextWritingCodes();

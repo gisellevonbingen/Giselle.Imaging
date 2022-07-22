@@ -92,7 +92,6 @@ namespace Giselle.Imaging.Codec
         public static ImageArgb32Container FromSiphonBlock(SiphonBlock siphonBlock)
         {
             var stream = siphonBlock.SiphonSteam;
-            stream.Position = 0L;
 
             foreach (var codec in GetCodecs())
             {

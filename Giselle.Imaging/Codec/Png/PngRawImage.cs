@@ -57,23 +57,35 @@ namespace Giselle.Imaging.Codec.Png
 
             while (true)
             {
-                using (var chunkStream = new PngChunkStream(input))
+                PngChunkStream chunkStream;
+
+                try
                 {
-                    try
+                    using (chunkStream = new PngChunkStream(input))
                     {
-                        this.ReadChunk(chunkStream);
-                    }
-                    catch (Exception)
-                    {
-                        chunkStream.IgnoreCRC = true;
-                        throw;
+                        try
+                        {
+                            this.ReadChunk(chunkStream);
+                        }
+                        catch (Exception)
+                        {
+                            chunkStream.IgnoreCRC = true;
+                            throw;
+                        }
+
+                        if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
+                        {
+                            chunkStream.IgnoreCRC = true;
+                            break;
+                        }
+
                     }
 
-                    if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
-                    {
-                        break;
-                    }
+                }
+                catch (Exception)
+                {
 
+                    throw;
                 }
 
             }
@@ -249,7 +261,7 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngChunkName.IDAT) == true)
             {
-                var block = chunkProcessor.ReadBytes((int)(chunkProcessor.Length));
+                var block = chunkProcessor.ReadBytes(chunkProcessor.Remain);
                 this.CompressedScanData.Write(block, 0, block.Length);
             }
             else if (type.Equals(PngChunkName.iCCP) == true)
@@ -302,7 +314,7 @@ namespace Giselle.Imaging.Codec.Png
                 this.ExtraChunks.Add(new PNGRawChunk
                 {
                     Name = chunkStream.Name,
-                    Payload = chunkProcessor.ReadBytes((byte)chunkProcessor.Length)
+                    Payload = chunkProcessor.ReadBytes(chunkProcessor.Remain)
                 });
             }
 

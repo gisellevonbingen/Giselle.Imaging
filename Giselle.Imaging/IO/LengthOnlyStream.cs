@@ -9,6 +9,9 @@ namespace Giselle.Imaging.IO
 {
     public class LengthOnlyStream : Stream
     {
+        private long _Position = 0L;
+        private long _Length = 0L;
+
         public LengthOnlyStream()
         {
 
@@ -20,20 +23,25 @@ namespace Giselle.Imaging.IO
 
         public override bool CanWrite => true;
 
-        private long _Length = 0L;
-        public override long Length => this._Length;
-
-        private long _Position = 0L;
         public override long Position { get => this._Position; set => this._Position = Math.Max(value, 0); }
 
-        public override void Flush()
-        {
+        public override long Length => this._Length;
 
+        public override void SetLength(long value)
+        {
+            this._Length = Math.Max(value, 0L);
+            this.Position = Math.Max(this.Position, value);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             return 0;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            this.Position += count;
+            this._Length = Math.Max(this.Position, this.Length);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -58,16 +66,9 @@ namespace Giselle.Imaging.IO
             return this.Position;
         }
 
-        public override void SetLength(long value)
+        public override void Flush()
         {
-            this._Length = Math.Max(value, 0L);
-            this.Position = Math.Max(this.Position, value);
-        }
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            this.Position += count;
-            this._Length = Math.Max(this.Position, this.Length);
         }
 
     }

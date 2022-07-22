@@ -10,7 +10,6 @@ namespace Giselle.Imaging.IO
     public class SiphonStream : InternalStream
     {
         private readonly long _Length = 0L;
-        public override long Length => this._Length;
 
         public SiphonStream(Stream baseStream, long length, bool readingMode) : this(baseStream, length, readingMode, false)
         {
@@ -21,6 +20,10 @@ namespace Giselle.Imaging.IO
         {
             this._Length = length;
         }
+
+        public override long Length => this._Length;
+
+        public override void SetLength(long value) => throw new NotSupportedException();
 
     }
 

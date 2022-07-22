@@ -15,7 +15,6 @@ namespace Giselle.Imaging.Codec.Png
 
         public PngChunkName Name { get; }
         public string DisplayName => this.Name.ToDisplayString();
-        public override long Length { get; }
         public uint AccumulatingCRC { get; private set; }
 
         public bool IgnoreCRC { get; set; }
@@ -60,6 +59,10 @@ namespace Giselle.Imaging.Codec.Png
             }
 
         }
+
+        public override long Length { get; }
+
+        public override void SetLength(long value) => throw new NotSupportedException();
 
         public override int Read(byte[] buffer, int offset, int count)
         {

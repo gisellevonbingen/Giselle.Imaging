@@ -22,29 +22,21 @@ namespace Giselle.Imaging.IO
             this.BaseStream = stream;
         }
 
-        public virtual bool CanRead { get { return this.BaseStream.CanRead; } }
+        public virtual bool CanRead => this.BaseStream.CanRead;
 
-        public virtual bool CanWrite { get { return this.BaseStream.CanWrite; } }
+        public virtual bool CanWrite => this.BaseStream.CanWrite;
 
-        public virtual bool CanSeek { get { return this.BaseStream.CanSeek; } }
+        public virtual bool CanSeek => this.BaseStream.CanSeek;
 
-        public virtual bool CanTimeout { get { return this.BaseStream.CanTimeout; } }
+        public virtual bool CanTimeout => this.BaseStream.CanTimeout;
 
-        public virtual long Position
-        {
-            get { return this.BaseStream.Position; }
-            set { this.BaseStream.Position = value; }
-        }
+        public virtual long Position { get => this.BaseStream.Position; set => this.BaseStream.Position = value; }
 
-        public virtual bool TryGetPosition(out long position) => this.BaseStream.TryGetPosition(out position);
+        public virtual long Length => this.BaseStream.Length;
 
-        public virtual long Length { get { return this.BaseStream.Length; } }
+        public virtual void SetLength(long value) => this.BaseStream.SetLength(value);
 
-        public virtual bool TryGetLength(out long length) => this.BaseStream.TryGetLength(out length);
-
-        public virtual long Remain { get { return this.BaseStream.GetRemain(); } }
-
-        public virtual bool TryGetRemain(out long remain) => this.BaseStream.TryGetRemain(out remain);
+        public virtual long Remain => this.BaseStream.GetRemain();
 
         public virtual void Write(byte[] buffer, int offset, int count)
         {

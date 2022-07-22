@@ -11,6 +11,9 @@ namespace Giselle.Imaging.IO
     {
         protected bool ReadingMode { get; }
 
+        protected long StartBasePosition { get; }
+        private long _InternalPosition = 0L;
+
         public InternalStream(Stream baseStream, bool readingMode) : this(baseStream, readingMode, false)
         {
 
@@ -19,26 +22,14 @@ namespace Giselle.Imaging.IO
         public InternalStream(Stream baseStream, bool readingMode, bool leaveOpen) : base(baseStream, leaveOpen)
         {
             this.ReadingMode = readingMode;
-        }
 
-        protected override long InternalPosition
-        {
-            get => base.InternalPosition;
-            set
+            if (this.CanSeek == true)
             {
-                if (this.TryGetLength(out var length) == false)
-                {
-                    base.InternalPosition = value;
-                }
-                else if (0 <= value && value <= length)
-                {
-                    base.InternalPosition = value;
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-
+                this.StartBasePosition = baseStream.Position;
+            }
+            else
+            {
+                this.StartBasePosition = -1L;
             }
 
         }
@@ -49,29 +40,84 @@ namespace Giselle.Imaging.IO
 
         public override bool CanSeek => base.CanSeek;
 
+        protected long InternalPosition
+        {
+            get => this._InternalPosition;
+            private set
+            {
+                if (this.CanSeek == false)
+                {
+                    this._InternalPosition = value;
+                }
+                else if (0 <= value && value <= this.Length)
+                {
+                    this._InternalPosition = value;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+            }
+
+        }
+
+        public override long Position
+        {
+            get => this.InternalPosition;
+            set
+            {
+                if (this.CanSeek == false)
+                {
+                    throw new NotSupportedException();
+                }
+                else
+                {
+                    this.InternalPosition = value;
+                    this.BaseStream.Position = this.StartBasePosition + value;
+                }
+
+            }
+
+        }
+
+        public override long Length => throw new NotImplementedException();
+
+        public override void SetLength(long value) => throw new NotImplementedException();
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             int readingCount;
 
-            if (this.TryGetLength(out var length) == true)
+            if (this.CanSeek == true)
             {
-                readingCount = (int)Math.Min(length - this.Position, count);
+                readingCount = (int)Math.Min(this.Length - this.Position, count);
             }
             else
             {
                 readingCount = count;
             }
 
-            return base.Read(buffer, offset, readingCount);
+            if (readingCount > 0)
+            {
+                var readLength = base.Read(buffer, offset, readingCount);
+                this.InternalPosition += readingCount;
+                return readLength;
+            }
+            else
+            {
+                return 0;
+            }
+
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
             int writingCount;
 
-            if (this.TryGetLength(out var length) == true)
+            if (this.CanSeek == true)
             {
-                writingCount = (int)Math.Min(length - this.Position, count);
+                writingCount = (int)Math.Min(this.Length - this.Position, count);
             }
             else
             {
@@ -81,8 +127,34 @@ namespace Giselle.Imaging.IO
             if (writingCount > 0)
             {
                 base.Write(buffer, offset, writingCount);
+                this.InternalPosition += writingCount;
             }
 
+        }
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            if (this.CanSeek == false)
+            {
+                throw new NotSupportedException();
+            }
+            else if (origin == SeekOrigin.Begin)
+            {
+                this.Position = offset;
+            }
+            else if (origin == SeekOrigin.Current)
+            {
+                this.Position += offset;
+            }
+            else if (origin == SeekOrigin.End)
+            {
+                this.Position = this.Length - offset;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return this.Position;
         }
 
     }

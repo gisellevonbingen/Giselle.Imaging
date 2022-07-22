@@ -11,13 +11,6 @@ namespace Giselle.Imaging.IO
     {
         protected virtual Stream BaseStream { get; }
         protected bool LeaveOpen { get; }
-        protected long StartBasePosition { get; }
-        private long _InternalPosition = 0L;
-        protected virtual long InternalPosition
-        {
-            get => this._InternalPosition;
-            set => this._InternalPosition = value;
-        }
 
         public WrappedStream(Stream baseStream) : this(baseStream, false)
         {
@@ -28,16 +21,6 @@ namespace Giselle.Imaging.IO
         {
             this.BaseStream = baseStream;
             this.LeaveOpen = leaveOpen;
-
-            try
-            {
-                this.StartBasePosition = baseStream.Position;
-            }
-            catch (Exception)
-            {
-                this.StartBasePosition = -1L;
-            }
-
         }
 
         public override bool CanRead => this.BaseStream.CanRead;
@@ -48,75 +31,21 @@ namespace Giselle.Imaging.IO
 
         public override long Position
         {
-            get => this.InternalPosition;
-            set
-            {
-                if (this.CanSeek == false)
-                {
-                    throw new NotSupportedException();
-                }
-                else
-                {
-                    this.InternalPosition = value;
-                    this.BaseStream.Position = this.StartBasePosition + value;
-                }
-
-            }
-
+            get => this.BaseStream.Position;
+            set => this.BaseStream.Position = value;
         }
 
-        public override long Length => throw new NotSupportedException();
+        public override long Length => this.BaseStream.Length;
+
+        public override void SetLength(long value) => this.BaseStream.SetLength(value);
+
+        public override int Read(byte[] buffer, int offset, int count) => this.BaseStream.Read(buffer, offset, count);
+
+        public override void Write(byte[] buffer, int offset, int count) => this.BaseStream.Write(buffer, offset, count);
+
+        public override long Seek(long offset, SeekOrigin origin) => this.BaseStream.Seek(offset, origin);
 
         public override void Flush() => this.BaseStream.Flush();
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            if (this.CanRead == false)
-            {
-                throw new NotSupportedException();
-            }
-
-            var readLength = this.BaseStream.Read(buffer, offset, count);
-            this.InternalPosition += count;
-            return readLength;
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (this.CanWrite == false)
-            {
-                throw new NotSupportedException();
-            }
-
-            this.BaseStream.Write(buffer, offset, count);
-            this.InternalPosition += count;
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            if (this.CanSeek == false)
-            {
-                throw new NotSupportedException();
-            }
-            else if (origin == SeekOrigin.Begin)
-            {
-                this.Position = offset;
-            }
-            else if (origin == SeekOrigin.Current)
-            {
-                this.Position += offset;
-            }
-            else if (origin == SeekOrigin.End)
-            {
-                this.Position = this.Length - offset;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            return this.Position;
-        }
 
         protected override void Dispose(bool disposing)
         {
@@ -127,11 +56,6 @@ namespace Giselle.Imaging.IO
                 this.BaseStream.Dispose();
             }
 
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
         }
 
     }

@@ -29,14 +29,6 @@ namespace Giselle.Imaging.Codec.Riff
             this.ChunkPath.Add(new RiffChunkPath(null, chunkStream.Header, chunkStream, formType));
         }
 
-        public override long Length => this.CurrentChunkStream?.Length ?? 0L;
-
-        public override long Position
-        {
-            get => this.CurrentChunkStream?.Position ?? 0L;
-            set { if (this.CurrentChunkStream != null) { this.CurrentChunkStream.Position = value; } }
-        }
-
         public RiffChunkHeader ReadNextChunk()
         {
             if (this.CanRead == false)
@@ -114,17 +106,15 @@ namespace Giselle.Imaging.Codec.Riff
 
         private void CloseChunk(Stream c)
         {
-            var p = c.Position;
-            var l = c.Length;
-            var remainBytes = l - p;
+            var remain = c.GetRemain();
 
             if (this.BaseStream.CanSeek == true)
             {
-                this.BaseStream.Position += remainBytes;
+                this.BaseStream.Position += remain;
             }
             else
             {
-                for (var i = 0; i < remainBytes; i++)
+                for (var i = 0; i < remain; i++)
                 {
                     this.BaseStream.ReadByte();
                 }
@@ -134,27 +124,24 @@ namespace Giselle.Imaging.Codec.Riff
             c.Dispose();
         }
 
+        public override long Position
+        {
+            get => this.CurrentChunkStream?.Position ?? 0L;
+            set { if (this.CurrentChunkStream != null) { this.CurrentChunkStream.Position = value; } }
+        }
+
+        public override long Length => this.CurrentChunkStream?.Length ?? 0L;
+
+        public override void SetLength(long value) => this.CurrentChunkStream?.SetLength(value);
+
+        public override int Read(byte[] buffer, int offset, int count) => this.CurrentChunkStream?.Read(buffer, offset, count) ?? 0;
+
+        public override void Write(byte[] buffer, int offset, int count) => this.CurrentChunkStream?.Write(buffer, offset, count);
+
+        public override long Seek(long offset, SeekOrigin origin) => this.CurrentChunkStream?.Seek(offset, origin) ?? 0L;
+
         public override void Flush() => this.CurrentChunkStream?.Flush();
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return this.CurrentChunkStream?.Read(buffer, offset, count) ?? 0;
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return this.CurrentChunkStream?.Seek(offset, origin) ?? 0L;
-        }
-
-        public override void SetLength(long value)
-        {
-            this.CurrentChunkStream?.SetLength(value);
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            this.CurrentChunkStream?.Write(buffer, offset, count);
-        }
         public class RiffChunkPath
         {
             public RiffChunkPath Parent { get; }

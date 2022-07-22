@@ -127,31 +127,23 @@ namespace Giselle.Imaging.Codec.Tga
                 processor.Read(this.UncompressedScan, 0, this.UncompressedScan.Length);
             }
 
-            if (processor.TryGetRemain(out var remain) == true)
+            using (var siphonBlock = SiphonBlock.ByRemain(input, processor.ReadLength))
             {
-                if (remain >= TgaFileFooter.Length)
+                siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition - TgaFileFooter.Length);
+                var footer = new TgaFileFooter(processor);
+
+                var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
+
+                if (footer.DeveloperAreaOffset > 0)
                 {
-                    using (var siphonBlock = SiphonBlock.ByLength(input, processor.ReadLength, remain - TgaFileFooter.Length))
-                    {
-                        siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition);
-                        var footer = new TgaFileFooter(processor);
+                    siphonBlock.SetBasePosition(footer.DeveloperAreaOffset);
+                }
 
-                        var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
-
-                        if (footer.DeveloperAreaOffset > 0)
-                        {
-                            siphonBlock.SetBasePosition(footer.DeveloperAreaOffset);
-                        }
-
-                        if (footer.ExtensionOffset > 0)
-                        {
-                            siphonBlock.SetBasePosition(footer.ExtensionOffset);
-                            var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
-                            this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
-                        }
-
-                    }
-
+                if (footer.ExtensionOffset > 0)
+                {
+                    siphonBlock.SetBasePosition(footer.ExtensionOffset);
+                    var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
+                    this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
                 }
 
             }
