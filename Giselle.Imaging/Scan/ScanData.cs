@@ -66,17 +66,9 @@ namespace Giselle.Imaging.Scan
             return new InterlacePassInformation() { PixelsX = pixelsX, PixelsY = pixelsY, Stride = stride };
         }
 
-        public PointI GetEncodeCoord(PointI coord)
-        {
-            var transformer = this.CoordTransformer;
-            return transformer != null ? transformer.Encode(this, coord) : coord;
-        }
+        public PointI GetEncodeCoord(PointI coord) => this.CoordTransformer?.Encode(this, coord) ?? coord;
 
-        public PointI GetDecodeCoord(PointI coord)
-        {
-            var transformer = this.CoordTransformer;
-            return transformer != null ? transformer.Decode(this, coord) : coord;
-        }
+        public PointI GetDecodeCoord(PointI coord) => this.CoordTransformer?.Decode(this, coord) ?? coord;
 
     }
 
