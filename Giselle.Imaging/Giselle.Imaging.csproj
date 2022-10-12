@@ -116,7 +116,6 @@
     <Compile Include="Codec\Riff\RiffChunkFile.cs" />
     <Compile Include="Codec\Riff\RiffChunkHeader.cs" />
     <Compile Include="Codec\Riff\RiffChunkList.cs" />
-    <Compile Include="Codec\Riff\RiffChunkRegistry.cs" />
     <Compile Include="Codec\Riff\RiffChunkRegstration.cs" />
     <Compile Include="Codec\Riff\RiffChunkStream.cs" />
     <Compile Include="Codec\Riff\RiffInputStream.cs" />
