@@ -163,6 +163,10 @@ namespace Giselle.Imaging.Codec.Png
                             {
                                 result = (byte)(x - (a + b) / 2);
                             }
+                            else if (filter == 4)
+                            {
+                                result = (byte)(x - ComputePaeth(a, b, c));
+                            }
                             else
                             {
                                 throw new NotImplementedException($"Filter is {filter}");
@@ -171,7 +175,7 @@ namespace Giselle.Imaging.Codec.Png
                             filteredScanline[xi] = result;
                             originalScanline[xi] = x;
                             currLineSamples[xi % samples] = x;
-                            lastLineSamples[xi % samples] = a;
+                            lastLineSamples[xi % samples] = b;
                         }
 
                         dataProcessor.WriteByte(filter);
@@ -364,18 +368,12 @@ namespace Giselle.Imaging.Codec.Png
                             }
                             else if (filter == 4)
                             {
-                                var p = a + b - c;
-                                var pa = Math.Abs(p - a);
-                                var pb = Math.Abs(p - b);
-                                var pc = Math.Abs(p - c);
-                                if (pa <= pb && pa <= pc) result = a;
-                                else if (pb <= pc) result = b;
-                                else result = c;
+                                result = (byte)(x + ComputePaeth(a, b, c));
                             }
 
                             scanline[xi] = result;
                             currLineSamples1[xi % samples] = result;
-                            lastLineSamples2[xi % samples] = a;
+                            lastLineSamples2[xi % samples] = b;
 
                             scanData.Scan[scanOffset++] = result;
                         }
@@ -396,6 +394,24 @@ namespace Giselle.Imaging.Codec.Png
                 HeightResoulution = new PhysicalDensity(this.YPixelsPerUnit, densityUnit),
                 ICCProfile = this.ICCProfile,
             };
+        }
+
+        public static byte ComputePaeth(byte a, byte b, byte c)
+        {
+            var p = a + b - c;
+            var pa = Math.Abs(p - a);
+            var pb = Math.Abs(p - b);
+            var pc = Math.Abs(p - c);
+
+            if (pa <= pb && pa <= pc)
+            {
+                return a;
+            }
+            else
+            {
+                return pb <= pc ? b : c;
+            }
+
         }
 
         public void Write(Stream output)
