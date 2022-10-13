@@ -31,6 +31,7 @@ namespace Giselle.Imaging.Codec.Png
         public ICCProfile ICCProfile { get; set; }
         public byte RenderingIntent { get; set; }
         public byte[] ImageGamma { get; set; } = new byte[4];
+        public Dictionary<string, string> Texts { get; } = new Dictionary<string, string>();
         public List<PNGRawChunk> ExtraChunks { get; set; } = new List<PNGRawChunk>();
 
         public PngRawImage()
@@ -298,6 +299,12 @@ namespace Giselle.Imaging.Codec.Png
                 }
 
             }
+            else if (type.Equals(PngChunkName.tEXt) == true)
+            {
+                var keyword = chunkProcessor.ReadStringUntil0(Encoding.ASCII);
+                var text = chunkProcessor.ReadString(Encoding.ASCII, chunkProcessor.Remain);
+                this.Texts[keyword] = text;
+            }
             else if (type.Equals(PngChunkName.IEND) == true)
             {
 
@@ -486,6 +493,15 @@ namespace Giselle.Imaging.Codec.Png
                     });
                 }
 
+            }
+
+            foreach (var pair in this.Texts)
+            {
+                this.WriteChunk(output, PngChunkName.tEXt, chunkProcessor =>
+                {
+                    chunkProcessor.WriteStringWith0(Encoding.ASCII, pair.Key);
+                    chunkProcessor.WriteString(Encoding.ASCII, pair.Value);
+                });
             }
 
             foreach (var chunk in this.ExtraChunks)
