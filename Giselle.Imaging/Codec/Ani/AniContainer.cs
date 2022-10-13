@@ -60,7 +60,7 @@ namespace Giselle.Imaging.Codec.Ani
 
                     if (formType == KnownRiffTypeKeys.Info)
                     {
-                        var text = Encoding.ASCII.GetString(processor.ReadBytesUntil0());
+                        var text = processor.ReadStringUntil0(Encoding.ASCII);
 
                         if (typeKey == KnownRiffTypeKeys.InfoName)
                         {
@@ -218,7 +218,7 @@ namespace Giselle.Imaging.Codec.Ani
                 using (var ms = new MemoryStream())
                 {
                     var processor = RiffChunk.CreateRiffDataProcessor(ms);
-                    processor.WriteBytesWith0(Encoding.ASCII.GetBytes(text));
+                    processor.WriteStringWith0(Encoding.ASCII, text);
                     list.Children.Add(new RiffChunkElement(typeKey) { Data = ms.ToArray() });
                 }
 

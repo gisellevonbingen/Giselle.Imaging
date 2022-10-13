@@ -259,7 +259,7 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngChunkName.iCCP) == true)
             {
-                var name = chunkProcessor.ReadBytesUntil0();
+                var name = chunkProcessor.ReadStringUntil0(Encoding.ASCII);
                 var compressionMethod = chunkProcessor.ReadByte();
 
                 using (var zlibStream = new ZlibStream(chunkStream, CompressionMode.Decompress, true))
@@ -434,7 +434,7 @@ namespace Giselle.Imaging.Codec.Png
             {
                 this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
                 {
-                    chunkProcessor.WriteBytesWith0(Encoding.ASCII.GetBytes("ICC Profile"));
+                    chunkProcessor.WriteStringWith0(Encoding.ASCII, "ICC Profile");
                     chunkProcessor.WriteByte(0);
 
                     using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, CompressionMode.Compress, true))

@@ -31,8 +31,7 @@ namespace Giselle.Imaging.Codec.Exif
 
         public override void Write(ExifRawEntry entry, DataProcessor processor)
         {
-            var bytes = Encoding.ASCII.GetBytes(this.Value + '\0');
-            processor.WriteBytes(bytes);
+            processor.WriteStringWith0(Encoding.ASCII, this.Value);
         }
 
         public override string ToString()

@@ -44,6 +44,26 @@ namespace Giselle.Imaging.IO
 
         }
 
+        public static string ReadStringUntil0(this DataProcessor processor, Encoding encoding)
+        {
+            return encoding.GetString(processor.ReadBytesUntil0());
+        }
+
+        public static void WriteStringWith0(this DataProcessor processor, Encoding encoding, string text)
+        {
+            processor.WriteBytesWith0(encoding.GetBytes(text));
+        }
+
+        public static string ReadString(this DataProcessor processor, Encoding encoding, long length)
+        {
+            return encoding.GetString(processor.ReadBytes(length));
+        }
+
+        public static void WriteString(this DataProcessor processor, Encoding encoding, string text)
+        {
+            processor.WriteBytes(encoding.GetBytes(text));
+        }
+
         public static void ReadArray<T>(this DataProcessor processor, T[] values, int offset, int count, Func<DataProcessor, T> func)
         {
             for (var i = 0; i < count; i++)
