@@ -14,6 +14,8 @@ namespace Giselle.Imaging.Codec.Tga
 
         public static TgaCodec Instance { get; } = new TgaCodec();
 
+        public static Encoding Encoding => Encoding.ASCII;
+
         public static DataProcessor CreateTgaProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
 
         public TgaCodec()

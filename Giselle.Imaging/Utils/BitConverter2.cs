@@ -11,6 +11,8 @@ namespace Giselle.Imaging.Utils
 {
     public static class BitConverter2
     {
+        public static Encoding DefaultEncoding => Encoding.ASCII;
+
         public static (byte Upper, byte Lower) SplitNibbles(byte value)
         {
             var upper = (byte)((value >> 0x04) & 0x0F);
@@ -22,7 +24,7 @@ namespace Giselle.Imaging.Utils
 
         public static int ToASCIIInt32(this string value, bool isLittleEndian) => ToASCIINumber(value, 4, isLittleEndian, p => p.ReadInt());
 
-        public static T ToASCIINumber<T>(this string value, int size, bool isLittleEndian, Func<DataProcessor, T> func)
+        public static T ToASCIINumber<T>(this string value, int size, bool isLittleEndian, Encoding encoding, Func<DataProcessor, T> func)
         {
             if (string.IsNullOrEmpty(value) == true)
             {

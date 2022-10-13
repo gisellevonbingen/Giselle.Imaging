@@ -48,7 +48,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         public void Read(DataProcessor input)
         {
-            var encoding = Encoding.ASCII;
+            var encoding = TgaCodec.Encoding;
             var lengthWithSelf = input.ReadUShort();
             this.AuthorName = encoding.GetStringUntil0(input.ReadBytes(AuthorNameLength + 1));
             this.AuthorComments = EnumerableUtils.Repeat(AuthorCommentsLength, i => encoding.GetStringUntil0(input.ReadBytes(AuthorCommentLineLength + 1))).ToArray();
@@ -70,7 +70,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         public void Write(DataProcessor output)
         {
-            var encoding = Encoding.ASCII;
+            var encoding = TgaCodec.Encoding;
             output.WriteUShort(Length);
             output.WriteBytes(encoding.GetBytesWith0(this.AuthorName, AuthorNameLength));
             Array.ForEach(this.AuthorComments, s => output.WriteBytes(encoding.GetBytesWith0(s, AuthorCommentLineLength)));

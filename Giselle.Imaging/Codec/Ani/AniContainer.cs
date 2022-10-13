@@ -13,6 +13,8 @@ namespace Giselle.Imaging.Codec.Ani
 {
     public class AniContainer
     {
+        public static Encoding Encoding => Encoding.ASCII;
+
         public string Name { get; set; } = string.Empty;
         public string Artist { get; set; } = string.Empty;
         public string Copyright { get; set; } = string.Empty;
@@ -60,7 +62,7 @@ namespace Giselle.Imaging.Codec.Ani
 
                     if (formType == KnownRiffTypeKeys.Info)
                     {
-                        var text = processor.ReadStringUntil0(Encoding.ASCII);
+                        var text = processor.ReadStringUntil0(Encoding);
 
                         if (typeKey == KnownRiffTypeKeys.InfoName)
                         {
@@ -218,7 +220,7 @@ namespace Giselle.Imaging.Codec.Ani
                 using (var ms = new MemoryStream())
                 {
                     var processor = RiffChunk.CreateRiffDataProcessor(ms);
-                    processor.WriteStringWith0(Encoding.ASCII, text);
+                    processor.WriteStringWith0(Encoding, text);
                     list.Children.Add(new RiffChunkElement(typeKey) { Data = ms.ToArray() });
                 }
 

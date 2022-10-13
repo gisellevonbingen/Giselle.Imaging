@@ -260,7 +260,7 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngChunkName.iCCP) == true)
             {
-                var name = chunkProcessor.ReadStringUntil0(Encoding.ASCII);
+                var name = chunkProcessor.ReadStringUntil0(PngCodec.Encoding);
                 var compressionMethod = chunkProcessor.ReadByte();
 
                 using (var zlibStream = new ZlibStream(chunkStream, CompressionMode.Decompress, true))
@@ -301,8 +301,8 @@ namespace Giselle.Imaging.Codec.Png
             }
             else if (type.Equals(PngChunkName.tEXt) == true)
             {
-                var keyword = chunkProcessor.ReadStringUntil0(Encoding.ASCII);
-                var text = chunkProcessor.ReadString(Encoding.ASCII, chunkProcessor.Remain);
+                var keyword = chunkProcessor.ReadStringUntil0(PngCodec.Encoding);
+                var text = chunkProcessor.ReadString(PngCodec.Encoding, chunkProcessor.Remain);
                 this.Texts[keyword] = text;
             }
             else if (type.Equals(PngChunkName.IEND) == true)
@@ -441,7 +441,7 @@ namespace Giselle.Imaging.Codec.Png
             {
                 this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
                 {
-                    chunkProcessor.WriteStringWith0(Encoding.ASCII, "ICC Profile");
+                    chunkProcessor.WriteStringWith0(PngCodec.Encoding, "ICC Profile");
                     chunkProcessor.WriteByte(0);
 
                     using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, CompressionMode.Compress, true))
@@ -499,8 +499,8 @@ namespace Giselle.Imaging.Codec.Png
             {
                 this.WriteChunk(output, PngChunkName.tEXt, chunkProcessor =>
                 {
-                    chunkProcessor.WriteStringWith0(Encoding.ASCII, pair.Key);
-                    chunkProcessor.WriteString(Encoding.ASCII, pair.Value);
+                    chunkProcessor.WriteStringWith0(PngCodec.Encoding, pair.Key);
+                    chunkProcessor.WriteString(PngCodec.Encoding, pair.Value);
                 });
             }
 
