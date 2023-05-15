@@ -33,8 +33,8 @@ namespace Giselle.Imaging.Codec.Tga
         public byte AlphaBits { get; set; } = 0;
         public bool FlipX { get; set; } = false;
         public bool FlipY { get; set; } = false;
-        public byte[] UncompressedScan { get; set; } = new byte[0];
-        public Argb32[] ColorTable { get; set; } = new Argb32[0];
+        public byte[] UncompressedScan { get; set; } = Array.Empty<byte>();
+        public Argb32[] ColorTable { get; set; } = Array.Empty<Argb32>();
         public TgaExtensionArea ExtensionArea { get; set; } = null;
 
         public TgaRawImage()
@@ -86,7 +86,7 @@ namespace Giselle.Imaging.Codec.Tga
             }
             else
             {
-                this.ColorTable = new Argb32[0];
+                this.ColorTable = Array.Empty<Argb32>();
             }
 
             this.UncompressedScan = new byte[stride * this.Height];
@@ -127,25 +127,22 @@ namespace Giselle.Imaging.Codec.Tga
                 processor.Read(this.UncompressedScan, 0, this.UncompressedScan.Length);
             }
 
-            using (var siphonBlock = SiphonBlock.ByRemain(input, processor.ReadLength))
+            using var siphonBlock = SiphonBlock.ByRemain(input, processor.ReadLength);
+            siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition - TgaFileFooter.Length);
+            var footer = new TgaFileFooter(processor);
+
+            var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
+
+            if (footer.DeveloperAreaOffset > 0)
             {
-                siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition - TgaFileFooter.Length);
-                var footer = new TgaFileFooter(processor);
+                siphonBlock.SetBasePosition(footer.DeveloperAreaOffset);
+            }
 
-                var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
-
-                if (footer.DeveloperAreaOffset > 0)
-                {
-                    siphonBlock.SetBasePosition(footer.DeveloperAreaOffset);
-                }
-
-                if (footer.ExtensionOffset > 0)
-                {
-                    siphonBlock.SetBasePosition(footer.ExtensionOffset);
-                    var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
-                    this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
-                }
-
+            if (footer.ExtensionOffset > 0)
+            {
+                siphonBlock.SetBasePosition(footer.ExtensionOffset);
+                var rawExtensionArea = new TgaRawExtensionArea(siphonProcessor);
+                this.ExtensionArea = new TgaExtensionArea(rawExtensionArea);
             }
 
         }
@@ -211,7 +208,7 @@ namespace Giselle.Imaging.Codec.Tga
             }
             else
             {
-                this.ColorTable = new Argb32[0];
+                this.ColorTable = Array.Empty<Argb32>();
             }
 
             var scanData = new ScanData(this.Width, this.Height, format.GetBitsPerPixel()) { Stride = stride, Scan = this.UncompressedScan, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
@@ -251,7 +248,7 @@ namespace Giselle.Imaging.Codec.Tga
             }
 
             header.Write(processor);
-            processor.WriteBytes(new byte[0]); // ID
+            processor.WriteBytes(Array.Empty<byte>()); // ID
 
             if (this.ImageType == TgaImageType.ColorMapped)
             {
@@ -281,7 +278,7 @@ namespace Giselle.Imaging.Codec.Tga
 
                     while (true)
                     {
-                        var data = this.NextPacket(this.UncompressedScan, scanOffset, scanEnd, bytesPerPixel, out var packetType, out var pixelCount);
+                        var data = NextPacket(this.UncompressedScan, scanOffset, scanEnd, bytesPerPixel, out var packetType, out var pixelCount);
 
                         if (pixelCount == 0)
                         {
@@ -320,14 +317,14 @@ namespace Giselle.Imaging.Codec.Tga
 
         }
 
-        private byte[] NextPacket(byte[] scan, int start, int end, int bytesPerPixel, out bool packetType, out int pixelCount)
+        private static byte[] NextPacket(byte[] scan, int start, int end, int bytesPerPixel, out bool packetType, out int pixelCount)
         {
             packetType = false;
             pixelCount = 0;
 
             if (start >= end)
             {
-                return new byte[0];
+                return Array.Empty<byte>();
             }
 
             var data = new List<byte>();

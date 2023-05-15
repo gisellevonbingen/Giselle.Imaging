@@ -8,119 +8,63 @@ namespace Giselle.Imaging
 {
     public static class PixelFormatExtensions
     {
-        public static bool HasAlphaChannel(this PixelFormat value)
+        public static bool HasAlphaChannel(this PixelFormat value) => value switch
         {
-            if (value == PixelFormat.Format16bppAGrayscale)
-            {
-                return true;
-            }
-            else
-            {
-                return IsArgb(value);
-            }
+            PixelFormat.Format16bppAGrayscale => true,
+            _ => value.IsArgb()
+        };
 
-        }
-
-        public static bool IsGrayscale(this PixelFormat value)
+        public static bool IsGrayscale(this PixelFormat value) => value switch
         {
-            if (value == PixelFormat.Format8bppGrayscale)
-            {
-                return true;
-            }
-            else if (value == PixelFormat.Format16bppAGrayscale)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            PixelFormat.Format8bppGrayscale => true,
+            PixelFormat.Format16bppAGrayscale => true,
+            _ => false
+        };
 
-        }
-
-        public static bool IsArgb(this PixelFormat value)
+        public static bool IsArgb(this PixelFormat value) => value switch
         {
-            if (value == PixelFormat.Format16bppArgb1555)
-            {
-                return true;
-            }
-            else if (value == PixelFormat.Format32bppArgb8888)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            PixelFormat.Format16bppArgb1555 => true,
+            PixelFormat.Format32bppArgb8888 => true,
+            _ => false
+        };
 
-        }
-
-        public static bool IsRgb(this PixelFormat value)
+        public static bool IsRgb(this PixelFormat value) => value switch
         {
-            if (value == PixelFormat.Format16bppRgb555 || value == PixelFormat.Format16bppRgb565 || value == PixelFormat.Format16bppArgb1555)
-            {
-                return true;
-            }
-            else if (value == PixelFormat.Format24bppRgb888)
-            {
-                return true;
-            }
-            else if (value == PixelFormat.Format32bppRgb888 || value == PixelFormat.Format32bppArgb8888)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
+            PixelFormat.Format16bppRgb555 or PixelFormat.Format16bppRgb565 or PixelFormat.Format16bppArgb1555 => true,
+            PixelFormat.Format24bppRgb888 => true,
+            PixelFormat.Format32bppRgb888 or PixelFormat.Format32bppArgb8888 => true,
+            _ => false
+        };
 
         public static bool IsIndexed(this PixelFormat value) => GetColorTableLength(value) > 0;
 
-        public static int GetColorTableLength(this PixelFormat value)
+        public static int GetColorTableLength(this PixelFormat value) => value switch
         {
-            switch (value)
-            {
-                case PixelFormat.Format1bppIndexed: return 2;
-                case PixelFormat.Format2bppIndexed: return 4;
-                case PixelFormat.Format4bppIndexed: return 16;
-                case PixelFormat.Format8bppIndexed: return 256;
-                default: return 0;
-            };
+            PixelFormat.Format1bppIndexed => 2,
+            PixelFormat.Format2bppIndexed => 4,
+            PixelFormat.Format4bppIndexed => 16,
+            PixelFormat.Format8bppIndexed => 256,
+            _ => 0,
+        };
 
-        }
+        public static bool IsColorTableLE(this PixelFormat own, PixelFormat with) => own.GetColorTableLength() <= with.GetColorTableLength();
 
-        public static bool IsColorTableLE(this PixelFormat own, PixelFormat with)
+        public static int GetBitsPerPixel(this PixelFormat value) => value switch
         {
-            return own.GetColorTableLength() <= with.GetColorTableLength();
-        }
-
-        public static int GetBitsPerPixel(this PixelFormat value)
-        {
-            switch (value)
-            {
-                case PixelFormat.Format1bppIndexed: return 1;
-                case PixelFormat.Format2bppIndexed: return 2;
-                case PixelFormat.Format4bppIndexed: return 4;
-                case PixelFormat.Format8bppIndexed: return 8;
-
-                case PixelFormat.Format8bppGrayscale: return 8;
-                case PixelFormat.Format16bppAGrayscale: return 16;
-
-                case PixelFormat.Format16bppRgb555: return 16;
-                case PixelFormat.Format16bppRgb565: return 16;
-                case PixelFormat.Format16bppArgb1555: return 16;
-
-                case PixelFormat.Format24bppRgb888: return 24;
-
-                case PixelFormat.Format32bppRgb888: return 32;
-                case PixelFormat.Format32bppArgb8888: return 32;
-
-                default: return 0;
-            };
-
-        }
+            PixelFormat.Format1bppIndexed => 1,
+            PixelFormat.Format2bppIndexed => 2,
+            PixelFormat.Format4bppIndexed => 4,
+            PixelFormat.Format8bppIndexed => 8,
+            PixelFormat.Format8bppGrayscale => 8,
+            PixelFormat.Format16bppAGrayscale => 16,
+            PixelFormat.Format16bppRgb555 => 16,
+            PixelFormat.Format16bppRgb565 => 16,
+            PixelFormat.Format16bppArgb1555 => 16,
+            PixelFormat.Format24bppRgb888 => 24,
+            PixelFormat.Format32bppRgb888 => 32,
+            PixelFormat.Format32bppArgb8888 => 32,
+            _ => 0,
+        };
 
     }
 

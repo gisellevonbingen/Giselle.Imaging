@@ -51,37 +51,34 @@ namespace Giselle.Imaging.Codec.Tiff
 
         public override ImageArgb32Container Read(Stream input)
         {
-            using (var siphonBlock = SiphonBlock.ByRemain(input))
+            using var siphonBlock = SiphonBlock.ByRemain(input);
+            var exif = new ExifContainer(siphonBlock.SiphonSteam);
+            var container = new ImageArgb32Container()
             {
-                var exif = new ExifContainer(siphonBlock.SiphonSteam);
-                var container = new ImageArgb32Container()
+                PrimaryCodec = this,
+                PrimaryOptions = new TiffSaveOptions()
                 {
-                    PrimaryCodec = this,
-                    PrimaryOptions = new TiffSaveOptions()
-                    {
-                        ExifLittleEndian = exif.WasLittleEndian,
-                    },
-                };
+                    ExifLittleEndian = exif.WasLittleEndian,
+                },
+            };
 
-                foreach (var directory in exif.Directories)
+            foreach (var directory in exif.Directories)
+            {
+                var frame = this.Decode(siphonBlock.SiphonSteam, directory);
+
+                if (frame != null)
                 {
-                    var frame = this.Decode(siphonBlock.SiphonSteam, directory);
-
-                    if (frame != null)
-                    {
-                        container.Add(frame);
-                    }
-
+                    container.Add(frame);
                 }
 
-                return container;
             }
 
+            return container;
         }
 
-        private Argb32[] DecodeColorMap(ExifImageFileDirectory directory) => directory.TryGetIntegers(ExifTagId.ColorMap, out var integers) ? this.DecodeColorMap(integers) : new Argb32[0];
+        private static Argb32[] DecodeColorMap(ExifImageFileDirectory directory) => directory.TryGetIntegers(ExifTagId.ColorMap, out var integers) ? DecodeColorMap(integers) : Array.Empty<Argb32>();
 
-        private Argb32[] DecodeColorMap(IExifValueIntegers intgers)
+        private static Argb32[] DecodeColorMap(IExifValueIntegers intgers)
         {
             var array = intgers.AsUnsigneds.ToArray();
             var arrayIndex = 0;
@@ -120,9 +117,9 @@ namespace Giselle.Imaging.Codec.Tiff
             return colorMap;
         }
 
-        private void EncodeColorMap(ExifImageFileDirectory directory, Argb32[] colorTable) => directory.SetShorts(ExifTagId.ColorMap, this.EncodeColorMap(colorTable));
+        private static void EncodeColorMap(ExifImageFileDirectory directory, Argb32[] colorTable) => directory.SetShorts(ExifTagId.ColorMap, EncodeColorMap(colorTable));
 
-        private ushort[] EncodeColorMap(Argb32[] colorTable)
+        private static ushort[] EncodeColorMap(Argb32[] colorTable)
         {
             var arrayIndex = 0;
             var channels = 3;
@@ -168,7 +165,7 @@ namespace Giselle.Imaging.Codec.Tiff
             var width = directory.GetSigned(ExifTagId.ImageWidth);
             var height = directory.GetSigned(ExifTagId.ImageLength);
             var stride = ScanProcessor.GetBytesPerWidth(width, bitsPerPixel);
-            var colorMap = this.DecodeColorMap(directory);
+            var colorMap = DecodeColorMap(directory);
             var scan = new ScanData(width, height, bitsPerPixel) { Stride = stride, Scan = new byte[stride * height], ColorTable = colorMap };
 
             var samplesPerPixel = directory.GetSigned(ExifTagId.SamplesPerPixel);
@@ -185,14 +182,11 @@ namespace Giselle.Imaging.Codec.Tiff
                 var bytes = stripBytes[i];
                 input.Position = offset;
 
-                using (var ds = CreateDecompressStream(input, compression, i, bytes, true))
-                {
-                    this.Decompress(stride, samplesPerPixel, predictor, rowsPerStrip, scan.Scan, i, ds);
-                }
-
+                using var ds = CreateDecompressStream(input, compression, i, bytes, true);
+                Decompress(stride, samplesPerPixel, predictor, rowsPerStrip, scan.Scan, i, ds);
             }
 
-            var processor = this.GetScanProcessor(photometricInterpretation, bitsPerSamples, bitsPerPixel);
+            var processor = GetScanProcessor(photometricInterpretation, bitsPerSamples, bitsPerPixel);
             var frame = new ImageArgb32Frame(scan, processor)
             {
                 PrimaryCodec = this,
@@ -224,7 +218,7 @@ namespace Giselle.Imaging.Codec.Tiff
             return frame;
         }
 
-        private Stream CreateDecompressStream(Stream input, TiffCompressionMethod compression, int stripIndex, int stripLength, bool leaveOpen)
+        private static Stream CreateDecompressStream(Stream input, TiffCompressionMethod compression, int stripIndex, int stripLength, bool leaveOpen)
         {
             if (compression == TiffCompressionMethod.Undefined || compression == TiffCompressionMethod.NoCompression)
             {
@@ -249,7 +243,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        private void Decompress(int stride, int samplesPerPixel, ExifPredictor predictor, int rowsPerStrip, byte[] scan, int stripIndex, Stream input)
+        private static void Decompress(int stride, int samplesPerPixel, ExifPredictor predictor, int rowsPerStrip, byte[] scan, int stripIndex, Stream input)
         {
             for (var i = 0; i < rowsPerStrip; i++)
             {
@@ -288,7 +282,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        private ScanProcessor GetScanProcessor(ExifPhotometricInterpretation photometricInterpretation, int[] bitsPerSample, int bitsPerPixel)
+        private static ScanProcessor GetScanProcessor(ExifPhotometricInterpretation photometricInterpretation, int[] bitsPerSample, int bitsPerPixel)
         {
             if (photometricInterpretation == ExifPhotometricInterpretation.BlackIsZero)
             {
@@ -370,7 +364,7 @@ namespace Giselle.Imaging.Codec.Tiff
                     }
 
                     var colorMap = report.UniqueColors.TakeFixSize(0, PixelFormatUtils.GetColorTableLength(frameOptions.BitsPerSample)).ToArray();
-                    this.EncodeColorMap(directory, colorMap);
+                    EncodeColorMap(directory, colorMap);
                 }
 
                 exif.Directories.Add(directory);
@@ -386,7 +380,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 var newStripOffsets = new uint[srtipCount];
                 var newStripBytes = new uint[srtipCount];
 
-                this.Process(directory, frame, frameOptionsMap[frame], () => new LengthOnlyStream(), (stripIndex, baseStream) =>
+                Process(directory, frame, frameOptionsMap[frame], () => new LengthOnlyStream(), (stripIndex, baseStream) =>
                 {
                     newStripOffsets[stripIndex] = (uint)stripCursor;
                     newStripBytes[stripIndex] = (uint)baseStream.Length;
@@ -403,12 +397,12 @@ namespace Giselle.Imaging.Codec.Tiff
             {
                 var directory = exif.Directories[i];
                 var frame = container[i];
-                this.Process(directory, frame, frameOptionsMap[frame], () => output, null);
+                Process(directory, frame, frameOptionsMap[frame], () => output, null);
             }
 
         }
 
-        private void Process(ExifImageFileDirectory directory, ImageArgb32Frame frame, TiffFrameSaveOptions options, Func<Stream> streamProvider, Action<int, Stream> callback)
+        private static void Process(ExifImageFileDirectory directory, ImageArgb32Frame frame, TiffFrameSaveOptions options, Func<Stream> streamProvider, Action<int, Stream> callback)
         {
             var bitsPerSamples = directory.GetSigneds(ExifTagId.BitsPerSample);
             var bitsPerPixel = bitsPerSamples.Sum();
@@ -423,18 +417,18 @@ namespace Giselle.Imaging.Codec.Tiff
             var rowsPerStrip = directory.GetSigned(ExifTagId.RowsPerStrip);
             var srtipCount = directory[ExifTagId.StripByteCounts].RawValueCount;
 
-            var colorMap = this.DecodeColorMap(directory);
+            var colorMap = DecodeColorMap(directory);
             var scan = new ScanData(width, height, bitsPerPixel) { Stride = stride, Scan = new byte[stride * height], ColorTable = colorMap };
-            var processor = this.GetScanProcessor(photometricInterpretation, bitsPerSamples, bitsPerPixel);
+            var processor = GetScanProcessor(photometricInterpretation, bitsPerSamples, bitsPerPixel);
             processor.Encode(scan, frame);
 
             for (var stripIndex = 0; stripIndex < srtipCount; stripIndex++)
             {
                 var baseStream = streamProvider();
 
-                using (var stream = this.CreateCompressStream(baseStream, compression, options.CompressionLevel, true))
+                using (var stream = CreateCompressStream(baseStream, compression, options.CompressionLevel, true))
                 {
-                    this.Compress(stride, samplesPerPixel, predictor, rowsPerStrip, scan.Scan, stripIndex, stream);
+                    Compress(stride, samplesPerPixel, predictor, rowsPerStrip, scan.Scan, stripIndex, stream);
                 }
 
                 callback?.Invoke(stripIndex, baseStream);
@@ -442,7 +436,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        private Stream CreateCompressStream(Stream output, TiffCompressionMethod compression, CommonCompressionLevel level, bool leaveOpen)
+        private static Stream CreateCompressStream(Stream output, TiffCompressionMethod compression, CommonCompressionLevel level, bool leaveOpen)
         {
             if (compression == TiffCompressionMethod.Undefined || compression == TiffCompressionMethod.NoCompression)
             {
@@ -467,7 +461,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        private void Compress(int stride, int samplesPerPixel, ExifPredictor predictor, int rowsPerStrip, byte[] scan, int stripIndex, Stream output)
+        private static void Compress(int stride, int samplesPerPixel, ExifPredictor predictor, int rowsPerStrip, byte[] scan, int stripIndex, Stream output)
         {
             for (var i = 0; i < rowsPerStrip; i++)
             {

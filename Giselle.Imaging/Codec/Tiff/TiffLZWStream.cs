@@ -28,7 +28,7 @@ namespace Giselle.Imaging.Codec.Tiff
         protected readonly LZWProcessor Processor;
 
         protected int ReadingDataKey { get; private set; } = -1;
-        protected IReadOnlyList<byte> ReadingData { get; private set; } = new byte[0];
+        protected IReadOnlyList<byte> ReadingData { get; private set; } = Array.Empty<byte>();
         protected int ReadingPosition { get; private set; } = 0;
 
         public TiffLZWStream(Stream baseStream, TiffLZWCompressionMode mode) : this(baseStream, mode, false)

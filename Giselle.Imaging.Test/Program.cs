@@ -32,7 +32,7 @@ namespace Giselle.Imaging.Test
         {
             Console.WriteLine("===== Padding =====");
 
-            void function(int width, int bitsPerPixel, int padding, int require)
+            static void function(int width, int bitsPerPixel, int padding, int require)
             {
                 var result = ScanProcessor.GetStride(width, bitsPerPixel, padding);
                 Console.WriteLine($"ScanProcessor.GetStride({width}, {bitsPerPixel}, {padding}) = {result}, {result == require}");
@@ -51,7 +51,7 @@ namespace Giselle.Imaging.Test
         {
             Console.WriteLine("===== Physical =====");
 
-            void function(PhysicalDensity value, PhysicalUnit unit, double convertedValue)
+            static void function(PhysicalDensity value, PhysicalUnit unit, double convertedValue)
             {
                 Console.WriteLine($"PhysicalDensity {value}'s converted {unit} value = {value.ConvertTo(unit)}, {Math.Abs(value.ConvertTo(unit).Value - convertedValue) < double.Epsilon}");
             }
@@ -81,7 +81,7 @@ namespace Giselle.Imaging.Test
 
             foreach (var inputPath in inputPaths)
             {
-                var relatedPath = inputPath.Substring(inputDir.Length);
+                var relatedPath = inputPath[inputDir.Length..];
                 var inputBytes = File.ReadAllBytes(inputPath);
                 var outputPath = outputDir + relatedPath;
                 new FileInfo(outputPath).Directory.Create();
@@ -91,27 +91,24 @@ namespace Giselle.Imaging.Test
 
                 try
                 {
-                    using (var inputStream = new MemoryStream(inputBytes))
+                    using var inputStream = new MemoryStream(inputBytes);
+                    var profile = new ICCProfile(inputStream);
+                    Console.WriteLine($"Input Bytes : {inputBytes.Length}");
+
+                    using (var compactOutputStream = new MemoryStream())
                     {
-                        var profile = new ICCProfile(inputStream);
-                        Console.WriteLine($"Input Bytes : {inputBytes.Length}");
+                        profile.Write(compactOutputStream, new ICCProfileWriteOptions { Compact = true });
+                        var outputBytes = compactOutputStream.ToArray();
+                        Console.WriteLine($"Compact Output Bytes : {outputBytes.Length}");
+                        Console.WriteLine($"Compact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
+                    }
 
-                        using (var compactOutputStream = new MemoryStream())
-                        {
-                            profile.Write(compactOutputStream, new ICCProfileWriteOptions { Compact = true });
-                            var outputBytes = compactOutputStream.ToArray();
-                            Console.WriteLine($"Compact Output Bytes : {outputBytes.Length}");
-                            Console.WriteLine($"Compact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
-                        }
-
-                        using (var nonCompactOutputStream = new MemoryStream())
-                        {
-                            profile.Write(nonCompactOutputStream, new ICCProfileWriteOptions { Compact = false });
-                            var outputBytes = nonCompactOutputStream.ToArray();
-                            Console.WriteLine($"NonCompact Output Bytes : {outputBytes.Length}");
-                            Console.WriteLine($"NonCompact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
-                        }
-
+                    using (var nonCompactOutputStream = new MemoryStream())
+                    {
+                        profile.Write(nonCompactOutputStream, new ICCProfileWriteOptions { Compact = false });
+                        var outputBytes = nonCompactOutputStream.ToArray();
+                        Console.WriteLine($"NonCompact Output Bytes : {outputBytes.Length}");
+                        Console.WriteLine($"NonCompact Eqauls : {inputBytes.SequenceEqual(outputBytes)}");
                     }
 
                 }
@@ -138,7 +135,7 @@ namespace Giselle.Imaging.Test
 
             foreach (var inputPath in inputPaths)
             {
-                var relatedPath = inputPath.Substring(inputDir.Length);
+                var relatedPath = inputPath[inputDir.Length..];
                 var tempPath = outputBaseDir + relatedPath;
                 var inputBytes = File.ReadAllBytes(inputPath);
                 var fileName = Path.GetFileNameWithoutExtension(tempPath);
@@ -152,13 +149,11 @@ namespace Giselle.Imaging.Test
                     Console.WriteLine($"File Name : {relatedPath}");
                     Console.WriteLine($"Find Codec : {codec}");
 
-                    using (var input = new BitStream(new MemoryStream(inputBytes)))
-                    //using (var input = new MemoryStream(inputBytes))
-                    {
-                        var container = ImageCodecs.FromStream(input);
-                        SaveContainerEachFrames(outputDir, fileName, container);
-                        SaveContainer(inputBytes, outputDir, fileName, container);
-                    }
+                    using var input = new BitStream(new MemoryStream(inputBytes));
+                    //using var input = new MemoryStream(inputBytes);
+                    var container = ImageCodecs.FromStream(input);
+                    SaveContainerEachFrames(outputDir, fileName, container);
+                    SaveContainer(inputBytes, outputDir, fileName, container);
 
                 }
                 catch (Exception ex)
@@ -178,22 +173,14 @@ namespace Giselle.Imaging.Test
             if (container.PrimaryCodec is IcoCodec icoCodec)
             {
                 var ico = new IcoContainer(new MemoryStream(inputBytes));
-
-                using (var fs = new FileStream($"{outputFileName}.{icoCodec.GetExtension(ico.Type)}", FileMode.Create))
-                {
-                    ico.Write(fs);
-                }
-
+                using var fs = new FileStream($"{outputFileName}.{IcoCodec.GetExtension(ico.Type)}", FileMode.Create);
+                ico.Write(fs);
             }
             else if (container.PrimaryCodec is AniCodec aniCodec)
             {
                 var ani = new AniContainer(new MemoryStream(inputBytes));
-
-                using (var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create))
-                {
-                    ani.Write(fs);
-                }
-
+                using var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create);
+                ani.Write(fs);
             }
             else
             {
@@ -222,11 +209,8 @@ namespace Giselle.Imaging.Test
         {
             try
             {
-                using (var outputStream = new FileStream(Path.ChangeExtension(path, container.PrimaryCodec.PrimaryExtension), FileMode.Create))
-                {
-                    container.Save(outputStream);
-                }
-
+                using var outputStream = new FileStream(Path.ChangeExtension(path, container.PrimaryCodec.PrimaryExtension), FileMode.Create);
+                container.Save(outputStream);
             }
             catch (Exception ex)
             {
@@ -239,11 +223,8 @@ namespace Giselle.Imaging.Test
         {
             try
             {
-                using (var outputStream = new FileStream(Path.ChangeExtension(path, frame.PrimaryCodec.PrimaryExtension), FileMode.Create))
-                {
-                    frame.Save(outputStream);
-                }
-
+                using var outputStream = new FileStream(Path.ChangeExtension(path, frame.PrimaryCodec.PrimaryExtension), FileMode.Create);
+                frame.Save(outputStream);
             }
             catch (Exception ex)
             {
@@ -254,11 +235,8 @@ namespace Giselle.Imaging.Test
 
         public static void SaveImageAsPng(string path, ImageArgb32Frame frame)
         {
-            using (var outputStream = new FileStream(path + ".png", FileMode.Create))
-            {
-                PngCodec.Instance.Write(outputStream, frame, new PngSaveOptions() { });
-            }
-
+            using var outputStream = new FileStream(path + ".png", FileMode.Create);
+            PngCodec.Instance.Write(outputStream, frame, new PngSaveOptions() { });
         }
 
     }

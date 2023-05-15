@@ -23,7 +23,7 @@ namespace Giselle.Imaging.Codec.Tga
             this.Read(processor);
         }
 
-        public static TgaDateTime FromDateTime(DateTime dateTime) => new TgaDateTime(dateTime);
+        public static TgaDateTime FromDateTime(DateTime dateTime) => new(dateTime);
 
         public static TgaDateTime FromDateTime(DateTime? dateTime) => dateTime.HasValue ? new TgaDateTime(dateTime.Value) : new TgaDateTime();
 
@@ -37,27 +37,15 @@ namespace Giselle.Imaging.Codec.Tga
             this.Second = (ushort)dateTime.Second;
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is TgaDateTime other && this.Equals(other);
-        }
+        public override bool Equals(object obj) => obj is TgaDateTime other && this.Equals(other);
 
-        public bool Equals(TgaDateTime other)
-        {
-            return this.DateTime.Equals(other.DateTime);
-        }
+        public bool Equals(TgaDateTime other) => this.DateTime.Equals(other.DateTime);
 
-        public override int GetHashCode()
-        {
-            return this.DateTime.GetHashCode();
-        }
+        public override int GetHashCode() => this.DateTime.GetHashCode();
 
-        public override string ToString()
-        {
-            return $"{this.Year:D4}-{this.Month:D2}-{this.Day:D2} {this.Hour:D2}:{this.Minute:D2}:{this.Second:D2}";
-        }
+        public override string ToString() => $"{this.Year:D4}-{this.Month:D2}-{this.Day:D2} {this.Hour:D2}:{this.Minute:D2}:{this.Second:D2}";
 
-        public DateTime DateTime => new DateTime(this.Year, this.Month, this.Day, this.Hour, this.Minute, this.Second, DateTimeKind.Utc);
+        public DateTime DateTime => new(this.Year, this.Month, this.Day, this.Hour, this.Minute, this.Second, DateTimeKind.Utc);
         public DateTime? DateTimeNullable { get { try { return this.DateTime; } catch { return null; } } }
 
         public void Read(DataProcessor processor)
@@ -80,6 +68,9 @@ namespace Giselle.Imaging.Codec.Tga
             processor.WriteUShort(this.Second);
         }
 
+        public static bool operator ==(TgaDateTime left, TgaDateTime right) => left.Equals(right);
+
+        public static bool operator !=(TgaDateTime left, TgaDateTime right) => !(left == right);
     }
 
 }

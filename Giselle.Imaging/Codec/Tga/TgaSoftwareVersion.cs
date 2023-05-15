@@ -29,19 +29,17 @@ namespace Giselle.Imaging.Codec.Tga
             output.WriteByte(this.VersionLetter);
         }
 
-        public override int GetHashCode()
-        {
-            var hash = 17;
-            hash = hash * 31 + this.VersionNumber.GetHashCode();
-            hash = hash * 31 + this.VersionLetter.GetHashCode();
-            return hash;
-        }
+        public override int GetHashCode() => HashCode.Combine(VersionNumber, VersionLetter);
 
         public override bool Equals(object obj) => obj is TgaSoftwareVersion other && this.Equals(other);
 
         public bool Equals(TgaSoftwareVersion other) => this.VersionNumber == other.VersionNumber && this.VersionLetter == other.VersionLetter;
 
         public override string ToString() => $"{this.VersionNumber / 100.0D:F2}{(char)this.VersionLetter}";
+
+        public static bool operator ==(TgaSoftwareVersion left, TgaSoftwareVersion right) => left.Equals(right);
+
+        public static bool operator !=(TgaSoftwareVersion left, TgaSoftwareVersion right) => !(left == right);
     }
 
 }

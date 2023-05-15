@@ -14,11 +14,11 @@ namespace Giselle.Imaging.Codec.Png
         public PngChunkName Name { get; set; }
         public string DisplayName => this.Name.ToDisplayString();
 
-        private byte[] _Payload = new byte[0];
+        private byte[] _Payload = Array.Empty<byte>();
         public byte[] Payload
         {
             get => this._Payload;
-            set => this._Payload = value ?? new byte[0];
+            set => this._Payload = value ?? Array.Empty<byte>();
         }
 
         public PNGRawChunk()

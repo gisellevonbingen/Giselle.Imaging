@@ -8,18 +8,14 @@ namespace Giselle.Imaging
 {
     public static class PixelFormatUtils
     {
-        public static int GetColorTableLength(int bitsPerPixel)
+        public static int GetColorTableLength(int bitsPerPixel) => bitsPerPixel switch
         {
-            switch (bitsPerPixel)
-            {
-                case 1: return 2;
-                case 2: return 4;
-                case 4: return 16;
-                case 8: return 256;
-                default: return (int)Math.Pow(2, bitsPerPixel);
-            };
-
-        }
+            1 => 2,
+            2 => 4,
+            4 => 16,
+            8 => 256,
+            _ => (int)Math.Pow(2, bitsPerPixel),
+        };
 
         public static IEnumerable<PixelFormat> GetIndexedPixelFormats()
         {

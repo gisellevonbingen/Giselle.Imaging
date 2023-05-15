@@ -39,30 +39,17 @@ namespace Giselle.Imaging.Codec.ICC
             processor.WriteS15Fixed16(this.Z);
         }
 
-        public override string ToString()
-        {
-            return $"[{this.X}, {this.Y}, {this.Z}]";
-        }
+        public override string ToString() => $"[{this.X}, {this.Y}, {this.Z}]";
 
-        public override int GetHashCode()
-        {
-            var hash = 17;
-            hash = hash * 31 + this.X.GetHashCode();
-            hash = hash * 31 + this.Y.GetHashCode();
-            hash = hash * 31 + this.Z.GetHashCode();
-            return hash;
-        }
+        public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 
-        public override bool Equals(object obj)
-        {
-            return obj is ICCXYZ other && this.Equals(other);
-        }
+        public override bool Equals(object obj) => obj is ICCXYZ other && this.Equals(other);
 
-        public bool Equals(ICCXYZ other)
-        {
-            return this.X == other.X && this.Y == other.Y && this.Z == other.Z;
-        }
+        public bool Equals(ICCXYZ other) => this.X == other.X && this.Y == other.Y && this.Z == other.Z;
 
+        public static bool operator ==(ICCXYZ left, ICCXYZ right) => left.Equals(right);
+
+        public static bool operator !=(ICCXYZ left, ICCXYZ right) => !(left == right);
     }
 
 }

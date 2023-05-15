@@ -63,6 +63,9 @@ namespace Giselle.Imaging.Codec.Tga
             processor.WriteUShort(this.Seconds);
         }
 
+        public static bool operator ==(TgaTimeSpan left, TgaTimeSpan right) => left.Equals(right);
+
+        public static bool operator !=(TgaTimeSpan left, TgaTimeSpan right) => !(left == right);
     }
 
 }

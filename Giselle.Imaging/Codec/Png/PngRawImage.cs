@@ -23,8 +23,8 @@ namespace Giselle.Imaging.Codec.Png
         public byte Compression { get; set; }
         public byte Filter { get; set; }
         public byte Interlace { get; set; }
-        public Argb32[] RgbTable { get; set; } = new Argb32[0];
-        public byte[] AlphaTable { get; set; } = new byte[0];
+        public Argb32[] RgbTable { get; set; } = Array.Empty<Argb32>();
+        public byte[] AlphaTable { get; set; } = Array.Empty<byte>();
         public MemoryStream CompressedScanData { get; set; } = new MemoryStream();
         public PngPhysicalPixelDimensionsUnit PhysicalPixelDimensionsUnit { get; set; }
         public int XPixelsPerUnit { get; set; }
@@ -59,24 +59,22 @@ namespace Giselle.Imaging.Codec.Png
 
             while (true)
             {
-                using (var chunkStream = new PngChunkStream(input))
+                using var chunkStream = new PngChunkStream(input);
+
+                try
                 {
-                    try
-                    {
-                        this.ReadChunk(chunkStream);
-                    }
-                    catch (Exception)
-                    {
-                        chunkStream.IgnoreCRC = true;
-                        throw;
-                    }
+                    this.ReadChunk(chunkStream);
+                }
+                catch (Exception)
+                {
+                    chunkStream.IgnoreCRC = true;
+                    throw;
+                }
 
-                    if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
-                    {
-                        chunkStream.IgnoreCRC = true;
-                        break;
-                    }
-
+                if (chunkStream.Name.Equals(PngChunkName.IEND) == true)
+                {
+                    chunkStream.IgnoreCRC = true;
+                    break;
                 }
 
             }
@@ -123,67 +121,64 @@ namespace Giselle.Imaging.Codec.Png
             var samples = bitPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;
 
-            using (var ds = new ZlibStream(this.CompressedScanData, Ionic.Zlib.CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
+            using var ds = new ZlibStream(this.CompressedScanData, Ionic.Zlib.CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true);
+            var passProcessor = new InterlacePassProcessor(scanData);
+            var dataProcessor = PngCodec.CreatePngProcessor(ds);
+            var scanOffset = 0;
+
+            while (passProcessor.NextPass() == true)
             {
-                var passProcessor = new InterlacePassProcessor(scanData);
-                var dataProcessor = PngCodec.CreatePngProcessor(ds);
-                var scanOffset = 0;
+                var passInfo = passProcessor.PassInfo;
+                var filteredScanline = new byte[passInfo.Stride];
+                var originalScanline = new byte[passInfo.Stride];
 
-                while (passProcessor.NextPass() == true)
+                for (var yi = 0; yi < passInfo.PixelsY; yi++)
                 {
-                    var passInfo = passProcessor.PassInfo;
-                    var filteredScanline = new byte[passInfo.Stride];
-                    var originalScanline = new byte[passInfo.Stride];
+                    byte filter = 1;
+                    var currLineSamples = new byte[samples];
+                    var lastLineSamples = new byte[samples];
 
-                    for (var yi = 0; yi < passInfo.PixelsY; yi++)
+                    for (var xi = 0; xi < passInfo.Stride; xi++)
                     {
-                        byte filter = 1;
-                        var currLineSamples = new byte[samples];
-                        var lastLineSamples = new byte[samples];
+                        var x = scanData.Scan[scanOffset++];
+                        var a = currLineSamples[xi % samples];
+                        var b = originalScanline[xi];
+                        var c = lastLineSamples[xi % samples];
+                        byte result = 0;
 
-                        for (var xi = 0; xi < passInfo.Stride; xi++)
+                        if (filter == 0)
                         {
-                            var x = scanData.Scan[scanOffset++];
-                            var a = currLineSamples[xi % samples];
-                            var b = originalScanline[xi];
-                            var c = lastLineSamples[xi % samples];
-                            byte result = 0;
-
-                            if (filter == 0)
-                            {
-                                result = x;
-                            }
-                            else if (filter == 1)
-                            {
-                                result = (byte)(x - a);
-                            }
-                            else if (filter == 2)
-                            {
-                                result = (byte)(x - b);
-                            }
-                            else if (filter == 3)
-                            {
-                                result = (byte)(x - (a + b) / 2);
-                            }
-                            else if (filter == 4)
-                            {
-                                result = (byte)(x - ComputePaeth(a, b, c));
-                            }
-                            else
-                            {
-                                throw new NotImplementedException($"Filter is {filter}");
-                            }
-
-                            filteredScanline[xi] = result;
-                            originalScanline[xi] = x;
-                            currLineSamples[xi % samples] = x;
-                            lastLineSamples[xi % samples] = b;
+                            result = x;
+                        }
+                        else if (filter == 1)
+                        {
+                            result = (byte)(x - a);
+                        }
+                        else if (filter == 2)
+                        {
+                            result = (byte)(x - b);
+                        }
+                        else if (filter == 3)
+                        {
+                            result = (byte)(x - (a + b) / 2);
+                        }
+                        else if (filter == 4)
+                        {
+                            result = (byte)(x - ComputePaeth(a, b, c));
+                        }
+                        else
+                        {
+                            throw new NotImplementedException($"Filter is {filter}");
                         }
 
-                        dataProcessor.WriteByte(filter);
-                        dataProcessor.WriteBytes(filteredScanline);
+                        filteredScanline[xi] = result;
+                        originalScanline[xi] = x;
+                        currLineSamples[xi % samples] = x;
+                        lastLineSamples[xi % samples] = b;
                     }
 
+                    dataProcessor.WriteByte(filter);
+                    dataProcessor.WriteBytes(filteredScanline);
                 }
 
             }
@@ -264,11 +259,8 @@ namespace Giselle.Imaging.Codec.Png
                 var name = chunkProcessor.ReadStringUntil0(PngCodec.Encoding);
                 var compressionMethod = chunkProcessor.ReadByte();
 
-                using (var zlibStream = new ZlibStream(chunkStream, Ionic.Zlib.CompressionMode.Decompress, true))
-                {
-                    this.ICCProfile = new ICCProfile(zlibStream);
-                }
-
+                using var zlibStream = new ZlibStream(chunkStream, Ionic.Zlib.CompressionMode.Decompress, true);
+                this.ICCProfile = new ICCProfile(zlibStream);
             }
             else if (type.Equals(PngChunkName.sRGB) == true)
             {
@@ -427,7 +419,7 @@ namespace Giselle.Imaging.Codec.Png
             var processor = PngCodec.CreatePngProcessor(output);
             processor.WriteBytes(PngCodec.Signature);
 
-            this.WriteChunk(output, PngChunkName.IHDR, chunkProcessor =>
+            WriteChunk(output, PngChunkName.IHDR, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.Width);
                 chunkProcessor.WriteInt(this.Height);
@@ -440,31 +432,28 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ICCProfile != null)
             {
-                this.WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
+                WriteChunk(output, PngChunkName.iCCP, chunkProcessor =>
                 {
                     chunkProcessor.WriteStringWith0(PngCodec.Encoding, "ICC Profile");
                     chunkProcessor.WriteByte(0);
 
-                    using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, Ionic.Zlib.CompressionMode.Compress, true))
-                    {
-                        this.ICCProfile.Write(zlibStream);
-                    }
-
+                    using var zlibStream = new ZlibStream(chunkProcessor.BaseStream, Ionic.Zlib.CompressionMode.Compress, true);
+                    this.ICCProfile.Write(zlibStream);
                 });
 
             }
 
-            this.WriteChunk(output, PngChunkName.sRGB, chunkProcessor =>
+            WriteChunk(output, PngChunkName.sRGB, chunkProcessor =>
             {
                 chunkProcessor.WriteByte(this.RenderingIntent);
             });
 
-            this.WriteChunk(output, PngChunkName.gAMA, chunkProcessor =>
+            WriteChunk(output, PngChunkName.gAMA, chunkProcessor =>
             {
                 chunkProcessor.WriteBytes(this.ImageGamma);
             });
 
-            this.WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
+            WriteChunk(output, PngChunkName.pHYs, chunkProcessor =>
             {
                 chunkProcessor.WriteInt(this.XPixelsPerUnit);
                 chunkProcessor.WriteInt(this.YPixelsPerUnit);
@@ -473,7 +462,7 @@ namespace Giselle.Imaging.Codec.Png
 
             if (this.ColorType == PngColorType.IndexedColor)
             {
-                this.WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
+                WriteChunk(output, PngChunkName.PLTE, chunkProcessor =>
                 {
                     var rgb = new byte[3];
 
@@ -488,7 +477,7 @@ namespace Giselle.Imaging.Codec.Png
 
                 if (ColorTableUtils.RequireWriteAlphaTable(this.AlphaTable) == true)
                 {
-                    this.WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
+                    WriteChunk(output, PngChunkName.tRNS, chunkProcessor =>
                     {
                         chunkProcessor.WriteBytes(this.AlphaTable);
                     });
@@ -498,7 +487,7 @@ namespace Giselle.Imaging.Codec.Png
 
             foreach (var pair in this.Texts)
             {
-                this.WriteChunk(output, PngChunkName.tEXt, chunkProcessor =>
+                WriteChunk(output, PngChunkName.tEXt, chunkProcessor =>
                 {
                     chunkProcessor.WriteStringWith0(PngCodec.Encoding, pair.Key);
                     chunkProcessor.WriteString(PngCodec.Encoding, pair.Value);
@@ -507,7 +496,7 @@ namespace Giselle.Imaging.Codec.Png
 
             foreach (var chunk in this.ExtraChunks)
             {
-                this.WriteChunk(output, chunk.Name, chunkProcessor =>
+                WriteChunk(output, chunk.Name, chunkProcessor =>
                 {
                     chunkProcessor.WriteBytes(chunk.Payload);
                 });
@@ -519,30 +508,24 @@ namespace Giselle.Imaging.Codec.Png
 
             for (var len = 0; (len = this.CompressedScanData.Read(buffer, 0, buffer.Length)) > 0;)
             {
-                this.WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
+                WriteChunk(output, PngChunkName.IDAT, chunkProcessor =>
                 {
                     chunkProcessor.Write(buffer, 0, len);
                 });
             }
 
-            this.WriteChunk(output, PngChunkName.IEND, chunkProcessor => { });
+            WriteChunk(output, PngChunkName.IEND, chunkProcessor => { });
         }
 
-        private void WriteChunk(Stream output, PngChunkName name, Action<DataProcessor> action)
+        private static void WriteChunk(Stream output, PngChunkName name, Action<DataProcessor> action)
         {
-            using (var ms = new MemoryStream())
-            {
-                var chunkProcessor = PngCodec.CreatePngProcessor(ms);
-                action(chunkProcessor);
+            using var ms = new MemoryStream();
+            var chunkProcessor = PngCodec.CreatePngProcessor(ms);
+            action(chunkProcessor);
 
-                using (var chunkStream = new PngChunkStream(output, name, (int)ms.Length))
-                {
-                    ms.Position = 0L;
-                    ms.CopyTo(chunkStream);
-                }
-
-            }
-
+            using var chunkStream = new PngChunkStream(output, name, (int)ms.Length);
+            ms.Position = 0L;
+            ms.CopyTo(chunkStream);
         }
 
         public static ScanData CreateScanData(int width, int height, int bitsPerPixel, int stride, int interlace, Argb32[] colorTable)

@@ -25,13 +25,7 @@ namespace Giselle.Imaging.Drawable
             this.Y = y;
         }
 
-        public override int GetHashCode()
-        {
-            var hash = 17;
-            hash = hash * 31 + this.X;
-            hash = hash * 31 + this.Y;
-            return hash;
-        }
+        public override int GetHashCode() => HashCode.Combine(X, Y);
 
         public override string ToString() => $"X:{this.X}, Y:{this.Y}";
 

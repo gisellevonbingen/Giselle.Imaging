@@ -23,7 +23,7 @@ namespace Giselle.Imaging.Codec.Bmp
         public static byte[] SignaturePT { get; } = new byte[] { 0x50, 0x54 };
         public static IList<byte[]> Signatures { get; } = new List<byte[]> { SignatureBM, SignatureBA, SignatureCI, SignatureCP, SignatureIC, SignaturePT }.AsReadOnly();
 
-        public static DataProcessor CreateBmpProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
+        public static DataProcessor CreateBmpProcessor(Stream stream) => new(stream) { IsLittleEndian = IsLittleEndian };
 
         public BmpCodec()
         {

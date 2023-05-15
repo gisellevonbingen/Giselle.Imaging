@@ -12,7 +12,7 @@ namespace Giselle.Imaging.Codec.Ico
 {
     public class IcoBmpRawImage : BmpRawImage
     {
-        public byte[] AndScanData { get; set; } = new byte[0];
+        public byte[] AndScanData { get; set; } = Array.Empty<byte>();
 
         public IcoBmpRawImage()
         {
@@ -29,9 +29,9 @@ namespace Giselle.Imaging.Codec.Ico
 
         }
 
-        public BmpBitsPerPixel AndBitsPerPixel => BmpBitsPerPixel.Bpp1Indexed;
+        public static BmpBitsPerPixel AndBitsPerPixel => BmpBitsPerPixel.Bpp1Indexed;
 
-        public int AndStride => ScanProcessor.GetStride4(this.Width, (int)this.AndBitsPerPixel);
+        public int AndStride => ScanProcessor.GetStride4(this.Width, (int)AndBitsPerPixel);
 
         public override int CompressionSize => base.CompressionSize + this.AndScanData.Length;
 
@@ -41,8 +41,8 @@ namespace Giselle.Imaging.Codec.Ico
             xorFrame.PrimaryOptions.CastOrDefault<BmpSaveOptions>().BitsPerPixel = BmpBitsPerPixel.Bpp32Argb;
 
             var table = new Argb32[2] { Argb32.Black, Argb32.White, };
-            var scanData = new ScanData(this.Width, this.Height, (int)this.AndBitsPerPixel) { Stride = this.AndStride, Scan = this.AndScanData, ColorTable = table, CoordTransformer = this.GetCoordTransformer() };
-            var scanProcessor = ScanProcessor.GetScanProcessor(this.AndBitsPerPixel.ToPixelFormat());
+            var scanData = new ScanData(this.Width, this.Height, (int)AndBitsPerPixel) { Stride = this.AndStride, Scan = this.AndScanData, ColorTable = table, CoordTransformer = GetCoordTransformer() };
+            var scanProcessor = ScanProcessor.GetScanProcessor(AndBitsPerPixel.ToPixelFormat());
             var andFrame = new ImageArgb32Frame(scanData, scanProcessor);
             var hasAlpha = this.BitsPerPixel == BmpBitsPerPixel.Bpp32Argb;
 

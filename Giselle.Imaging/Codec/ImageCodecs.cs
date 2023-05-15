@@ -17,7 +17,7 @@ namespace Giselle.Imaging.Codec
 {
     public static class ImageCodecs
     {
-        private static readonly List<ImageCodec> Codecs = new List<ImageCodec>();
+        private static readonly List<ImageCodec> Codecs = new();
 
         public static IEnumerable<ImageCodec> GetCodecs() => Codecs;
 
@@ -104,38 +104,26 @@ namespace Giselle.Imaging.Codec
 
         public static ImageArgb32Container FromStream(Stream input, long length)
         {
-            using (var siphonBlock = SiphonBlock.ByLength(input, length))
-            {
-                return FromSiphonBlock(siphonBlock);
-            }
-
+            using var siphonBlock = SiphonBlock.ByLength(input, length);
+            return FromSiphonBlock(siphonBlock);
         }
 
         public static ImageArgb32Container FromStream(Stream input)
         {
-            using (var siphonBlock = SiphonBlock.ByRemain(input))
-            {
-                return FromSiphonBlock(siphonBlock);
-            }
-
+            using var siphonBlock = SiphonBlock.ByRemain(input);
+            return FromSiphonBlock(siphonBlock);
         }
 
         public static ImageArgb32Container FromBytes(byte[] bytes)
         {
-            using (var ms = new MemoryStream(bytes))
-            {
-                return FromStream(ms);
-            }
-
+            using var ms = new MemoryStream(bytes);
+            return FromStream(ms);
         }
 
         public static ImageArgb32Container FromBytes(byte[] bytes, int offset, int count)
         {
-            using (var ms = new MemoryStream(bytes, offset, count))
-            {
-                return FromStream(ms);
-            }
-
+            using var ms = new MemoryStream(bytes, offset, count);
+            return FromStream(ms);
         }
 
     }

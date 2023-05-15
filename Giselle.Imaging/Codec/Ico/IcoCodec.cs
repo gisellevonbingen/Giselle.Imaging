@@ -14,7 +14,7 @@ namespace Giselle.Imaging.Codec.Ico
 
         public static IcoCodec Instance { get; } = new IcoCodec();
 
-        public static DataProcessor CreateIcoProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
+        public static DataProcessor CreateIcoProcessor(Stream stream) => new(stream) { IsLittleEndian = IsLittleEndian };
 
         public IcoCodec()
         {
@@ -31,7 +31,7 @@ namespace Giselle.Imaging.Codec.Ico
             yield return GetExtension(IcoImageType.Cursor);
         }
 
-        public string GetExtension(IcoImageType type)
+        public static string GetExtension(IcoImageType type)
         {
             if (type == IcoImageType.Icon) return "ico";
             else if (type == IcoImageType.Cursor) return "cur";

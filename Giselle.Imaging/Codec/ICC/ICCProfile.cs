@@ -22,7 +22,7 @@ namespace Giselle.Imaging.Codec.ICC
 
         public static ICCProfileWriteOptions DefaultOptions { get; set; } = new ICCProfileWriteOptions();
 
-        public static DataProcessor CreateProcessor(Stream stream) => new DataProcessor(stream) { IsLittleEndian = IsLittleEndian };
+        public static DataProcessor CreateProcessor(Stream stream) => new(stream) { IsLittleEndian = IsLittleEndian };
 
         public string PreferredCMMType { get; set; } = string.Empty;
         public Version Version { get; set; } = default;

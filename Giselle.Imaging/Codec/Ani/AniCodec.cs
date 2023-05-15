@@ -30,11 +30,8 @@ namespace Giselle.Imaging.Codec.Ani
 
         protected override bool TestAsStream(Stream stream)
         {
-            using (var s = new RiffInputStream(stream, true))
-            {
-                return s.FormType == ACONFormTypeKey;
-            }
-
+            using var s = new RiffInputStream(stream, true);
+            return s.FormType == ACONFormTypeKey;
         }
 
         public override ImageArgb32Container Read(Stream input)

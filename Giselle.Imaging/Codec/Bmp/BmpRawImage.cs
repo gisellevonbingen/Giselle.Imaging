@@ -32,8 +32,8 @@ namespace Giselle.Imaging.Codec.Bmp
         public uint GChannelMask { get; set; }
         public uint BChannelMask { get; set; }
         public uint AChannelMask { get; set; }
-        public Argb32[] ColorTable { get; set; } = new Argb32[0];
-        public byte[] ScanData { get; set; } = new byte[0];
+        public Argb32[] ColorTable { get; set; } = Array.Empty<Argb32>();
+        public byte[] ScanData { get; set; } = Array.Empty<byte>();
 
         public BmpRawImage()
         {
@@ -155,7 +155,7 @@ namespace Giselle.Imaging.Codec.Bmp
                 scanProcessor = ScanProcessor.GetScanProcessor(this.PixelFormat);
             }
 
-            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
+            var scanData = new ScanData(this.Width, this.Height, (int)this.BitsPerPixel) { Stride = this.Stride, Scan = this.ScanData, ColorTable = this.ColorTable, CoordTransformer = GetCoordTransformer() };
             var image = new ImageArgb32Frame(scanData, scanProcessor)
             {
                 PrimaryCodec = BmpCodec.Instance,
@@ -207,7 +207,7 @@ namespace Giselle.Imaging.Codec.Bmp
             }
 
             var stride = ScanProcessor.GetStride4(frame.Width, (int)this.BitsPerPixel);
-            var scanData = new ScanData(frame.Width, frame.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[frame.Height * stride], ColorTable = this.ColorTable, CoordTransformer = this.GetCoordTransformer() };
+            var scanData = new ScanData(frame.Width, frame.Height, (int)this.BitsPerPixel) { Stride = stride, Scan = new byte[frame.Height * stride], ColorTable = this.ColorTable, CoordTransformer = GetCoordTransformer() };
             scanProcessor.Encode(scanData, frame);
             this.ScanData = scanData.Scan;
         }
@@ -239,7 +239,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public virtual int CompressionSize => (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitFieldsLength : 0) + (this.ColorTable.Length * 4) + this.ScanData.Length;
 
-        public CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(false, true);
+        public static CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(false, true);
 
         public void WriteInfoBeforeGap1(DataProcessor processor)
         {

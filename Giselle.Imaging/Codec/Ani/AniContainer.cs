@@ -52,75 +52,73 @@ namespace Giselle.Imaging.Codec.Ani
         {
             this.Clear();
 
-            using (var rs = new RiffInputStream(input, true))
+            using var rs = new RiffInputStream(input, true);
+
+            for (RiffChunkHeader header; (header = rs.ReadNextChunk()) != null;)
             {
-                for (RiffChunkHeader header; (header = rs.ReadNextChunk()) != null;)
+                var formType = rs.CurrentPath.FormType;
+                var typeKey = header.TypeKey;
+                var processor = RiffChunk.CreateRiffDataProcessor(rs);
+
+                if (formType == KnownRiffTypeKeys.Info)
                 {
-                    var formType = rs.CurrentPath.FormType;
-                    var typeKey = header.TypeKey;
-                    var processor = RiffChunk.CreateRiffDataProcessor(rs);
+                    var text = processor.ReadStringUntil0(Encoding);
 
-                    if (formType == KnownRiffTypeKeys.Info)
+                    if (typeKey == KnownRiffTypeKeys.InfoName)
                     {
-                        var text = processor.ReadStringUntil0(Encoding);
-
-                        if (typeKey == KnownRiffTypeKeys.InfoName)
-                        {
-                            this.Name = text;
-                        }
-                        else if (typeKey == KnownRiffTypeKeys.InfoArtist)
-                        {
-                            this.Artist = text;
-                        }
-                        else if (typeKey == KnownRiffTypeKeys.InfoCopyright)
-                        {
-                            this.Copyright = text;
-                        }
-                        else
-                        {
-
-                        }
-
+                        this.Name = text;
                     }
-
-                    else if (typeKey == KnownRiffTypeKeys.AniHeader)
+                    else if (typeKey == KnownRiffTypeKeys.InfoArtist)
                     {
-                        var aniHeader = new AniHeader(rs);
-
-                        this.Center = new PointI(aniHeader.CenterX, aniHeader.CenterY);
-                        this.Flags = aniHeader.Flags;
-
-                        for (var i = 0; i < aniHeader.Steps; i++)
-                        {
-                            this.Steps.Add(new AniStep() { JIFRate = aniHeader.JIFRate, Frame = i });
-                        }
-
+                        this.Artist = text;
                     }
-                    else if (typeKey == KnownRiffTypeKeys.Rate)
+                    else if (typeKey == KnownRiffTypeKeys.InfoCopyright)
                     {
-                        for (var i = 0; i < this.Steps.Count; i++)
-                        {
-                            this.Steps[i].JIFRate = processor.ReadInt();
-                        }
-
-                    }
-                    else if (typeKey == KnownRiffTypeKeys.Sequence)
-                    {
-                        for (var i = 0; i < this.Steps.Count; i++)
-                        {
-                            this.Steps[i].Frame = processor.ReadInt();
-                        }
-
-                    }
-                    else if (typeKey == KnownRiffTypeKeys.Icon)
-                    {
-                        var iconFile = new IcoContainer(rs);
-                        this.Frames.Add(iconFile);
+                        this.Copyright = text;
                     }
                     else
                     {
 
                     }
+
+                }
+
+                else if (typeKey == KnownRiffTypeKeys.AniHeader)
+                {
+                    var aniHeader = new AniHeader(rs);
+
+                    this.Center = new PointI(aniHeader.CenterX, aniHeader.CenterY);
+                    this.Flags = aniHeader.Flags;
+
+                    for (var i = 0; i < aniHeader.Steps; i++)
+                    {
+                        this.Steps.Add(new AniStep() { JIFRate = aniHeader.JIFRate, Frame = i });
+                    }
+
+                }
+                else if (typeKey == KnownRiffTypeKeys.Rate)
+                {
+                    for (var i = 0; i < this.Steps.Count; i++)
+                    {
+                        this.Steps[i].JIFRate = processor.ReadInt();
+                    }
+
+                }
+                else if (typeKey == KnownRiffTypeKeys.Sequence)
+                {
+                    for (var i = 0; i < this.Steps.Count; i++)
+                    {
+                        this.Steps[i].Frame = processor.ReadInt();
+                    }
+
+                }
+                else if (typeKey == KnownRiffTypeKeys.Icon)
+                {
+                    var iconFile = new IcoContainer(rs);
+                    this.Frames.Add(iconFile);
+                }
+                else
+                {
 
                 }
 
@@ -133,9 +131,9 @@ namespace Giselle.Imaging.Codec.Ani
             var riff = new RiffChunkFile() { FormType = KnownRiffTypeKeys.Acon };
 
             var info = new RiffChunkList() { FormType = KnownRiffTypeKeys.Info };
-            this.AddInfo(info, KnownRiffTypeKeys.InfoName, this.Name);
-            this.AddInfo(info, KnownRiffTypeKeys.InfoArtist, this.Artist);
-            this.AddInfo(info, KnownRiffTypeKeys.InfoCopyright, this.Copyright);
+            AddInfo(info, KnownRiffTypeKeys.InfoName, this.Name);
+            AddInfo(info, KnownRiffTypeKeys.InfoArtist, this.Artist);
+            AddInfo(info, KnownRiffTypeKeys.InfoCopyright, this.Copyright);
 
             if (info.Children.Count > 0)
             {
@@ -164,34 +162,28 @@ namespace Giselle.Imaging.Codec.Ani
 
             if (jifUnified == false)
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                var procesor = RiffChunk.CreateRiffDataProcessor(ms);
+
+                foreach (var step in this.Steps)
                 {
-                    var procesor = RiffChunk.CreateRiffDataProcessor(ms);
-
-                    foreach (var step in this.Steps)
-                    {
-                        procesor.WriteInt(step.JIFRate);
-                    }
-
-                    riff.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Rate) { Data = ms.ToArray() });
+                    procesor.WriteInt(step.JIFRate);
                 }
 
+                riff.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Rate) { Data = ms.ToArray() });
             }
 
             if (stepsSequential == false)
             {
-                using (var ms = new MemoryStream())
+                using var ms = new MemoryStream();
+                var procesor = RiffChunk.CreateRiffDataProcessor(ms);
+
+                foreach (var step in this.Steps)
                 {
-                    var procesor = RiffChunk.CreateRiffDataProcessor(ms);
-
-                    foreach (var step in this.Steps)
-                    {
-                        procesor.WriteInt(step.Frame);
-                    }
-
-                    riff.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Sequence) { Data = ms.ToArray() });
+                    procesor.WriteInt(step.Frame);
                 }
 
+                riff.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Sequence) { Data = ms.ToArray() });
             }
 
             {
@@ -200,12 +192,9 @@ namespace Giselle.Imaging.Codec.Ani
 
                 foreach (var icon in this.Frames)
                 {
-                    using (var ms = new MemoryStream())
-                    {
-                        icon.Write(ms);
-                        frame.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Icon) { Data = ms.ToArray() });
-                    }
-
+                    using var ms = new MemoryStream();
+                    icon.Write(ms);
+                    frame.Children.Add(new RiffChunkElement(KnownRiffTypeKeys.Icon) { Data = ms.ToArray() });
                 }
 
             }
@@ -213,17 +202,14 @@ namespace Giselle.Imaging.Codec.Ani
             RiffChunk.WriteChunk(output, riff);
         }
 
-        protected void AddInfo(RiffChunkAbstractList list, int typeKey, string text)
+        protected static void AddInfo(RiffChunkAbstractList list, int typeKey, string text)
         {
             if (string.IsNullOrEmpty(text) == false)
             {
-                using (var ms = new MemoryStream())
-                {
-                    var processor = RiffChunk.CreateRiffDataProcessor(ms);
-                    processor.WriteStringWith0(Encoding, text);
-                    list.Children.Add(new RiffChunkElement(typeKey) { Data = ms.ToArray() });
-                }
-
+                using var ms = new MemoryStream();
+                var processor = RiffChunk.CreateRiffDataProcessor(ms);
+                processor.WriteStringWith0(Encoding, text);
+                list.Children.Add(new RiffChunkElement(typeKey) { Data = ms.ToArray() });
             }
 
         }

@@ -33,27 +33,18 @@ namespace Giselle.Imaging.Codec.ICC
             this.Seconds = (ushort)dateTime.Second;
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is ICCDateTime other && this.Equals(other);
-        }
+        public override bool Equals(object obj) => obj is ICCDateTime other && this.Equals(other);
 
-        public bool Equals(ICCDateTime other)
-        {
-            return this.DateTime.Equals(other.DateTime);
-        }
+        public bool Equals(ICCDateTime other) => this.DateTime.Equals(other.DateTime);
 
-        public override int GetHashCode()
-        {
-            return this.DateTime.GetHashCode();
-        }
+        public override int GetHashCode() => this.DateTime.GetHashCode();
 
         public override string ToString()
         {
             return $"{this.Year:D4}-{this.Month:D2}-{this.Day:D2} {this.Hours:D2}:{this.Minutes:D2}:{this.Seconds:D2}";
         }
 
-        public DateTime DateTime => new DateTime(this.Year, this.Month, this.Day, this.Hours, this.Minutes, this.Seconds, DateTimeKind.Utc);
+        public DateTime DateTime => new(this.Year, this.Month, this.Day, this.Hours, this.Minutes, this.Seconds, DateTimeKind.Utc);
 
         public void Read(DataProcessor processor)
         {
@@ -75,6 +66,9 @@ namespace Giselle.Imaging.Codec.ICC
             processor.WriteUShort(this.Seconds);
         }
 
+        public static bool operator ==(ICCDateTime left, ICCDateTime right) => left.Equals(right);
+
+        public static bool operator !=(ICCDateTime left, ICCDateTime right) => !(left == right);
     }
 
 }

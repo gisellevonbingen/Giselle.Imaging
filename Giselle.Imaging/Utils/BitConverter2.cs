@@ -31,26 +31,23 @@ namespace Giselle.Imaging.Utils
                 return default;
             }
 
-            using (var ms = new MemoryStream())
+            using var ms = new MemoryStream();
+            var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
+            processor.WriteBytes(Encoding.ASCII.GetBytes(value));
+
+            var missings = size - processor.Length;
+
+            if (missings > 0)
             {
-                var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
-                processor.WriteBytes(Encoding.ASCII.GetBytes(value));
-
-                var missings = size - processor.Length;
-
-                if (missings > 0)
+                for (var i = 0; i < missings; i++)
                 {
-                    for (var i = 0; i < missings; i++)
-                    {
-                        processor.WriteByte(0);
-                    }
-
+                    processor.WriteByte(0);
                 }
 
-                ms.Position = 0L;
-                return func(processor);
             }
 
+            ms.Position = 0L;
+            return func(processor);
         }
 
         public static string ToASCIIString(this int value) => ToASCIIString(value, BitConverter.IsLittleEndian);
@@ -59,14 +56,11 @@ namespace Giselle.Imaging.Utils
 
         public static string ToASCIIString(this bool isLittleEndian, Action<DataProcessor> action)
         {
-            using (var ms = new MemoryStream())
-            {
-                var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
-                action(processor);
+            using var ms = new MemoryStream();
+            var processor = new DataProcessor(ms) { IsLittleEndian = isLittleEndian };
+            action(processor);
 
-                return Encoding.ASCII.GetStringUntil0(ms.ToArray());
-            }
-
+            return Encoding.ASCII.GetStringUntil0(ms.ToArray());
         }
 
     }
