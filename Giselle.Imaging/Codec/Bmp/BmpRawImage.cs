@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Bmp
 {

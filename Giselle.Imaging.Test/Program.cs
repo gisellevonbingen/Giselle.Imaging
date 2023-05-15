@@ -12,9 +12,9 @@ using Giselle.Imaging.Codec.Ani;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Png;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
+using Streams.IO;
 
 namespace Giselle.Imaging.Test
 {

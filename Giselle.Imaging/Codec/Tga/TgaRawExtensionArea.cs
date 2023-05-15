@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Collections;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Text;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Tga
 {

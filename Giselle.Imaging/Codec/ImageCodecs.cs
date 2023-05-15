@@ -6,15 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.Bmp;
 using Giselle.Imaging.Codec.Png;
-using Giselle.Imaging.Codec.Exif;
 using Giselle.Imaging.Codec.Tiff;
 using Giselle.Imaging.Codec.Jpeg;
 using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Ani;
 using Giselle.Imaging.Codec.Tga;
-using Giselle.Imaging.IO;
-using System.CodeDom;
-using Microsoft.Win32.SafeHandles;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec
 {

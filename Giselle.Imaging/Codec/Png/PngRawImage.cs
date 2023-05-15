@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec.ICC;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 using Ionic.Zlib;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Png
 {
@@ -122,7 +123,7 @@ namespace Giselle.Imaging.Codec.Png
             var samples = bitPerPixel / this.BitDepth;
             this.CompressedScanData.Position = 0L;
 
-            using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
+            using (var ds = new ZlibStream(this.CompressedScanData, Ionic.Zlib.CompressionMode.Compress, options.CompressionLevel.ToZlibCompressionLevel(), true))
             {
                 var passProcessor = new InterlacePassProcessor(scanData);
                 var dataProcessor = PngCodec.CreatePngProcessor(ds);
@@ -263,7 +264,7 @@ namespace Giselle.Imaging.Codec.Png
                 var name = chunkProcessor.ReadStringUntil0(PngCodec.Encoding);
                 var compressionMethod = chunkProcessor.ReadByte();
 
-                using (var zlibStream = new ZlibStream(chunkStream, CompressionMode.Decompress, true))
+                using (var zlibStream = new ZlibStream(chunkStream, Ionic.Zlib.CompressionMode.Decompress, true))
                 {
                     this.ICCProfile = new ICCProfile(zlibStream);
                 }
@@ -331,7 +332,7 @@ namespace Giselle.Imaging.Codec.Png
 
             this.CompressedScanData.Position = 0L;
 
-            using (var ds = new ZlibStream(this.CompressedScanData, CompressionMode.Decompress, true))
+            using (var ds = new ZlibStream(this.CompressedScanData, Ionic.Zlib.CompressionMode.Decompress, true))
             {
                 var passProcessor = new InterlacePassProcessor(scanData);
                 var dataProcessor = PngCodec.CreatePngProcessor(ds);
@@ -444,7 +445,7 @@ namespace Giselle.Imaging.Codec.Png
                     chunkProcessor.WriteStringWith0(PngCodec.Encoding, "ICC Profile");
                     chunkProcessor.WriteByte(0);
 
-                    using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, CompressionMode.Compress, true))
+                    using (var zlibStream = new ZlibStream(chunkProcessor.BaseStream, Ionic.Zlib.CompressionMode.Compress, true))
                     {
                         this.ICCProfile.Write(zlibStream);
                     }

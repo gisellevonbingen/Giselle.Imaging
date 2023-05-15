@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Formats.Exif;
 using Giselle.Imaging.Physical;
 
-namespace Giselle.Imaging.Codec.Exif
+namespace Giselle.Imaging.Formats.Exif
 {
     public static class ExifResolutionUnitExtensions
     {

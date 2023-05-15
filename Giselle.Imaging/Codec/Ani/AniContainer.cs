@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Formats.Riff;
 using Giselle.Imaging.Codec.Ico;
-using Giselle.Imaging.Codec.Riff;
 using Giselle.Imaging.Drawable;
-using Giselle.Imaging.IO;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Ani
 {

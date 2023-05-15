@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Codec.Ico;
-using Giselle.Imaging.Codec.Riff;
-using Giselle.Imaging.IO;
+using Formats.Riff;
 
 namespace Giselle.Imaging.Codec.Ani
 {

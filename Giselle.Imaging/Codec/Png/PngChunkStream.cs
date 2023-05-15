@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Giselle.Imaging.Checksum;
-using Giselle.Imaging.IO;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Png
 {

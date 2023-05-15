@@ -4,10 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Codec.Bmp;
-using Giselle.Imaging.Codec.Png;
-using Giselle.Imaging.IO;
-using Giselle.Imaging.Scan;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Ico
 {

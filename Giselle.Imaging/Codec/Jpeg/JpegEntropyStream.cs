@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Algorithms.Huffman;
-using Giselle.Imaging.IO;
+using Streams.Huffman;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {
@@ -26,10 +26,6 @@ namespace Giselle.Imaging.Codec.Jpeg
         protected override Dictionary<byte, HuffmanCode> NextReadingCodes() => this.CodeTable;
 
         protected override Dictionary<byte, HuffmanCode> NextWritingCodes() => this.CodeTable;
-
-        public int ReadBit() => this.BitBaseStream.ReadBit();
-
-        public void WriteBit(int bit) => this.BitBaseStream.WriteBit(bit);
 
         public void SetCodeTable(Dictionary<byte, HuffmanCode> codeTable)
         {

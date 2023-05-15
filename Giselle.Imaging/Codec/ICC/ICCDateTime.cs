@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.IO;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.ICC
 {

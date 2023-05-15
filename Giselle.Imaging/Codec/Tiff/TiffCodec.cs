@@ -4,12 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Codec.Exif;
+using Formats.Exif;
 using Giselle.Imaging.Collections;
-using Giselle.Imaging.IO;
+using Giselle.Imaging.Formats.Exif;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 using Ionic.Zlib;
+using Streams.IO;
 using static Giselle.Imaging.ImageArgb32Frame;
 
 namespace Giselle.Imaging.Codec.Tiff
@@ -58,7 +59,7 @@ namespace Giselle.Imaging.Codec.Tiff
                     PrimaryCodec = this,
                     PrimaryOptions = new TiffSaveOptions()
                     {
-                        ExifLittleEndian = exif.IsLittleEndian,
+                        ExifLittleEndian = exif.WasLittleEndian,
                     },
                 };
 
@@ -319,10 +320,7 @@ namespace Giselle.Imaging.Codec.Tiff
         public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
         {
             var options = _options.CastOrDefault<TiffSaveOptions>();
-            var exif = new ExifContainer()
-            {
-                IsLittleEndian = options.ExifLittleEndian,
-            };
+            var exif = new ExifContainer();
             var multiPage = container.Count > 1;
             var frameOptionsMap = new Dictionary<ImageArgb32Frame, TiffFrameSaveOptions>();
 
@@ -399,7 +397,7 @@ namespace Giselle.Imaging.Codec.Tiff
                 directory.SetLongs(ExifTagId.StripByteCounts, newStripBytes);
             }
 
-            exif.Write(output);
+            exif.Write(output, options.ExifLittleEndian);
 
             for (var i = 0; i < exif.Directories.Count; i++)
             {

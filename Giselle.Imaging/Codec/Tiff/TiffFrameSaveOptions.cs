@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Codec.Exif;
+using Formats.Exif;
 
 namespace Giselle.Imaging.Codec.Tiff
 {

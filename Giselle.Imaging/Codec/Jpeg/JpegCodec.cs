@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Algorithms.Huffman;
-using Giselle.Imaging.Codec.Exif;
+using Formats.Exif;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Collections;
-using Giselle.Imaging.IO;
 using Giselle.Imaging.Utils;
+using Streams.Huffman;
+using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Jpeg
 {

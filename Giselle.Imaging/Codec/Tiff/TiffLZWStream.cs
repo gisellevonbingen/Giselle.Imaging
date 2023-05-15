@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Giselle.Imaging.Algorithms.LZW;
-using Giselle.Imaging.IO;
+using Streams.IO;
+using Streams.LZW;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
