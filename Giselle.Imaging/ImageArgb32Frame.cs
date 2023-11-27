@@ -62,9 +62,9 @@ namespace Giselle.Imaging
             scanProcessor.Decode(scanData, this);
         }
 
-        public PhysicalLength PrintWidth => new PhysicalLength(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);
+        public PhysicalLength PrintWidth => new(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);
 
-        public PhysicalLength PrintHeight => new PhysicalLength(this.Height / this.HeightResoulution.Value, this.HeightResoulution.Unit);
+        public PhysicalLength PrintHeight => new(this.Height / this.HeightResoulution.Value, this.HeightResoulution.Unit);
 
         public PixelFormat PixelFormat => PixelFormat.Format32bppArgb8888;
 

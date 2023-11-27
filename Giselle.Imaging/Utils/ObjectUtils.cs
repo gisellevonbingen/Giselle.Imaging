@@ -12,15 +12,7 @@ namespace Giselle.Imaging
         {
             if (o1 is ValueType)
             {
-                if (o2 is ValueType)
-                {
-                    return o1.Equals(o2);
-                }
-                else
-                {
-                    return false;
-                }
-
+                return o2 is ValueType && o1.Equals(o2);
             }
             else if (o2 is ValueType)
             {
@@ -34,8 +26,11 @@ namespace Giselle.Imaging
             {
                 return false;
             }
+            else
+            {
+                return o1.Equals(o2);
+            }
 
-            return o1.Equals(o2);
         }
 
     }

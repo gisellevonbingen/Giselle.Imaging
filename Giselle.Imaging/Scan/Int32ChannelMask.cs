@@ -12,6 +12,9 @@ namespace Giselle.Imaging.Scan
 
         public static implicit operator Int32ChannelMask(uint raw) => FromRaw(raw);
 
+        public static bool operator ==(Int32ChannelMask left, Int32ChannelMask right) => left.Equals(right) == true;
+        public static bool operator !=(Int32ChannelMask left, Int32ChannelMask right) => left.Equals(right) == false;
+
         public static Int32ChannelMask FromRaw(int raw) => FromRaw((uint)raw);
 
         public static Int32ChannelMask FromRaw(uint raw)
@@ -84,13 +87,7 @@ namespace Giselle.Imaging.Scan
 
         public override string ToString() => $"[Offset: {this.Offset}, Length: {this.Length}]";
 
-        public override int GetHashCode()
-        {
-            var seed = 17;
-            seed = seed * 31 + this.Offset.GetHashCode();
-            seed = seed * 31 + this.Length.GetHashCode();
-            return seed;
-        }
+        public override int GetHashCode() => HashCode.Combine(Offset, Length);
 
         public override bool Equals(object obj)
         {

@@ -45,7 +45,7 @@ namespace Giselle.Imaging.Codec.Tga
             this.GammaValueRatioDenominator = raw.GammaValueRatioDenominator;
         }
 
-        public TgaRawExtensionArea Raw => new TgaRawExtensionArea()
+        public TgaRawExtensionArea Raw => new()
         {
             AuthorName = this.AuthorName,
             AuthorComments = this.AuthorComments,

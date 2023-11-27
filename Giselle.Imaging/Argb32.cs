@@ -118,7 +118,7 @@ namespace Giselle.Imaging
             }
             else
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(bgra), "Invalid Length");
             }
 
         }
@@ -133,7 +133,7 @@ namespace Giselle.Imaging
                 else if (sampleIndex == 1) return this.G;
                 else if (sampleIndex == 2) return this.R;
                 else if (sampleIndex == 3) return this.A;
-                else throw new ArgumentOutOfRangeException();
+                else throw new ArgumentOutOfRangeException(nameof(sampleIndex));
             }
 
             set
@@ -142,7 +142,7 @@ namespace Giselle.Imaging
                 else if (sampleIndex == 1) this.G = value;
                 else if (sampleIndex == 2) this.R = value;
                 else if (sampleIndex == 3) this.A = value;
-                else throw new ArgumentOutOfRangeException();
+                else throw new ArgumentOutOfRangeException(nameof(sampleIndex));
             }
 
         }
@@ -155,7 +155,7 @@ namespace Giselle.Imaging
 
         public bool IsGraysclae => this.R == this.G && this.G == this.B;
 
-        public Argb32 DeriveA(byte a) => new Argb32(a, this.R, this.G, this.B);
+        public Argb32 DeriveA(byte a) => new(a, this.R, this.G, this.B);
 
         public override bool Equals(object obj) => obj is Argb32 other && this.Equals(other);
 

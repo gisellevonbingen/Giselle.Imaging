@@ -8,29 +8,21 @@ namespace Giselle.Imaging.Physical
 {
     public static class PhysicalUnitUtils
     {
-        public static string ToDisplayString(this PhysicalUnit unit)
+        public static string ToDisplayString(this PhysicalUnit unit) => unit switch
         {
-            switch (unit)
-            {
-                case PhysicalUnit.Inch: return "inch";
-                case PhysicalUnit.Centimeter: return "cm";
-                case PhysicalUnit.Meter: return "m";
-                default: return unit.ToString();
-            }
+            PhysicalUnit.Inch => "inch",
+            PhysicalUnit.Centimeter => "cm",
+            PhysicalUnit.Meter => "m",
+            _ => unit.ToString(),
+        };
 
-        }
-
-        public static double GetValuesPerInch(this PhysicalUnit unit)
+        public static double GetValuesPerInch(this PhysicalUnit unit) => unit switch
         {
-            switch (unit)
-            {
-                case PhysicalUnit.Inch: return 1.0D;
-                case PhysicalUnit.Centimeter: return 2.54D;
-                case PhysicalUnit.Meter: return 0.0254D;
-                default: return 0.0D;
-            }
-
-        }
+            PhysicalUnit.Inch => 1.0D,
+            PhysicalUnit.Centimeter => 2.54D,
+            PhysicalUnit.Meter => 0.0254D,
+            _ => 0.0D,
+        };
 
         public static PhysicalUnit NormalizeUnits(params PhysicalUnit[] units)
         {

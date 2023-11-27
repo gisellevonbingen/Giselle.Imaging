@@ -18,7 +18,7 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected Argb32 DecodePixel(int merged) => new Argb32()
+        protected Argb32 DecodePixel(int merged) => new()
         {
             B = this.BMask.SplitByte(merged),
             G = this.GMask.SplitByte(merged),

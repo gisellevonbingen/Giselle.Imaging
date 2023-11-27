@@ -15,7 +15,9 @@ namespace Giselle.Imaging.Test
             {
                 fixed (byte* scan0 = frame.Scan)
                 {
+#pragma warning disable CA1416 // 플랫폼 호환성 유효성 검사
                     return new Bitmap(frame.Width, frame.Height, frame.Stride, System.Drawing.Imaging.PixelFormat.Format32bppArgb, (IntPtr)scan0);
+#pragma warning restore CA1416 // 플랫폼 호환성 유효성 검사
                 }
 
             }

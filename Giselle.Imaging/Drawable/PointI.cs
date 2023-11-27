@@ -12,9 +12,9 @@ namespace Giselle.Imaging.Drawable
 
         public static bool operator !=(PointI o1, PointI o2) => o1.Equals(o2) == false;
 
-        public static PointI operator +(PointI o1, PointI o2) => new PointI(o1.X + o2.X, o1.Y + o2.Y);
+        public static PointI operator +(PointI o1, PointI o2) => new(o1.X + o2.X, o1.Y + o2.Y);
 
-        public static PointI operator -(PointI o1, PointI o2) => new PointI(o1.X - o2.X, o1.Y - o2.Y);
+        public static PointI operator -(PointI o1, PointI o2) => new(o1.X - o2.X, o1.Y - o2.Y);
 
         public int X { get; set; }
         public int Y { get; set; }

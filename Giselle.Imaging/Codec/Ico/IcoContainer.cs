@@ -64,24 +64,21 @@ namespace Giselle.Imaging.Codec.Ico
 
                 processor.SkipByRead(info.DataOffset - processor.ReadLength);
 
-                using (var ms = new MemoryStream(processor.ReadBytes(info.DataSize)))
+                using var ms = new MemoryStream(processor.ReadBytes(info.DataSize));
+                IcoFrame frame;
+
+                if (PngCodec.Instance.Test(ms) == true)
                 {
-                    IcoFrame frame;
-                    var pngCodec = PngCodec.Instance;
-
-                    if (pngCodec.Test(ms) == true)
-                    {
-                        frame = new IcoFramePng();
-                    }
-                    else
-                    {
-                        frame = new IcoFrameBmp();
-                    }
-
-                    frame.Hotspot = type == IcoImageType.Cursor ? new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop } : default;
-                    frame.ReadFrame(ms, info);
-                    this.Frames.Add(frame);
+                    frame = new IcoFramePng();
                 }
+                else
+                {
+                    frame = new IcoFrameBmp();
+                }
+
+                frame.Hotspot = type == IcoImageType.Cursor ? new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop } : default;
+                frame.ReadFrame(ms, info);
+                this.Frames.Add(frame);
 
             }
 

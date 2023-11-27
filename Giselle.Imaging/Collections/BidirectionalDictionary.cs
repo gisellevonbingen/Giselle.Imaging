@@ -30,9 +30,9 @@ namespace Giselle.Imaging.Collections
             this.B2A = new Dictionary<B, A>(this.BComparer);
         }
 
-        public ReadOnlyDictionary<A, B> AtoB => new ReadOnlyDictionary<A, B>(this.A2B);
+        public ReadOnlyDictionary<A, B> AtoB => new(this.A2B);
 
-        public ReadOnlyDictionary<B, A> BtoA => new ReadOnlyDictionary<B, A>(this.B2A);
+        public ReadOnlyDictionary<B, A> BtoA => new(this.B2A);
 
         public int Count => this.A2B.Count;
 
