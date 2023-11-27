@@ -21,7 +21,8 @@ namespace Giselle.Imaging.Physical
         {
             return $"{this.Value:F2} {this.Unit.ToDisplayString()}";
         }
-
+        
+        public double GetConvertValue(PhysicalUnit unit) => PhysicalValueUtils.ConvertNumerator(this, unit);
     }
 
 }

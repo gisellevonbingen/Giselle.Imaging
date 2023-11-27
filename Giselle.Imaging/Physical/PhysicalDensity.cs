@@ -22,6 +22,7 @@ namespace Giselle.Imaging.Physical
             return $"{this.Value:F2} pixels/{this.Unit.ToDisplayString()}";
         }
 
+        public double GetConvertValue(PhysicalUnit unit) => PhysicalValueUtils.ConvertDenominator(this, unit);
     }
 
 }

@@ -53,7 +53,7 @@ namespace Giselle.Imaging.Test
 
             static void function(PhysicalDensity value, PhysicalUnit unit, double convertedValue)
             {
-                Console.WriteLine($"PhysicalDensity {value}'s converted {unit} value = {value.ConvertTo(unit)}, {Math.Abs(value.ConvertTo(unit).Value - convertedValue) < double.Epsilon}");
+                Console.WriteLine($"PhysicalDensity {value}'s converted {unit} value = {value.GetConvertValue(unit)}, {Math.Abs(value.GetConvertValue(unit) - convertedValue) < double.Epsilon}");
             }
 
             var inch96 = new PhysicalDensity(96, PhysicalUnit.Inch);

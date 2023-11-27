@@ -10,6 +10,7 @@ namespace Giselle.Imaging.Physical
     {
         double Value { get; set; }
         PhysicalUnit Unit { get; set; }
+        double GetConvertValue(PhysicalUnit unit);
     }
 
 }

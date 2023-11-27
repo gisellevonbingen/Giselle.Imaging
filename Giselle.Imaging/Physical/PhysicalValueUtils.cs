@@ -8,9 +8,9 @@ namespace Giselle.Imaging.Physical
 {
     public static class PhysicalValueUtils
     {
-        public static T ConvertTo<T>(this T value, PhysicalUnit toUnit) where T : IPhysicalValue, new() => new T()
+        public static T ConvertTo<T>(this T value, PhysicalUnit toUnit) where T : IPhysicalValue, new() => new()
         {
-            Value = GetConvertValue(value, toUnit),
+            Value = value.GetConvertValue(toUnit),
             Unit = toUnit,
         };
 
@@ -28,11 +28,18 @@ namespace Giselle.Imaging.Physical
 
         public static T Min<T>(IEnumerable<T> values) where T : IPhysicalValue, new() => Accumulate(values, Enumerable.Min);
 
-        public static double GetConvertValue(this IPhysicalValue value, PhysicalUnit toUnit)
+        public static double ConvertDenominator(this IPhysicalValue value, PhysicalUnit toUnit)
         {
-            var inch = value.Value * value.Unit.GetValuesPerInch();
-            var toValue = inch / toUnit.GetValuesPerInch();
-            return toValue;
+            var raw = value.Value * value.Unit.GetValuesPerInch();
+            var converted = raw / toUnit.GetValuesPerInch();
+            return converted;
+        }
+
+        public static double ConvertNumerator(this IPhysicalValue value, PhysicalUnit toUnit)
+        {
+            var raw = value.Value / value.Unit.GetValuesPerInch();
+            var converted = raw * toUnit.GetValuesPerInch();
+            return converted;
         }
 
     }

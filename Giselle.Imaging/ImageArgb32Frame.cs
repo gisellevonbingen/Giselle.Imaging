@@ -134,7 +134,7 @@ namespace Giselle.Imaging
             }
             else
             {
-                return new Argb32[0];
+                return Array.Empty<Argb32>();
             }
 
         }
