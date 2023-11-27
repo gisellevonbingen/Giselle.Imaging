@@ -239,9 +239,20 @@ namespace Giselle.Imaging
                 this.Offset = -this.Frame.BytesPerPixel;
             }
 
-            public void Dispose()
+            protected virtual void Dispose(bool disposing)
             {
 
+            }
+
+            public virtual void Dispose()
+            {
+                GC.SuppressFinalize(this);
+                this.Dispose(true);
+            }
+
+            ~ImageEnumerator()
+            {
+                this.Dispose(false);
             }
 
         }
