@@ -149,8 +149,7 @@ namespace Giselle.Imaging.Test
                     Console.WriteLine($"File Name : {relatedPath}");
                     Console.WriteLine($"Find Codec : {codec}");
 
-                    using var input = new BitStream(new MemoryStream(inputBytes));
-                    //using var input = new MemoryStream(inputBytes);
+                    using var input = new MemoryStream(inputBytes);
                     var container = ImageCodecs.FromStream(input);
                     SaveContainerEachFrames(outputDir, fileName, container);
                     SaveContainer(inputBytes, outputDir, fileName, container);

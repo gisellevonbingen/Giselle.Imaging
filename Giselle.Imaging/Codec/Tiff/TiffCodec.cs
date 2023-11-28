@@ -11,6 +11,7 @@ using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 using Ionic.Zlib;
 using Streams.IO;
+using Streams.LZW;
 using static Giselle.Imaging.ImageArgb32Frame;
 
 namespace Giselle.Imaging.Codec.Tiff
@@ -230,7 +231,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (compression == TiffCompressionMethod.LZW)
             {
-                return new TiffLZWStream(input, TiffLZWCompressionMode.Decompress, leaveOpen);
+                return new LZWStream(new BitStream(input, BitOrder.BigEndian), System.IO.Compression.CompressionMode.Decompress, new TiffLZWProcessor(), leaveOpen);
             }
             else if (compression == TiffCompressionMethod.Deflate)
             {
@@ -448,7 +449,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (compression == TiffCompressionMethod.LZW)
             {
-                return new TiffLZWStream(output, TiffLZWCompressionMode.Compress, leaveOpen);
+                return new LZWStream(new BitStream(output, BitOrder.BigEndian), System.IO.Compression.CompressionMode.Compress, new TiffLZWProcessor(), leaveOpen);
             }
             else if (compression == TiffCompressionMethod.Deflate)
             {
