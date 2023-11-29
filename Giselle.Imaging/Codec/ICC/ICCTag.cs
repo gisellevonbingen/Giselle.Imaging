@@ -17,6 +17,14 @@ namespace Giselle.Imaging.Codec.ICC
 
         }
 
+        public ICCTag(ICCTag other)
+        {
+            this.Signature = other.Signature;
+            this.Data = other.Data.ToArray();
+        }
+
+        public ICCTag Clone() => new(this);
+
         public override string ToString()
         {
             return $"Signature: \"{this.Signature.ToASCIIString(ICCProfile.IsLittleEndian)}\", Length: {this.Data.Length}";

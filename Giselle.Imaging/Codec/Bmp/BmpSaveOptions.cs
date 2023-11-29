@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Bmp
 {
-    public class BmpSaveOptions : SaveOptions
+    public class BmpSaveOptions : SaveOptions<BmpSaveOptions>
     {
-        public BmpBitsPerPixel BitsPerPixel { get; set; } 
+        public BmpBitsPerPixel BitsPerPixel { get; set; }
         public BmpCompressionMethod? Compression { get; set; }
 
         public BmpSaveOptions()
@@ -23,6 +23,7 @@ namespace Giselle.Imaging.Codec.Bmp
             this.Compression = other.Compression;
         }
 
+        public override BmpSaveOptions Clone() => new(this);
     }
 
 }

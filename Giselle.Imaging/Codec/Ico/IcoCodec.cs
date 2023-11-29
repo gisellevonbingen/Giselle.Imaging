@@ -58,7 +58,7 @@ namespace Giselle.Imaging.Codec.Ico
             return rawContainer.Decode();
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
+        public override void Write(Stream output, ImageArgb32Container container, ISaveOptions options)
         {
             throw new NotSupportedException();
         }

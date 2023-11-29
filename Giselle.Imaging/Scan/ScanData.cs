@@ -15,11 +15,11 @@ namespace Giselle.Imaging.Scan
         public int BitsPerPixel { get; set; }
         public byte[] Scan { get; set; }
 
-        public Argb32[] ColorTable { get; set; } = new Argb32[0];
+        public Argb32[] ColorTable { get; set; } = Array.Empty<Argb32>();
 
         public int InterlaceBlockWidth { get; set; } = 1;
         public int InterlaceBlockHeight { get; set; } = 1;
-        public InterlacePass[] InterlacePasses { get; set; } = new InterlacePass[0];
+        public InterlacePass[] InterlacePasses { get; set; } = Array.Empty<InterlacePass>();
 
         public CoordTransformer CoordTransformer { get; set; } = null;
 

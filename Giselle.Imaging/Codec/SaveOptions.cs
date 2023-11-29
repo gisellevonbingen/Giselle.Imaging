@@ -6,18 +6,31 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec
 {
-    public abstract class SaveOptions
+    public interface ISaveOptions
+    {
+        ISaveOptions Clone();
+    }
+
+    public interface ISaveOptions<T> : ISaveOptions where T : ISaveOptions<T>
+    {
+        new T Clone();
+    }
+
+    public abstract class SaveOptions<T> : ISaveOptions<T> where T : ISaveOptions<T>, new()
     {
         public SaveOptions()
         {
 
         }
 
-        public SaveOptions(SaveOptions other)
+        public SaveOptions(T other)
         {
 
         }
 
+        public abstract T Clone();
+
+        ISaveOptions ISaveOptions.Clone() => this.Clone();
     }
 
 }

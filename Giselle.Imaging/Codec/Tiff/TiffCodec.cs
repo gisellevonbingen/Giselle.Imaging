@@ -312,7 +312,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
+        public override void Write(Stream output, ImageArgb32Container container, ISaveOptions _options)
         {
             var options = _options.CastOrDefault<TiffSaveOptions>();
             var exif = new ExifContainer();

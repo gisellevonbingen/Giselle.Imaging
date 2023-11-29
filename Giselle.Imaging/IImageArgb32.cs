@@ -16,7 +16,7 @@ namespace Giselle.Imaging
 
         void Save(Stream output, ImageCodec codec);
 
-        void Save(Stream output, ImageCodec codec, SaveOptions options);
+        void Save(Stream output, ImageCodec codec, ISaveOptions options);
 
     }
 

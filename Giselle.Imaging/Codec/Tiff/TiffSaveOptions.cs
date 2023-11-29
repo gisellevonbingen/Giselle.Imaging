@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
-    public class TiffSaveOptions : SaveOptions
+    public class TiffSaveOptions : SaveOptions<TiffSaveOptions>
     {
         public bool ExifLittleEndian { get; set; }
         public TiffFrameSaveOptions FallbackFrameOptions { get; set; }
@@ -23,6 +23,7 @@ namespace Giselle.Imaging.Codec.Tiff
             this.FallbackFrameOptions = other.FallbackFrameOptions == null ? null : new TiffFrameSaveOptions(other.FallbackFrameOptions);
         }
 
+        public override TiffSaveOptions Clone() => new(this);
     }
 
 }

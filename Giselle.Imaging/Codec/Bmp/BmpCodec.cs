@@ -49,7 +49,7 @@ namespace Giselle.Imaging.Codec.Bmp
             return new ImageArgb32Container(raw.Decode());
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions _options)
+        public override void Write(Stream output, ImageArgb32Container container, ISaveOptions _options)
         {
             var frame = container.First();
             var options = _options.CastOrDefault<BmpSaveOptions>();

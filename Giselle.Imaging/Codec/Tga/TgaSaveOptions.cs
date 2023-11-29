@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Tga
 {
-    public class TgaSaveOptions : SaveOptions
+    public class TgaSaveOptions : SaveOptions<TgaSaveOptions>
     {
         public TgaPixelFormat PixelFormat { get; set; }
         public bool Compression { get; set; }
@@ -37,6 +37,8 @@ namespace Giselle.Imaging.Codec.Tga
             this.FlipY = other.FlipY;
             this.ExtensionArea = other.ExtensionArea;
         }
+
+        public override TgaSaveOptions Clone() => new(this);
 
     }
 

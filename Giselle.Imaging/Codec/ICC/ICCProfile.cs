@@ -50,10 +50,34 @@ namespace Giselle.Imaging.Codec.ICC
 
         }
 
+        public ICCProfile(ICCProfile other)
+        {
+            this.PreferredCMMType = other.PreferredCMMType;
+            this.Version = other.Version;
+            this.Class = other.Class;
+            this.ColorSpace = other.ColorSpace;
+            this.PSC = other.PSC;
+            this.FirstCreated = other.FirstCreated;
+            this.PrimaryPlatform = other.PrimaryPlatform;
+            this.Flags = other.Flags;
+            this.DeviceManufacturer = other.DeviceManufacturer;
+            this.DeviceModel = other.DeviceModel;
+            this.DeviceAttributes = other.DeviceAttributes;
+            this.RenderingIntent = other.RenderingIntent;
+            this.PSCIlluminant = other.PSCIlluminant;
+            this.Creator = other.Creator;
+            this.ID = other.ID;
+            this.Reserveds = other.Reserveds.ToArray();
+
+            this.Tags = new List<ICCTag>(other.Tags.Select(t => t.Clone()));
+        }
+
         public ICCProfile(Stream stream) : this()
         {
             this.Read(stream);
         }
+
+        public ICCProfile Clone() => new(this);
 
         public void Read(Stream stream)
         {

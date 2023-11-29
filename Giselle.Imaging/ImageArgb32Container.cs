@@ -14,25 +14,34 @@ namespace Giselle.Imaging
         private readonly List<ImageArgb32Frame> _Frames;
 
         public ImageCodec PrimaryCodec { get; set; }
-        public SaveOptions PrimaryOptions { get; set; }
+        public ISaveOptions PrimaryOptions { get; set; }
 
         public ImageArgb32Container()
         {
             this._Frames = new List<ImageArgb32Frame>();
         }
 
+        public ImageArgb32Container(ImageArgb32Container other)
+        {
+            this._Frames = new List<ImageArgb32Frame>(other._Frames.Select(f => f.Clone()));
+            this.PrimaryCodec = other.PrimaryCodec;
+            this.PrimaryOptions = other.PrimaryOptions?.Clone();
+        }
+
         public ImageArgb32Container(ImageArgb32Frame primaryFrame) : this()
         {
             this.Add(primaryFrame);
             this.PrimaryCodec = primaryFrame.PrimaryCodec;
-            this.PrimaryOptions = primaryFrame.PrimaryOptions;
+            this.PrimaryOptions = primaryFrame.PrimaryOptions?.Clone();
         }
+
+        public ImageArgb32Container Clone() => new(this);
 
         public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);
 
         public void Save(Stream output, ImageCodec codec) => this.Save(output, codec, null);
 
-        public void Save(Stream output, ImageCodec codec, SaveOptions options)
+        public void Save(Stream output, ImageCodec codec, ISaveOptions options)
         {
             codec.Write(output, this, options);
         }

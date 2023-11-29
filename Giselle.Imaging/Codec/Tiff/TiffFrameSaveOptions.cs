@@ -7,7 +7,7 @@ using Formats.Exif;
 
 namespace Giselle.Imaging.Codec.Tiff
 {
-    public class TiffFrameSaveOptions : SaveOptions
+    public class TiffFrameSaveOptions : SaveOptions<TiffFrameSaveOptions>
     {
         public int BitsPerSample { get; set; }
         public int SamplesPerPixel { get; set; }
@@ -32,6 +32,8 @@ namespace Giselle.Imaging.Codec.Tiff
             this.CompressionLevel = other.CompressionLevel;
             this.PhotometricInterpretation = other.PhotometricInterpretation;
         }
+
+        public override TiffFrameSaveOptions Clone() => new(this);
 
     }
 

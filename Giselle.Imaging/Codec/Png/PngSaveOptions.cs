@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Giselle.Imaging.Codec.Png
 {
-    public class PngSaveOptions : SaveOptions
+    public class PngSaveOptions : SaveOptions<PngSaveOptions>
     {
         public PngPixelFormat PixelFormat { get; set; } 
         public CommonCompressionLevel CompressionLevel { get; set; } 
@@ -26,6 +26,7 @@ namespace Giselle.Imaging.Codec.Png
             this.Interlace = other.Interlace;
         }
 
+        public override PngSaveOptions Clone() => new(this);
     }
 
 }

@@ -301,7 +301,7 @@ namespace Giselle.Imaging.Codec.Jpeg
             throw new NotImplementedException();
         }
 
-        public override void Write(Stream output, ImageArgb32Container container, SaveOptions options)
+        public override void Write(Stream output, ImageArgb32Container container, ISaveOptions options)
         {
             throw new NotImplementedException();
         }

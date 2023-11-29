@@ -33,7 +33,7 @@ namespace Giselle.Imaging
         public IEnumerable<ColorWithPosition> ColorWithPositions => this._ColorWithPositions.Value;
 
         public ImageCodec PrimaryCodec { get; set; }
-        public SaveOptions PrimaryOptions { get; set; }
+        public ISaveOptions PrimaryOptions { get; set; }
         public ICCProfile ICCProfile { get; set; }
 
 
@@ -42,6 +42,20 @@ namespace Giselle.Imaging
             this.Resolution = new PhysicalDensity(96.0D, PhysicalUnit.Inch);
             this._Colors = new Lazy<IEnumerable<Argb32>>(() => new ImageEnumerable<Argb32>(this, s => s.Frame[s.Offset]));
             this._ColorWithPositions = new Lazy<IEnumerable<ColorWithPosition>>(() => new ImageEnumerable<ColorWithPosition>(this, s => new ColorWithPosition(s.Frame, s.Offset)));
+        }
+
+        public ImageArgb32Frame(ImageArgb32Frame other) : this()
+        {
+            this.Resolution = other.Resolution;
+            this.Width = other.Width;
+            this.Height = other.Height;
+            this.Stride = other.Stride;
+            this.Scan = new byte[other.Scan.Length];
+            Array.Copy(other.Scan, 0, this.Scan, 0, this.Scan.Length);
+
+            this.PrimaryCodec = other.PrimaryCodec;
+            this.PrimaryOptions = other.PrimaryOptions?.Clone();
+            this.ICCProfile = other.ICCProfile?.Clone();
         }
 
         public ImageArgb32Frame(int width, int height) : this()
@@ -61,6 +75,8 @@ namespace Giselle.Imaging
 
             scanProcessor.Decode(scanData, this);
         }
+
+        public ImageArgb32Frame Clone() => new(this);
 
         public PhysicalLength PrintWidth => new(this.Width / this.WidthResoulution.Value, this.WidthResoulution.Unit);
 
@@ -143,7 +159,7 @@ namespace Giselle.Imaging
 
         public void Save(Stream output, ImageCodec codec) => this.Save(output, codec, null);
 
-        public void Save(Stream output, ImageCodec codec, SaveOptions options)
+        public void Save(Stream output, ImageCodec codec, ISaveOptions options)
         {
             codec.Write(output, this, options);
         }
