@@ -14,15 +14,14 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected override void DecodePixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override Argb32 DecodePixel(byte[] inputScan, int inputOffset)
         {
             var merged = inputScan[inputOffset + 0];
-            frame[coord] = this.DecodePixel(merged);
+            return this.DecodePixel(merged);
         }
 
-        protected override void EncodePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override void EncodePixel(byte[] outputScan, int outputOffset, Argb32 color)
         {
-            var color = frame[coord];
             var merged = this.EncodePixel(color);
             outputScan[outputOffset + 0] = (byte)(merged & 0xFF);
         }

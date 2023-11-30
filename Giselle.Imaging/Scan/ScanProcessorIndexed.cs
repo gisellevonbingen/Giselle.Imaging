@@ -54,17 +54,18 @@ namespace Giselle.Imaging.Scan
 
                         for (var bi = 0; bi < ppb; bi++)
                         {
-                            var coord = passProcessor.GetDecodeCoord(new PointI(xi * ppb + bi, yi));
+                            var orignalX = xi * ppb + bi;
 
-                            if (coord.X >= input.Width)
+                            if (orignalX >= input.Width)
                             {
                                 break;
                             }
 
+                            var coord = passProcessor.GetDecodeCoord(new PointI(xi * ppb + bi, yi));
                             var shift = bpp * (ppb - 1 - bi);
                             var tableIndex = (b >> shift) & mask;
                             var color = colorTable[tableIndex];
-                            frame[coord] = color;
+                            frame[coord] = input.GetDecodeColor(coord, tableIndex, color);
                         }
 
                     }
@@ -109,8 +110,10 @@ namespace Giselle.Imaging.Scan
                                 break;
                             }
 
-                            var color = frame[coord];
-                            var tableIndex = Array.IndexOf(colorTable, color);
+                            var original = frame[coord];
+                            var originalTableIndex = Array.IndexOf(colorTable, original);
+                            var color = output.GetEncodeColor(coord, originalTableIndex, original);
+                            var tableIndex = original == color ? originalTableIndex : Array.IndexOf(colorTable, color);
 
                             if (tableIndex == -1)
                             {

@@ -16,16 +16,15 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected override void DecodePixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override Argb32 DecodePixel(byte[] inputScan, int inputOffset)
         {
             var grayscale = inputScan[inputOffset + 0];
             var alpha = inputScan[inputOffset + 1];
-            frame[coord] = new Argb32() { A = alpha, Grayscale = grayscale };
+            return new() { A = alpha, Grayscale = grayscale };
         }
 
-        protected override void EncodePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord)
+        protected override void EncodePixel(byte[] outputScan, int outputOffset, Argb32 color)
         {
-            var color = frame[coord];
             outputScan[outputOffset + 0] = color.Grayscale;
             outputScan[outputOffset + 1] = color.A;
         }

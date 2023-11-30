@@ -22,6 +22,7 @@ namespace Giselle.Imaging.Scan
         public InterlacePass[] InterlacePasses { get; set; } = Array.Empty<InterlacePass>();
 
         public CoordTransformer CoordTransformer { get; set; } = null;
+        public ColorTransformer ColorTransformer { get; set; } = null;
 
         public ScanData(int width, int height, int bitsPerPixel)
         {
@@ -70,6 +71,9 @@ namespace Giselle.Imaging.Scan
 
         public PointI GetDecodeCoord(PointI coord) => this.CoordTransformer?.Decode(this, coord) ?? coord;
 
+        public Argb32 GetEncodeColor(PointI coord, int tableIndex, Argb32 color) => this.ColorTransformer?.Encode(this, coord, tableIndex, color) ?? color;
+
+        public Argb32 GetDecodeColor(PointI coord, int tableIndex, Argb32 color) => this.ColorTransformer?.Decode(this, coord, tableIndex, color) ?? color;
     }
 
 }

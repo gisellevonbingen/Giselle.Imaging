@@ -16,9 +16,9 @@ namespace Giselle.Imaging
         public static Argb32 White { get; } = new Argb32(0xFF, 0xFF, 0xFF);
         public static Argb32 Black { get; } = new Argb32(0x00, 0x00, 0x00);
 
-        public static bool operator ==(Argb32 o1, Argb32 o2) => o1.GetHashCode() == o2.GetHashCode();
+        public static bool operator ==(Argb32 o1, Argb32 o2) => o1.Equals(o2) == true;
 
-        public static bool operator !=(Argb32 o1, Argb32 o2) => o1.GetHashCode() != o2.GetHashCode();
+        public static bool operator !=(Argb32 o1, Argb32 o2) => o1.Equals(o2) == false;
 
         public static Argb32 operator ^(Argb32 o1, Argb32 o2) => CalcaulateSamples(o1, o2, (b1, b2) => (byte)(b1 ^ b2));
 

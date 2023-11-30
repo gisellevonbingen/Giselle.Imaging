@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Formats.Riff;
 using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
@@ -24,7 +25,17 @@ namespace Giselle.Imaging.Scan
             this.Process(output, frame, this.EncodePixel, output.GetEncodeCoord);
         }
 
-        private void Process(ScanData scan, ImageArgb32Frame frame, Action<byte[], int, ImageArgb32Frame, PointI> scanAction, Func<PointI, PointI> coordFunction)
+        private void DecodePixel(ScanData input, int inputOffset, ImageArgb32Frame frame, PointI coord)
+        {
+            frame[coord] = input.GetDecodeColor(coord, -1, this.DecodePixel(input.Scan, inputOffset));
+        }
+
+        private void EncodePixel(ScanData output, int outputOffset, ImageArgb32Frame frame, PointI coord)
+        {
+            this.EncodePixel(output.Scan, outputOffset, output.GetEncodeColor(coord, -1, frame[coord]));
+        }
+
+        private void Process(ScanData scan, ImageArgb32Frame frame, Action<ScanData, int, ImageArgb32Frame, PointI> scanAction, Func<PointI, PointI> coordTransoform)
         {
             var sbpp = scan.BitsPerPixel / 8;
             var passProcessor = new InterlacePassProcessor(scan);
@@ -38,9 +49,9 @@ namespace Giselle.Imaging.Scan
                 {
                     for (var xi = 0; xi < passInfo.PixelsX; xi++)
                     {
-                        var coord = coordFunction(passProcessor.GetPixelCoord(new PointI(xi, yi)));
+                        var coord = coordTransoform(passProcessor.GetPixelCoord(new PointI(xi, yi)));
 
-                        scanAction(scan.Scan, scanOffset, frame, coord);
+                        scanAction(scan, scanOffset, frame, coord);
                         scanOffset += sbpp;
                     }
 
@@ -51,10 +62,9 @@ namespace Giselle.Imaging.Scan
 
         }
 
-        protected abstract void DecodePixel(byte[] inputScan, int inputOffset, ImageArgb32Frame frame, PointI coord);
+        protected abstract Argb32 DecodePixel(byte[] inputScan, int inputOffset);
 
-        protected abstract void EncodePixel(byte[] outputScan, int outputOffset, ImageArgb32Frame frame, PointI coord);
-
+        protected abstract void EncodePixel(byte[] outputScan, int outputOffset, Argb32 color);
     }
 
 }
