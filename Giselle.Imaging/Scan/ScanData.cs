@@ -21,8 +21,8 @@ namespace Giselle.Imaging.Scan
         public int InterlaceBlockHeight { get; set; } = 1;
         public InterlacePass[] InterlacePasses { get; set; } = Array.Empty<InterlacePass>();
 
-        public CoordTransformer CoordTransformer { get; set; } = null;
-        public ColorTransformer ColorTransformer { get; set; } = null;
+        public ICoordTransformer CoordTransformer { get; set; } = null;
+        public IColorTransformer ColorTransformer { get; set; } = null;
 
         public ScanData(int width, int height, int bitsPerPixel)
         {

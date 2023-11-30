@@ -239,7 +239,7 @@ namespace Giselle.Imaging.Codec.Bmp
 
         public virtual int CompressionSize => (this.CompressionMethod == BmpCompressionMethod.BitFields ? BitFieldsLength : 0) + (this.ColorTable.Length * 4) + this.ScanData.Length;
 
-        public static CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(false, true);
+        public static ICoordTransformer GetCoordTransformer() => new CoordTransformerFlip(false, true);
 
         public void WriteInfoBeforeGap1(DataProcessor processor)
         {

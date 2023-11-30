@@ -147,7 +147,7 @@ namespace Giselle.Imaging.Codec.Tga
 
         }
 
-        public CoordTransformer GetCoordTransformer() => new CoordTransformerFlip(this.FlipX, !this.FlipY);
+        public ICoordTransformer GetCoordTransformer() => new CoordTransformerFlip(this.FlipX, !this.FlipY);
 
         public virtual ImageArgb32Frame Decode()
         {

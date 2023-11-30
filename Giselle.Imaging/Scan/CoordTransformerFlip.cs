@@ -7,7 +7,7 @@ using Giselle.Imaging.Drawable;
 
 namespace Giselle.Imaging.Scan
 {
-    public class CoordTransformerFlip : CoordTransformer
+    public class CoordTransformerFlip : ICoordTransformer
     {
         public bool FlipX { get; }
         public bool FlipY { get; }
@@ -18,12 +18,12 @@ namespace Giselle.Imaging.Scan
             this.FlipY = flipY;
         }
 
-        public override PointI Decode(ScanData scanData, PointI coord)
+        public PointI Decode(ScanData scanData, PointI coord)
         {
             return this.Flip(scanData, coord);
         }
 
-        public override PointI Encode(ScanData scanData, PointI coord)
+        public PointI Encode(ScanData scanData, PointI coord)
         {
             return this.Flip(scanData, coord);
         }
