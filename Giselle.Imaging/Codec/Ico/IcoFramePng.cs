@@ -21,11 +21,11 @@ namespace Giselle.Imaging.Codec.Ico
 
         }
 
-        public override void ReadFrame(Stream input, IcoImageInfo info) => this.Frame = new PngRawImage(input);
+        public override void Read(Stream input, IcoImageInfo info) => this.Frame = new PngRawImage(input);
 
         public override ImageArgb32Frame Decode() => this.Frame.Decode();
 
-        public override void EncodeFrame(ImageArgb32Frame frame) => this.Frame = new PngRawImage(frame, new PngSaveOptions() { PixelFormat = PngPixelFormat.Bpp32TruecolorWithAlpha });
+        public override void Encod(ImageArgb32Frame frame) => this.Frame = new PngRawImage(frame, new PngSaveOptions() { PixelFormat = PngPixelFormat.Bpp32TruecolorWithAlpha });
 
         public override void Write(Stream output, IcoImageInfo info) => this.Frame.Write(output);
 

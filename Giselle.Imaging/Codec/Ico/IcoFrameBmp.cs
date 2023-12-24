@@ -21,7 +21,7 @@ namespace Giselle.Imaging.Codec.Ico
 
         }
 
-        public override void ReadFrame(Stream input, IcoImageInfo info)
+        public override void Read(Stream input, IcoImageInfo info)
         {
             var processor = BmpCodec.CreateBmpProcessor(input);
             var infoSize = processor.ReadInt();
@@ -39,7 +39,7 @@ namespace Giselle.Imaging.Codec.Ico
 
         public override ImageArgb32Frame Decode() => this.Frame.Decode();
 
-        public override void EncodeFrame(ImageArgb32Frame frame)
+        public override void Encod(ImageArgb32Frame frame)
         {
             throw new NotSupportedException();
         }

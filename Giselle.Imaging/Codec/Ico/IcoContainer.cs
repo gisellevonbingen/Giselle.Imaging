@@ -77,7 +77,7 @@ namespace Giselle.Imaging.Codec.Ico
                 }
 
                 frame.Hotspot = type == IcoImageType.Cursor ? new PointI() { X = info.CursorHotspotLeft, Y = info.CursorHotspotTop } : default;
-                frame.ReadFrame(ms, info);
+                frame.Read(ms, info);
                 this.Frames.Add(frame);
 
             }

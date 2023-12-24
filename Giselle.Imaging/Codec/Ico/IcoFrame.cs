@@ -21,13 +21,13 @@ namespace Giselle.Imaging.Codec.Ico
 
         }
 
-        public abstract void ReadFrame(Stream input, IcoImageInfo info);
+        public abstract void Read(Stream input, IcoImageInfo info);
+
+        public abstract void Write(Stream output, IcoImageInfo info);
 
         public abstract ImageArgb32Frame Decode();
 
-        public abstract void EncodeFrame(ImageArgb32Frame frame);
-
-        public abstract void Write(Stream output, IcoImageInfo info);
+        public abstract void Encod(ImageArgb32Frame frame);
     }
 
 }
