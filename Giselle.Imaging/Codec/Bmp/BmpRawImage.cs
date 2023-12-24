@@ -59,7 +59,7 @@ namespace Giselle.Imaging.Codec.Bmp
             var processor = BmpCodec.CreateBmpProcessor(input);
             var signature = processor.ReadBytes(BmpCodec.SignatureLength);
 
-            if (BmpCodec.Signatures.Any(s => signature.StartsWith(s)) == false)
+            if (BmpCodec.Instance.Test(signature) == false)
             {
                 throw new IOException();
             }

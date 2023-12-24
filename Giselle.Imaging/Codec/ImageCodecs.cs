@@ -12,6 +12,7 @@ using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Ani;
 using Giselle.Imaging.Codec.Tga;
 using Streams.IO;
+using Giselle.Imaging.Codec.Gif;
 
 namespace Giselle.Imaging.Codec
 {
@@ -35,6 +36,7 @@ namespace Giselle.Imaging.Codec
             Register(JpegCodec.Instance);
             Register(IcoCodec.Instance);
             Register(AniCodec.Instance);
+            Register(GifCodec.Instance);
             Register(TgaCodec.Instance);
         }
 
