@@ -231,7 +231,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (compression == TiffCompressionMethod.LZW)
             {
-                return new LZWStream(new BitStream(input, BitOrder.BigEndian), System.IO.Compression.CompressionMode.Decompress, new TiffLZWProcessor(), leaveOpen);
+                return new LZWStream(new BitStream(input, false), System.IO.Compression.CompressionMode.Decompress, new TiffLZWProcessor(), leaveOpen);
             }
             else if (compression == TiffCompressionMethod.Deflate)
             {
@@ -449,7 +449,7 @@ namespace Giselle.Imaging.Codec.Tiff
             }
             else if (compression == TiffCompressionMethod.LZW)
             {
-                return new LZWStream(new BitStream(output, BitOrder.BigEndian), System.IO.Compression.CompressionMode.Compress, new TiffLZWProcessor(), leaveOpen);
+                return new LZWStream(new BitStream(output, false), System.IO.Compression.CompressionMode.Compress, new TiffLZWProcessor(), leaveOpen);
             }
             else if (compression == TiffCompressionMethod.Deflate)
             {
