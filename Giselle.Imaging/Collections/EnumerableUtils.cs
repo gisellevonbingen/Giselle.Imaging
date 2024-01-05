@@ -28,14 +28,15 @@ namespace Giselle.Imaging.Collections
 
         public static IEnumerable<T> TakeFixSize<T>(this IEnumerable<T> source, int offset, int count, T fallback = default)
         {
-            var takes = source.Skip(offset).Take(count).ToArray();
+            var takedCount = 0;
 
-            for (var i = 0; i < takes.Length; i++)
+            foreach (var take in source.Skip(offset).Take(count))
             {
-                yield return takes[i];
+                yield return take;
+                takedCount++;
             }
 
-            var fallbackCount = count - takes.Length;
+            var fallbackCount = count - takedCount;
 
             for (var i = 0; i < fallbackCount; i++)
             {
@@ -46,14 +47,14 @@ namespace Giselle.Imaging.Collections
 
         public static IEnumerable<T> TakeFixSize<T>(this IList<T> source, int offset, int count, T fallback = default)
         {
-            var takeCount = Math.Max(source.Count - offset, count);
+            var takedCount = Math.Max(source.Count - offset, count);
 
-            for (var i = 0; i < takeCount; i++)
+            for (var i = 0; i < takedCount; i++)
             {
                 yield return source[offset + i];
             }
 
-            var fallbackCount = count - takeCount;
+            var fallbackCount = count - takedCount;
 
             for (var i = 0; i < fallbackCount; i++)
             {

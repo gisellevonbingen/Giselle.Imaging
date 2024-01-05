@@ -131,7 +131,7 @@ namespace Giselle.Imaging.Codec.Tga
             siphonBlock.SetBasePosition(siphonBlock.BaseEndPosition - TgaFileFooter.Length);
             var footer = new TgaFileFooter(processor);
 
-            var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonSteam);
+            var siphonProcessor = TgaCodec.CreateTgaProcessor(siphonBlock.SiphonStream);
 
             if (footer.DeveloperAreaOffset > 0)
             {

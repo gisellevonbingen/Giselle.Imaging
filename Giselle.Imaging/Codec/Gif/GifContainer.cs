@@ -5,12 +5,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Giselle.Imaging.Collections;
 using Streams.IO;
 
 namespace Giselle.Imaging.Codec.Gif
 {
     public class GifContainer
     {
+        public const int ApplicationIdentifierLength = 8;
+        public const int ApplicationAuthenticationCodeLength = 3;
+        public const string ApplicationIdentifierNetscape = "NETSCAPE";
+        public const string ApplicationAuthenticationCodeNetscapce = "2.0";
+
         public List<GifFrame> Frames { get; } = new List<GifFrame>();
         public ushort Width { get; set; }
         public ushort Height { get; set; }
@@ -49,18 +55,14 @@ namespace Giselle.Imaging.Codec.Gif
             this.Width = processor.ReadUShort();
             this.Height = processor.ReadUShort();
 
-            var gctInfo = new BitVector32(processor.ReadByte());
-            var gctPresent = gctInfo[0x80];
-            var gctSize = gctInfo[BitVector32.CreateSection(0x07)] + 1;
+            var logicalScreenPackedFields = new GifLogicalScreenPackedFields() { Raw = processor.ReadByte() };
 
             this.BackgroundColorIndex = processor.ReadByte();
             this.PixelAspectRatio = processor.ReadByte();
-            this.GlobalColorTable = ReadColorTable(processor, gctPresent, gctSize);
+            this.GlobalColorTable = ReadColorTable(processor, logicalScreenPackedFields.GlobalColorTableFlag, logicalScreenPackedFields.GlobalColorTableSize);
 
-            var transparentColorFlag = false;
-            var userInputFlag = false;
-            var transparentColorIndex = new byte?();
-            var disposalMethod = GifDisposalMethod.NoSpecified;
+            var graphicControl = GifGraphicControlPackedFields.Empty;
+            var transparentColorIndex = byte.MinValue;
             var frameDelay = ushort.MinValue;
 
             while (true)
@@ -88,26 +90,23 @@ namespace Giselle.Imaging.Codec.Gif
                     if (blockCode1 == GifBlockCode.GraphicControlExtension)
                     {
                         var gceProcessor = GifCodec.CreateGifProcessor(subBlocks[0]);
-                        var bitFields = gceProcessor.ReadByte();
-                        transparentColorFlag = (bitFields & 0x01) > 0;
-                        userInputFlag = (bitFields & 0x02) > 0;
-                        disposalMethod = (GifDisposalMethod)((bitFields & 0x1C) >> 2);
+                        graphicControl.Raw = gceProcessor.ReadByte();
                         frameDelay = gceProcessor.ReadUShort();
                         transparentColorIndex = gceProcessor.ReadByte();
                     }
                     else if (blockCode1 == GifBlockCode.Comment)
                     {
-                        this.Comment = Encoding.ASCII.GetString(subBlocks[0].ToArray());
+                        this.Comment = GifCodec.Encoding.GetString(subBlocks[0].ToArray());
                     }
                     else if (blockCode1 == GifBlockCode.ApplicationExtension)
                     {
                         var applicationProcessor = GifCodec.CreateGifProcessor(subBlocks[0]);
-                        this.ApplicationIdentifier = Encoding.ASCII.GetString(applicationProcessor.ReadBytes(8));
-                        this.ApplicationAuthenticationCode = Encoding.ASCII.GetString(applicationProcessor.ReadBytes(3));
+                        this.ApplicationIdentifier = GifCodec.Encoding.GetString(applicationProcessor.ReadBytes(ApplicationIdentifierLength));
+                        this.ApplicationAuthenticationCode = GifCodec.Encoding.GetString(applicationProcessor.ReadBytes(ApplicationAuthenticationCodeLength));
 
                         var dataProcessor = GifCodec.CreateGifProcessor(subBlocks[1]);
 
-                        if (this.ApplicationIdentifier.Equals("NETSCAPE"))
+                        if (this.ApplicationIdentifier.Equals(ApplicationIdentifierNetscape) && this.ApplicationAuthenticationCode.Equals(ApplicationAuthenticationCodeNetscapce))
                         {
                             // Netscape
                             var dataSubBlockIndex = dataProcessor.ReadByte(); // Alwasy 1
@@ -125,8 +124,9 @@ namespace Giselle.Imaging.Codec.Gif
                 {
                     var frame = new GifFrame()
                     {
-                        TransparentColorIndex = transparentColorFlag ? transparentColorIndex : null,
-                        DisposalMethod = disposalMethod,
+                        TransparentColorIndex = graphicControl.TransparentColorFlag ? transparentColorIndex : null,
+                        DisposalMethod = graphicControl.DisposalMethod,
+                        UserInput = graphicControl.UserInputFlag,
                         FrameDelay = frameDelay,
                     };
                     frame.X = processor.ReadUShort();
@@ -134,10 +134,10 @@ namespace Giselle.Imaging.Codec.Gif
                     frame.Width = processor.ReadUShort();
                     frame.Height = processor.ReadUShort();
 
-                    var lctInfo = new BitVector32(processor.ReadByte());
-                    var lctPresent = lctInfo[0x80];
-                    var lctSize = lctInfo[BitVector32.CreateSection(0x07)] + 1;
-                    frame.LocalColorTable = ReadColorTable(processor, lctPresent, lctSize);
+                    var imagePackedFields = new GifImagePackedFields() { Raw = processor.ReadByte() };
+                    frame.LocalColorTable = ReadColorTable(processor, imagePackedFields.LocalColorTableFlag, imagePackedFields.LocalColorTableSize);
+                    frame.Interlace = imagePackedFields.Interlace;
+                    frame.SortFlag = imagePackedFields.SortFlag;
                     frame.MinimumLZWCodeSize = processor.ReadByte();
 
                     while (true)
@@ -164,6 +164,137 @@ namespace Giselle.Imaging.Codec.Gif
 
         }
 
+        public void Write(Stream output)
+        {
+            var processor = GifCodec.CreateGifProcessor(output);
+            processor.WriteBytes(GifCodec.Signature);
+            processor.WriteBytes(GifCodec.EncoderVersion);
+
+            processor.WriteUShort(this.Width);
+            processor.WriteUShort(this.Height);
+
+            var gct = this.GlobalColorTable;
+            var logicalScreenPackedFields = new GifLogicalScreenPackedFields()
+            {
+                GlobalColorTableFlag = gct.Length > 0,
+                ColorResolution = 8,
+                SortFlag = false,
+                GlobalColorTableSize = gct.Length,
+            }.Normalized;
+            processor.WriteByte(logicalScreenPackedFields.Raw);
+
+            processor.WriteByte(this.BackgroundColorIndex);
+            processor.WriteByte(this.PixelAspectRatio);
+            WriteColorTable(processor, logicalScreenPackedFields.GlobalColorTableFlag, logicalScreenPackedFields.GlobalColorTableSize, gct);
+
+
+            this.WriteBlock(processor, GifBlockCode.ExtensionIntroducer, p =>
+            {
+                this.WriteSubBlocks(p, GifBlockCode.ApplicationExtension,
+                    p2 =>
+                    {
+                        p2.WriteBytes(GifCodec.Encoding.GetBytes(ApplicationIdentifierNetscape));
+                        p2.WriteBytes(GifCodec.Encoding.GetBytes(ApplicationAuthenticationCodeNetscapce));
+                    },
+                    p2 =>
+                    {
+                        p2.WriteByte(1);
+                        p2.WriteUShort(this.Repetitions);
+                    });
+            });
+
+            foreach (var frame in this.Frames)
+            {
+                this.WriteBlock(processor, GifBlockCode.ExtensionIntroducer, p =>
+                {
+                    this.WriteSubBlocks(p, GifBlockCode.GraphicControlExtension, p2 =>
+                    {
+                        p2.WriteByte(new GifGraphicControlPackedFields()
+                        {
+                            TransparentColorFlag = frame.TransparentColorIndex.HasValue,
+                            DisposalMethod = frame.DisposalMethod,
+                            UserInputFlag = frame.UserInput,
+                        }.Raw);
+                        p2.WriteUShort(frame.FrameDelay);
+                        p2.WriteByte(frame.TransparentColorIndex ?? 0);
+                    });
+                });
+
+                this.WriteBlock(processor, GifBlockCode.ImageDescriptor, p =>
+                {
+                    p.WriteUShort(frame.X);
+                    p.WriteUShort(frame.Y);
+                    p.WriteUShort(frame.Width);
+                    p.WriteUShort(frame.Height);
+
+                    var imagePackedFields = new GifImagePackedFields()
+                    {
+                        LocalColorTableFlag = frame.LocalColorTable.Length > 0,
+                        Interlace = frame.Interlace,
+                        SortFlag = frame.SortFlag,
+                        LocalColorTableSize = frame.LocalColorTable.Length,
+                    };
+
+                    p.WriteByte(imagePackedFields.Raw);
+                    WriteColorTable(processor, imagePackedFields.LocalColorTableFlag, imagePackedFields.LocalColorTableSize, frame.LocalColorTable);
+                    p.WriteByte(frame.MinimumLZWCodeSize);
+
+                    var buffer = new byte[byte.MaxValue];
+                    frame.CompressedScanData.Position = 0L;
+
+                    while (true)
+                    {
+                        var length = frame.CompressedScanData.Read(buffer);
+
+                        if (length == 0)
+                        {
+                            break;
+                        }
+
+                        p.WriteByte((byte)length);
+                        p.Write(buffer, 0, length);
+                    }
+
+                    processor.WriteByte(0);
+                });
+            }
+
+
+            if (string.IsNullOrEmpty(this.Comment) == false)
+            {
+                this.WriteBlock(processor, GifBlockCode.ExtensionIntroducer, p =>
+                {
+                    this.WriteSubBlocks(p, GifBlockCode.Comment, p2 => p2.WriteBytes(GifCodec.Encoding.GetBytes(this.Comment)));
+                });
+            }
+
+            this.WriteBlock(processor, GifBlockCode.Trailer, p => { });
+        }
+
+        public void WriteBlock(DataProcessor processor, GifBlockCode code, Action<DataProcessor> callback)
+        {
+            processor.WriteByte((byte)code);
+            callback(processor);
+        }
+
+        public void WriteSubBlocks(DataProcessor processor, GifBlockCode code, params Action<DataProcessor>[] callbacks)
+        {
+            this.WriteBlock(processor, code, p =>
+            {
+                foreach (var callback in callbacks)
+                {
+                    using var ms = new MemoryStream();
+                    callback(GifCodec.CreateGifProcessor(ms));
+
+                    var subBlock = ms.ToArray().Take(byte.MaxValue).ToArray();
+                    p.WriteByte((byte)subBlock.Length);
+                    p.WriteBytes(subBlock);
+                }
+
+                p.WriteByte(0);
+            });
+        }
+
         public ImageArgb32Container Decode()
         {
             var container = new ImageArgb32Container()
@@ -185,11 +316,11 @@ namespace Giselle.Imaging.Codec.Gif
             return container;
         }
 
-        public static Argb32[] ReadColorTable(DataProcessor processor, bool present, int depth)
+        public static Argb32[] ReadColorTable(DataProcessor processor, bool present, int size)
         {
             if (present == true)
             {
-                var table = new Argb32[1 << depth];
+                var table = new Argb32[size];
                 var buffer = new byte[3];
 
                 for (var i = 0; i < table.Length; i++)
@@ -210,6 +341,24 @@ namespace Giselle.Imaging.Codec.Gif
             else
             {
                 return Array.Empty<Argb32>();
+            }
+
+        }
+
+        public static void WriteColorTable(DataProcessor processor, bool present, int normalizedSize, Argb32[] table)
+        {
+            if (present == true && table != null)
+            {
+                var buffer = new byte[3];
+
+                foreach (var color in table.TakeFixSize(0, normalizedSize, Argb32.Black))
+                {
+                    buffer[0] = color.R;
+                    buffer[1] = color.G;
+                    buffer[2] = color.B;
+                    processor.WriteBytes(buffer);
+                }
+
             }
 
         }

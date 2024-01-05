@@ -53,7 +53,7 @@ namespace Giselle.Imaging.Codec.Tiff
         public override ImageArgb32Container Read(Stream input)
         {
             using var siphonBlock = SiphonBlock.ByRemain(input);
-            var exif = new ExifContainer(siphonBlock.SiphonSteam);
+            var exif = new ExifContainer(siphonBlock.SiphonStream);
             var container = new ImageArgb32Container()
             {
                 PrimaryCodec = this,
@@ -65,7 +65,7 @@ namespace Giselle.Imaging.Codec.Tiff
 
             foreach (var directory in exif.Directories)
             {
-                var frame = this.Decode(siphonBlock.SiphonSteam, directory);
+                var frame = this.Decode(siphonBlock.SiphonStream, directory);
 
                 if (frame != null)
                 {

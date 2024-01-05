@@ -15,6 +15,9 @@ namespace Giselle.Imaging.Codec.Png
         public const bool IsLittleEndian = false;
         public const int SignatureLength = 8;
         public static PngCodec Instance { get; } = new PngCodec();
+        /// <summary>
+        /// ‰PNG\r\n0x1A\n
+        /// </summary>
         public static byte[] Signature { get; } = new byte[SignatureLength] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         public static Encoding Encoding => Encoding.ASCII;
 

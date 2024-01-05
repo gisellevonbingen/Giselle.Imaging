@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Giselle.Imaging.Codec;
 using Giselle.Imaging.Codec.Ani;
+using Giselle.Imaging.Codec.Gif;
 using Giselle.Imaging.Codec.ICC;
 using Giselle.Imaging.Codec.Ico;
 using Giselle.Imaging.Codec.Png;
@@ -169,21 +170,35 @@ namespace Giselle.Imaging.Test
         {
             var outputFileName = $"{outputDir}/{fileName}";
 
-            if (container.PrimaryCodec is IcoCodec icoCodec)
+            switch (container.PrimaryCodec)
             {
-                var ico = new IcoContainer(new MemoryStream(inputBytes));
-                using var fs = new FileStream($"{outputFileName}.{IcoCodec.GetExtension(ico.Type)}", FileMode.Create);
-                ico.Write(fs);
-            }
-            else if (container.PrimaryCodec is AniCodec aniCodec)
-            {
-                var ani = new AniContainer(new MemoryStream(inputBytes));
-                using var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create);
-                ani.Write(fs);
-            }
-            else
-            {
-                SaveImageAsPrimary(outputFileName, container);
+                case IcoCodec icoCodec:
+                    {
+                        var ico = new IcoContainer(new MemoryStream(inputBytes));
+                        using var fs = new FileStream($"{outputFileName}.{IcoCodec.GetExtension(ico.Type)}", FileMode.Create);
+                        ico.Write(fs);
+                        break;
+                    }
+
+                case AniCodec aniCodec:
+                    {
+                        var ani = new AniContainer(new MemoryStream(inputBytes));
+                        using var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create);
+                        ani.Write(fs);
+                        break;
+                    }
+
+                case GifCodec gifCodec:
+                    {
+                        var gif = new GifContainer(new MemoryStream(inputBytes));
+                        using var fs = new FileStream($"{outputFileName}.{gifCodec.PrimaryExtension}", FileMode.Create);
+                        gif.Write(fs);
+                        break;
+                    }
+
+                default:
+                    SaveImageAsPrimary(outputFileName, container);
+                    break;
             }
 
         }

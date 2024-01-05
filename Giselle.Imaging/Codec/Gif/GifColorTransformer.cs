@@ -9,12 +9,12 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Gif
 {
-    public class GifDecodeColorTransformer : IColorTransformer
+    public class GifColorTransformer : IColorTransformer
     {
         public ImageArgb32Frame PrevFrame { get; }
         public GifFrame Frame { get; }
 
-        public GifDecodeColorTransformer(ImageArgb32Frame prevFrame, GifFrame frame)
+        public GifColorTransformer(ImageArgb32Frame prevFrame, GifFrame frame)
         {
             this.PrevFrame = prevFrame;
             this.Frame = frame;
@@ -22,7 +22,15 @@ namespace Giselle.Imaging.Codec.Gif
 
         public Argb32 Encode(ScanData scanData, PointI coord, int tableIndex, Argb32 color)
         {
-            return color;
+            if (this.PrevFrame != null && tableIndex == this.Frame.TransparentColorIndex)
+            {
+                return this.PrevFrame[coord];
+            }
+            else
+            {
+                return color;
+            }
+
         }
 
         public Argb32 Decode(ScanData scanData, PointI coord, int tableIndex, Argb32 color)

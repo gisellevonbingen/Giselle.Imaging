@@ -9,12 +9,12 @@ using Giselle.Imaging.Scan;
 
 namespace Giselle.Imaging.Codec.Gif
 {
-    public class GifDecodeCoordTransformer : ICoordTransformer
+    public class GifCoordTransformer : ICoordTransformer
     {
         public ImageArgb32Frame PrevFrame { get; }
         public GifFrame Frame { get; }
 
-        public GifDecodeCoordTransformer(ImageArgb32Frame prevFrame, GifFrame frame)
+        public GifCoordTransformer(ImageArgb32Frame prevFrame, GifFrame frame)
         {
             this.PrevFrame = prevFrame;
             this.Frame = frame;
@@ -22,7 +22,7 @@ namespace Giselle.Imaging.Codec.Gif
 
         public PointI Encode(ScanData scanData, PointI coord)
         {
-            return coord;
+            return new PointI(this.Frame.X - coord.X, this.Frame.Y - coord.Y);
         }
 
         public PointI Decode(ScanData scanData, PointI coord)
