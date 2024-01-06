@@ -46,51 +46,60 @@ namespace Giselle.Imaging.Codec.Gif
             return buffer.ToArray();
         }
 
-        public ImageArgb32Frame Decode(GifContainer container, ImageArgb32Frame prev)
-        {
-            var frame = prev == null ? new ImageArgb32Frame(container.Width, container.Height) : new ImageArgb32Frame(prev);
-            frame.PrimaryCodec = GifCodec.Instance;
-            frame.PrimaryOptions = new GifFrameSaveOptions() { Delay = this.FrameDelay };
-
-            ScanProcessorIndexed.Instance.Decode(new ScanData(this.Width, this.Height, BitsPerPixel)
-            {
-                Scan = this.Decompress(),
-                Stride = this.Width,
-                ColorTable = this.LocalColorTable.Length > 0 ? this.LocalColorTable : container.GlobalColorTable,
-                CoordTransformer = new GifCoordTransformer(prev, this),
-                ColorTransformer = new GifColorTransformer(prev, this),
-            }, frame);
-
-            return frame;
-        }
-
-        public ScanData EncodeScan(GifContainer container, ImageArgb32Frame prev, ImageArgb32Frame frame)
+        public ScanData CreateScanData(GifContainer container, ImageArgb32Frame prev)
         {
             var scan = new ScanData(this.Width, this.Height, BitsPerPixel)
             {
-                Scan = new byte[this.Height * ScanProcessor.GetBytesPerWidth(this.Width, BitsPerPixel)],
                 Stride = this.Width,
                 ColorTable = this.LocalColorTable.Length > 0 ? this.LocalColorTable : container.GlobalColorTable,
                 CoordTransformer = new GifCoordTransformer(prev, this),
                 ColorTransformer = new GifColorTransformer(prev, this),
             };
 
-            ScanProcessorIndexed.Instance.Encode(scan, frame);
+            if (this.Interlace == true)
+            {
+                scan.InterlaceBlockWidth = 8;
+                scan.InterlaceBlockHeight = 8;
+                scan.InterlacePasses = new[]
+                {
+                    new InterlacePass(0, 0, 1, 8),
+                    new InterlacePass(0, 4, 1, 8),
+                    new InterlacePass(0, 2, 1, 4),
+                    new InterlacePass(0, 1, 1, 2)
+                };
+            }
+
             return scan;
+        }
+
+        public ImageArgb32Frame Decode(GifContainer container, ImageArgb32Frame prev)
+        {
+            var frame = prev == null ? new ImageArgb32Frame(container.Width, container.Height) : new ImageArgb32Frame(prev);
+            frame.PrimaryCodec = GifCodec.Instance;
+            frame.PrimaryOptions = new GifFrameSaveOptions() { UserInput = this.UserInput, Delay = this.FrameDelay, Interlace = this.Interlace };
+
+            var scanData = this.CreateScanData(container, prev);
+            scanData.Scan = this.Decompress();
+            ScanProcessorIndexed.Instance.Decode(scanData, frame);
+
+            return frame;
         }
 
         public void Encode(GifContainer container, ImageArgb32Frame prev, ImageArgb32Frame frame)
         {
-            var scan = this.EncodeScan(container, prev, frame);
+            var scanData = this.CreateScanData(container, prev);
+            scanData.Scan = new byte[this.Height * ScanProcessor.GetBytesPerWidth(this.Width, BitsPerPixel)];
+            ScanProcessorIndexed.Instance.Encode(scanData, frame);
+
 
             this.CompressedScanData.Position = 0L;
             using var output = new BitStream(this.CompressedScanData, true, true);
             using var lzwStream = new LZWStream(output, CompressionMode.Compress, new GifLZWProcessor(this.MinimumLZWCodeSize, MaximumLZWCodeSize), true);
-            lzwStream.Write(scan.Scan);
+            lzwStream.Write(scanData.Scan);
 
             //var buffer = new byte[0x2F];
 
-            //using (var ms = new MemoryStream(scan.Scan))
+            //using (var ms = new MemoryStream(scanData.Scan))
             //{
             //    while (true)
             //    {
