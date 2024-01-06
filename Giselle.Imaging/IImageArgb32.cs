@@ -10,6 +10,9 @@ namespace Giselle.Imaging
 {
     public interface IImageArgb32
     {
+        int Width { get; }
+        int Height { get; }
+
         ImageCodec PrimaryCodec { get; }
 
         void Save(Stream output);

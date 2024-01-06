@@ -20,7 +20,7 @@ namespace Giselle.Imaging.Codec.Gif
             this.Repetitions = other.Repetitions;
         }
 
-        public override GifSaveOptions Clone() => new GifSaveOptions(this);
+        public override GifSaveOptions Clone() => new(this);
     }
 
 }

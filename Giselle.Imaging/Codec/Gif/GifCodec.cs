@@ -55,8 +55,8 @@ namespace Giselle.Imaging.Codec.Gif
         {
             throw new NotImplementedException();
 
-            var rawContainer = new GifContainer();
             var options = _options.CastOrDefault<GifSaveOptions>();
+            var rawContainer = new GifContainer(container, options);
             rawContainer.Write(output);
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -37,6 +38,11 @@ namespace Giselle.Imaging.Codec.Gif
         public GifContainer(Stream input) : this()
         {
             this.Read(input);
+        }
+
+        public GifContainer(ImageArgb32Container container, GifSaveOptions options) : this()
+        {
+            this.Encode(container, options);
         }
 
         public void Read(Stream input)
@@ -193,8 +199,8 @@ namespace Giselle.Imaging.Codec.Gif
                 this.WriteSubBlocks(p, GifBlockCode.ApplicationExtension,
                     p2 =>
                     {
-                        p2.WriteBytes(GifCodec.Encoding.GetBytes(ApplicationIdentifierNetscape));
-                        p2.WriteBytes(GifCodec.Encoding.GetBytes(ApplicationAuthenticationCodeNetscapce));
+                        p2.WriteBytes(GifCodec.Encoding.GetBytes(this.ApplicationIdentifier));
+                        p2.WriteBytes(GifCodec.Encoding.GetBytes(this.ApplicationAuthenticationCode));
                     },
                     p2 =>
                     {
@@ -314,6 +320,67 @@ namespace Giselle.Imaging.Codec.Gif
             }
 
             return container;
+        }
+
+        public void Encode(ImageArgb32Container container, GifSaveOptions options)
+        {
+            this.Frames.Clear();
+            this.Width = Convert.ToUInt16(container.Width);
+            this.Height = Convert.ToUInt16(container.Height);
+
+            this.PixelAspectRatio = 0;
+
+            this.ApplicationAuthenticationCode = ApplicationAuthenticationCodeNetscapce;
+            this.ApplicationIdentifier = ApplicationIdentifierNetscape;
+            this.Repetitions = options.Repetitions;
+
+            var colors = new HashSet<Argb32>();
+
+            foreach (var frame in container)
+            {
+                foreach (var color in frame.Colors)
+                {
+                    colors.Add(color);
+                }
+
+            }
+
+            if (colors.Count > byte.MaxValue)
+            {
+                this.GlobalColorTable = Array.Empty<Argb32>();
+            }
+            else
+            {
+                this.GlobalColorTable = colors.ToArray();
+            }
+
+            for (var i = 0; i < container.Count; i++)
+            {
+                var frame = container[i];
+                var frameOptions = frame.PrimaryOptions.CastOrDefault<GifFrameSaveOptions>();
+                var prev = i > 0 ? container[i - 1] : null;
+
+                var raw = new GifFrame()
+                {
+                    X = 0,
+                    Y = 0,
+                    Width = Convert.ToUInt16(frame.Width),
+                    Height = Convert.ToUInt16(frame.Height),
+                    LocalColorTable = this.GlobalColorTable.Length == 0 ? frame.GetColorTable(PixelFormat.Format8bppIndexed) : Array.Empty<Argb32>(),
+                    UserInput = frameOptions.UserInput,
+                    FrameDelay = frameOptions.Delay,
+                    Interlace = frameOptions.Interlace,
+                    SortFlag = false,
+                    DisposalMethod = i == 0 ? GifDisposalMethod.NoSpecified : GifDisposalMethod.DoNotDispose,
+                };
+
+                var table = raw.LocalColorTable.Length > 0 ? raw.LocalColorTable : this.GlobalColorTable;
+                raw.MinimumLZWCodeSize = (byte)Math.Max((table.Length > 0 ? Math.Ceiling(Math.Log2(table.Length)) : 0), 7);
+                raw.Encode(this, prev, frame);
+
+                this.Frames.Add(raw);
+            }
+
         }
 
         public static Argb32[] ReadColorTable(DataProcessor processor, bool present, int size)

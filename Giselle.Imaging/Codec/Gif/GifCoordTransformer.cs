@@ -20,15 +20,9 @@ namespace Giselle.Imaging.Codec.Gif
             this.Frame = frame;
         }
 
-        public PointI Encode(ScanData scanData, PointI coord)
-        {
-            return new PointI(this.Frame.X - coord.X, this.Frame.Y - coord.Y);
-        }
+        public PointI Encode(ScanData scanData, PointI coord) => new(coord.X - this.Frame.X, coord.Y - this.Frame.Y);
 
-        public PointI Decode(ScanData scanData, PointI coord)
-        {
-            return new PointI(this.Frame.X + coord.X, this.Frame.Y + coord.Y);
-        }
+        public PointI Decode(ScanData scanData, PointI coord) => new(coord.X + this.Frame.X, coord.Y + this.Frame.Y);
 
     }
 

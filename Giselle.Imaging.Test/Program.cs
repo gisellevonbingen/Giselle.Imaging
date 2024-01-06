@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,6 +17,7 @@ using Giselle.Imaging.Codec.Png;
 using Giselle.Imaging.Physical;
 using Giselle.Imaging.Scan;
 using Streams.IO;
+using Streams.LZW;
 
 namespace Giselle.Imaging.Test
 {
@@ -185,14 +187,6 @@ namespace Giselle.Imaging.Test
                         var ani = new AniContainer(new MemoryStream(inputBytes));
                         using var fs = new FileStream($"{outputFileName}.{aniCodec.PrimaryExtension}", FileMode.Create);
                         ani.Write(fs);
-                        break;
-                    }
-
-                case GifCodec gifCodec:
-                    {
-                        var gif = new GifContainer(new MemoryStream(inputBytes));
-                        using var fs = new FileStream($"{outputFileName}.{gifCodec.PrimaryExtension}", FileMode.Create);
-                        gif.Write(fs);
                         break;
                     }
 

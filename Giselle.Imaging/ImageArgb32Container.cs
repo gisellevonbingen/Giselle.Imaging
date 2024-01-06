@@ -35,6 +35,10 @@ namespace Giselle.Imaging
             this.PrimaryOptions = primaryFrame.PrimaryOptions?.Clone();
         }
 
+        public int Width => this.First().Width;
+
+        public int Height => this.First().Height;
+
         public ImageArgb32Container Clone() => new(this);
 
         public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);

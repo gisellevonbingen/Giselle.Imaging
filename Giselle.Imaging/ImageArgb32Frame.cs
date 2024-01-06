@@ -24,7 +24,7 @@ namespace Giselle.Imaging
         public PhysicalDensity Resolution
         {
             get => PhysicalValueUtils.Max(new[] { this.WidthResoulution, this.HeightResoulution });
-            set { this.WidthResoulution = value; this.HeightResoulution = value; }
+            set => (this.WidthResoulution, this.HeightResoulution) = (value, value);
         }
         private readonly Lazy<IEnumerable<Argb32>> _Colors;
         public IEnumerable<Argb32> Colors => this._Colors.Value;
@@ -133,27 +133,7 @@ namespace Giselle.Imaging
             set => this[coord.X, coord.Y] = value;
         }
 
-        public Argb32[] GetColorTable(PixelFormat format)
-        {
-            var colorTableLength = format.GetColorTableLength();
-
-            if (colorTableLength > 0)
-            {
-                var usedColors = this.Colors.Distinct().ToArray();
-
-                if (usedColors.Length > colorTableLength)
-                {
-                    throw new ArgumentException($"Image's Used Colors Kind({usedColors.Length}) Exceeds ColorTableLength({colorTableLength})");
-                }
-
-                return usedColors;
-            }
-            else
-            {
-                return Array.Empty<Argb32>();
-            }
-
-        }
+        public Argb32[] GetColorTable(PixelFormat format) => format.GetColorTable(this.Colors);
 
         public void Save(Stream output) => this.Save(output, this.PrimaryCodec, this.PrimaryOptions);
 

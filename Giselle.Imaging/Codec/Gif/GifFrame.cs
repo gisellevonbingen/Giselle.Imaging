@@ -36,21 +36,25 @@ namespace Giselle.Imaging.Codec.Gif
 
         }
 
-        public ImageArgb32Frame Decode(GifContainer container, ImageArgb32Frame prev)
+        public byte[] Decompress()
         {
             this.CompressedScanData.Position = 0L;
-            using var input = new BitStream(this.CompressedScanData, true);
-            using var lzwStream = new LZWStream(input, CompressionMode.Decompress, new GifLZWProcessor(this.MinimumLZWCodeSize, MaximumLZWCodeSize));
+            using var input = new BitStream(this.CompressedScanData, true, true);
+            using var lzwStream = new LZWStream(input, CompressionMode.Decompress, new GifLZWProcessor(this.MinimumLZWCodeSize, MaximumLZWCodeSize), true);
             using var buffer = new MemoryStream();
             lzwStream.CopyTo(buffer);
+            return buffer.ToArray();
+        }
 
+        public ImageArgb32Frame Decode(GifContainer container, ImageArgb32Frame prev)
+        {
             var frame = prev == null ? new ImageArgb32Frame(container.Width, container.Height) : new ImageArgb32Frame(prev);
             frame.PrimaryCodec = GifCodec.Instance;
             frame.PrimaryOptions = new GifFrameSaveOptions() { Delay = this.FrameDelay };
 
             ScanProcessorIndexed.Instance.Decode(new ScanData(this.Width, this.Height, BitsPerPixel)
             {
-                Scan = buffer.ToArray(),
+                Scan = this.Decompress(),
                 Stride = this.Width,
                 ColorTable = this.LocalColorTable.Length > 0 ? this.LocalColorTable : container.GlobalColorTable,
                 CoordTransformer = new GifCoordTransformer(prev, this),
@@ -60,7 +64,7 @@ namespace Giselle.Imaging.Codec.Gif
             return frame;
         }
 
-        public void Encode(GifContainer container, ImageArgb32Frame prev, ImageArgb32Frame frame)
+        public ScanData EncodeScan(GifContainer container, ImageArgb32Frame prev, ImageArgb32Frame frame)
         {
             var scan = new ScanData(this.Width, this.Height, BitsPerPixel)
             {
@@ -72,11 +76,37 @@ namespace Giselle.Imaging.Codec.Gif
             };
 
             ScanProcessorIndexed.Instance.Encode(scan, frame);
+            return scan;
+        }
+
+        public void Encode(GifContainer container, ImageArgb32Frame prev, ImageArgb32Frame frame)
+        {
+            var scan = this.EncodeScan(container, prev, frame);
 
             this.CompressedScanData.Position = 0L;
-            using var output = new BitStream(this.CompressedScanData, true);
-            using var lzwStream = new LZWStream(output, CompressionMode.Compress, new GifLZWProcessor(this.MinimumLZWCodeSize, MaximumLZWCodeSize));
+            using var output = new BitStream(this.CompressedScanData, true, true);
+            using var lzwStream = new LZWStream(output, CompressionMode.Compress, new GifLZWProcessor(this.MinimumLZWCodeSize, MaximumLZWCodeSize), true);
             lzwStream.Write(scan.Scan);
+
+            //var buffer = new byte[0x2F];
+
+            //using (var ms = new MemoryStream(scan.Scan))
+            //{
+            //    while (true)
+            //    {
+            //        var len = ms.Read(buffer);
+
+            //        if (len <= 0)
+            //        {
+            //            break;
+            //        }
+
+            //        this.CompressedScanData.Write(buffer, 0, len);
+            //        lzwStream.WriteClearCode();
+            //    }
+
+            //}
+
         }
 
     }

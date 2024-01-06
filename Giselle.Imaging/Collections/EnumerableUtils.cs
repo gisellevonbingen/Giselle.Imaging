@@ -47,7 +47,7 @@ namespace Giselle.Imaging.Collections
 
         public static IEnumerable<T> TakeFixSize<T>(this IList<T> source, int offset, int count, T fallback = default)
         {
-            var takedCount = Math.Max(source.Count - offset, count);
+            var takedCount = Math.Min(source.Count - offset, count);
 
             for (var i = 0; i < takedCount; i++)
             {
